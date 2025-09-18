@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/styles.css">
     <script src="scripts.js" defer></script>
     <script src="javascript/backgroundScroll.js" defer></script>
+    <script src="javascript/language.js" defer></script>
 
 </head>
 <body>
@@ -20,9 +21,17 @@
         <video id="bg-underground" class="bg-panel" src="images/Background/underground.mp4" autoplay loop muted playsinline></video>
     </div>
 
+        <!-- Language selector button -->
+    <div class="language-selector">
+        <select id="lang-select" aria-label="Select language">
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+        </select>
+    </div>
+
     <div class="main-content">
         <header>
-            <h1>Personal Web</h1>
+            <h1 data-i18n="title">Personal Web</h1>
         </header>
 
         <div class="profile">
@@ -31,12 +40,12 @@
         </div>
 
         <section id="about">
-            <h2>About Me</h2>
-            <p>Welcome to my online resume! I am a web developer with a passion for creating beautiful and functional websites and some game design.</p>
+            <h2 data-i18n="about-title">About Me</h2>
+            <p data-i18n="about-text">Welcome to my online resume! I am a web developer with a passion for creating beautiful and functional websites and some game design.</p>
         </section>
 
         <section id="skills">
-            <h2>Skills</h2>
+            <h2 data-i18n="skills-title">Skills</h2>
             <ul>
                 <li>HTML/CSS</li>
                 <li>JavaScript</li>
@@ -47,61 +56,55 @@
         </section>
 
         <section id="experience">
-            <h2>Experience</h2>
+            <h2 data-i18n="experience-title">Experience</h2>
             <div class="job">
-                <h3>Web Developer</h3>
-                <p>June 2023 - Present</p>
+                <h3 data-i18n="exp-webdev-title">Web Developer</h3>
+                <p data-i18n="exp-webdev-date">June 2023 - Present</p>
                 <ul>
-                    <li>Developed and maintained small personal website.</li>
-                    <li>Collaborated with design team to implement new features.</li>
-                    <li>Optimized website performance and frontend responsiveness.</li>
+                    <li data-i18n="exp-webdev-1">Developed and maintained small personal website.</li>
+                    <li data-i18n="exp-webdev-2">Collaborated with design team to implement new features.</li>
+                    <li data-i18n="exp-webdev-3">Optimized website performance and frontend responsiveness.</li>
                 </ul>
             </div>
 
             <div class="job">
-                <h3>Python Developer</h3>
-                <p>Jan 2020 - Present</p>
+                <h3 data-i18n="exp-pydev-title">Python Developer</h3>
+                <p data-i18n="exp-pydev-date">Jan 2020 - Present</p>
                 <ul>
-                    <li>Assisted in developing client websites.</li>
-                    <li>Create automated scripts to streamline workflows.</li>
-                    <li>Worked in a team to deliver high-quality software solutions.</li>
+                    <li data-i18n="exp-pydev-1">Assisted in developing client websites.</li>
+                    <li data-i18n="exp-pydev-2">Create automated scripts to streamline workflows.</li>
+                    <li data-i18n="exp-pydev-3">Worked in a team to deliver high-quality software solutions.</li>
                 </ul>
             </div>
 
             <div class="job">
-            <h3>Java Developer</h3>
-            <p>Jan 2024 - Present</p>
+            <h3 data-i18n="exp-javadev-title">Java Developer</h3>
+            <p data-i18n="exp-javadev-date">Jan 2024 - Present</p>
             <ul>
-                <li>Collaborated in the development of a Java-based card game.</li>
-                <li>Implemented game logic and user interface components.</li>
-                <li>Implemented TDD to ensure code quality and functionality.</li>
+                <li data-i18n="exp-javadev-1">Collaborated in the development of a Java-based card game.</li>
+                <li data-i18n="exp-javadev-2">Implemented game logic and user interface components.</li>
+                <li data-i18n="exp-javadev-3">Implemented TDD to ensure code quality and functionality.</li>
             </ul>
         </div>
     </section>
 
     <section id="education">
-        <h2>Education</h2>
-         <h3>UBA University of Engineering, 2021 - Present</h3>
-            <p>Software Engineering</p>
-
+        <h2 data-i18n="education-title">Education</h2>
+         <h3 data-i18n="edu-uni">UBA University of Engineering, 2021 - Present</h3>
+            <p data-i18n="edu-career">Software Engineering</p>
     </section>
 
     <div class="qr-section">
-
-        <h2>QR Code Generator</h2>
-
+        <h2 data-i18n="qr-title">QR Code Generator</h2>
         <p>
-            <a href="docs/QRGenerator.html" class="qr-button">
+            <a href="docs/QRGenerator.html" class="qr-button" data-i18n="qr-generate-link">
                 Generate your own QR codes easily!
             </a>
-
         </p>
 
     <section id="contact">
-        <h2>My Contact</h2>
-
+        <h2 data-i18n="contact-title">My Contact</h2>
         <div id="contact-info">
-
         <ul class="contact-list">
             <li>
                 <p>

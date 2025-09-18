@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/styles.css">
     <script src="../javascript/QRGenerator.js" defer></script>
     <script src="../javascript/backgroundScroll.js" defer></script>
+    <script src="../javascript/language.js" defer></script>
 </head>
 
 <body>
@@ -20,6 +21,15 @@
         <video id="bg-underground" class="bg-panel" src="../images/Background/underground.mp4" autoplay loop muted playsinline></video>
     </div>
 
+
+    <!-- Language selector button -->
+    <div class="language-selector">
+        <select id="lang-select" aria-label="Select language">
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+        </select>
+    </div>
+
     <div class="main-content">
 
         <!-- roll back button -->
@@ -28,25 +38,25 @@
         </div>
 
         <header>
-            <h1>QR Code Generator</h1>
+            <h1 data-i18n="qr-title">QR Code Generator</h1>
         </header>
 
         <section id="qr-generator">
-            <h2>Generate Your QR Code</h2>
+            <h2 data-i18n="qr-generate">Generate Your QR Code</h2>
             <form id="qr-form">
-                <label for="qr-text">Enter text or URL:</label>
+                <label for="qr-text" data-i18n="qr-label">Enter text or URL:</label>
                 <input type="text" id="qr-text" name="qr-text" required>
-                <button type="submit">Generate QR Code</button>
+                <button type="submit" data-i18n="qr-generate-btn">Generate QR Code</button>
             </form>
             <div id="qr-result">
-                <h3>Your QR Code:</h3>
+                <h3 data-i18n="qr-result-title">Your QR Code:</h3>
                 <canvas id="qr-canvas"></canvas>
 
 
                 <!-- copy and download buttons -->
                 <div class="qr-buttons">
-                    <button id="copy-button">Copy</button>
-                    <button id="download-button">Download</button>
+                    <button id="copy-button" data-i18n="qr-copy">Copy</button>
+                    <button id="download-button" data-i18n="qr-download">Download</button>
                 </div>
             </div>
         </section>

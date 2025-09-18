@@ -398,3 +398,27 @@ body {
     transform: scale(1.1);
 }
 
+/* Language selector button */
+.language-selector {
+    position: fixed;
+    top: 18px;
+    right: 24px;
+    z-index: 2000;
+    /* Asegura que esté por encima de otros elementos */
+}
+.language-selector select {
+    background: #181828;
+    color: #fff;
+    border: 1.5px solid #3af;
+    border-radius: 6px;
+    padding: 0.4em 1.2em;
+    font-size: 1rem;
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    outline: none;
+    transition: border 0.2s;
+}
+.language-selector select:focus {
+    border: 1.5px solid #fff;
+}
+
