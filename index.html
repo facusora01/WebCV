@@ -23,27 +23,26 @@
     </div>
 
     <div class="language-selector" style="display: flex; gap: 0.5rem; align-items: center;">
-        
-        <select id="font-select" aria-label="Select font">
+
+        <select class="top-buttons" id="font-select" aria-label="Select font">
             <option value="default" selected>Default Font</option>
             <option value="courier">Courier Font</option>
         </select>
 
-        <select id="lang-select" aria-label="Select language">
+        <select class="top-buttons" id="lang-select" aria-label="Select language">
             <option value="en">English</option>
             <option value="es">Español</option>
         </select>
-
     </div>
 
     <div class="main-content">
         <header>
-            <h1 data-i18n="title">Web</h1>
+            <h1 class="title" data-i18n="title">Web</h1>
         </header>
 
         <div class="profile">
             <img id="profile-picture" src="images/ProfilePicture.jpg" alt="I will come soon!" width="200" height="200">
-            <h3>Facundo Sorasio</h3>
+            <h3 id="profile-name">Facundo Sorasio</h3>
         </div>
 
         <section id="about">
@@ -67,33 +66,39 @@
             <div class="job">
                 <h3 data-i18n="exp-webdev-title">Web Developer</h3>
                 <p data-i18n="exp-webdev-date">June 2023 - Present</p>
+
                 <ul>
                     <li data-i18n="exp-webdev-1">Developed and maintained small personal website.</li>
                     <li data-i18n="exp-webdev-2">Collaborated with design team to implement new features.</li>
                     <li data-i18n="exp-webdev-3">Optimized website performance and frontend responsiveness.</li>
                 </ul>
+
             </div>
 
             <div class="job">
                 <h3 data-i18n="exp-pydev-title">Python Developer</h3>
                 <p data-i18n="exp-pydev-date">Jan 2020 - Present</p>
+
                 <ul>
                     <li data-i18n="exp-pydev-1">Assisted in developing client websites.</li>
                     <li data-i18n="exp-pydev-2">Create automated scripts to streamline workflows.</li>
                     <li data-i18n="exp-pydev-3">Worked in a team to deliver high-quality software solutions.</li>
                 </ul>
+
             </div>
 
             <div class="job">
-            <h3 data-i18n="exp-javadev-title">Java Developer</h3>
-            <p data-i18n="exp-javadev-date">Jan 2024 - Present</p>
-            <ul>
-                <li data-i18n="exp-javadev-1">Collaborated in the development of a Java-based card game.</li>
-                <li data-i18n="exp-javadev-2">Implemented game logic and user interface components.</li>
-                <li data-i18n="exp-javadev-3">Implemented TDD to ensure code quality and functionality.</li>
-            </ul>
-        </div>
-    </section>
+                <h3 data-i18n="exp-javadev-title">Java Developer</h3>
+                <p data-i18n="exp-javadev-date">Jan 2024 - Present</p>
+                
+                <ul>
+                    <li data-i18n="exp-javadev-1">Collaborated in the development of a Java-based card game.</li>
+                    <li data-i18n="exp-javadev-2">Implemented game logic and user interface components.</li>
+                    <li data-i18n="exp-javadev-3">Implemented TDD to ensure code quality and functionality.</li>
+                </ul>
+
+            </div>
+        </section>
 
     <section id="education">
         <h2 data-i18n="education-title">Education</h2>
@@ -108,37 +113,39 @@
                 Generate your own QR codes easily!
             </a>
         </p>
+    </div>
 
     <section id="contact">
         <h2 data-i18n="contact-title">My Contact</h2>
+
         <div id="contact-info">
-        <ul class="contact-list">
-            <li>
-                <p>
-                    <a href="mailto:facusorasio@hotmail.com" target="_blank">
-                        <img class="img-icons" src="images/icons/Contact/MailIcon.png" alt="Email">
-                    </a>
-                </p>
-            </li>
+            <ul class="contact-list">
+                <li>
+                    <p>
+                        <a class="contact-link" href="mailto:facusorasio@hotmail.com" target="_blank">
+                            <img class="img-icons" src="images/icons/Contact/MailIcon.png" alt="Email">
+                        </a>
+                    </p>
+                </li>
 
-            <li>
-                <p>
-                    <a href="https://wa.me/542477624468" target="_blank">
-                        <img class="img-icons" src="images/icons/Contact/Whatsapp.png" alt="WhatsApp">
-                    </a>
-                </p>
-            </li>
+                <li>
+                    <p>
+                        <a class="contact-link" href="https://wa.me/542477624468" target="_blank">
+                            <img class="img-icons" src="images/icons/Contact/Whatsapp.png" alt="WhatsApp">
+                        </a>
+                    </p>
+                </li>
 
-            <li>
-                <p>
-                    <a href="https://github.com/facusora01" target="_blank">
-                        <img class="img-icons" src="images/icons/Contact/Github.png" alt="GitHub">
-                    </a>
-                </p>
-            </li>
+                <li>
+                    <p>
+                        <a class="contact-link" href="https://github.com/facusora01" target="_blank">
+                            <img class="img-icons" src="images/icons/Contact/Github.png" alt="GitHub">
+                        </a>
+                    </p>
+                </li>
 
-        </ul>
-    </div>
+            </ul>
+        </div>
 
     </section>
 

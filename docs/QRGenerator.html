@@ -24,13 +24,17 @@
 
 
     <div class="language-selector" style="display: flex; gap: 0.5rem; align-items: center;">
-        
-        <select id="font-select" aria-label="Select font">
+
+        <a class="top-buttons" id="go-back" href="../index.html">
+            Go Back
+        </a>
+
+        <select class="top-buttons" id="font-select" aria-label="Select font">
             <option value="default" selected>Default Font</option>
             <option value="courier">Courier Font</option>
         </select>
 
-        <select id="lang-select" aria-label="Select language">
+        <select class="top-buttons" id="lang-select" aria-label="Select language">
             <option value="en">English</option>
             <option value="es">Español</option>
         </select>
@@ -39,14 +43,8 @@
 
     <div class="main-content">
 
-        <!-- roll back button -->
-
-        <a href="../index.html" class="roll-back">    
-                Go Back
-        </a>
-
         <header>
-            <h1 data-i18n="qr-title">QR Code Generator</h1>
+            <h1 class="title" data-i18n="qr-title">QR Code Generator</h1>
         </header>
 
         <section id="qr-generator">

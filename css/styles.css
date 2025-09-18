@@ -1,3 +1,108 @@
+@media (max-width: 600px) {
+    
+
+    #go-back, #font-select, #lang-select {
+        display: flex;
+        font-size: 0.5rem;
+        padding: 0.3em 0.8em;
+        /*hacer mas alto el select*/
+        height: 1.5rem;
+        text-align: center;
+        align-items: center;
+    }
+
+    header {
+        font-size: 1rem;
+        margin: 0.5rem 0;
+    }
+
+    .title {
+        font-size: 2.2rem;
+    }
+
+    #profile-name {
+        font-size: 1.2rem;
+        margin-top: 0.5rem;
+    }
+
+    /* ===== Base ===== */
+    body {
+        font-size: 0.75rem;
+        line-height: 1.5;
+        overflow-x: hidden;
+        padding: 0 4vw;
+    }
+
+    .main-content {
+        max-width: 100%;
+    }
+
+    /* ===== Títulos ===== */
+    h1 {
+        font-size: 1rem;
+        margin: 1rem 0;
+        text-align: center;
+    }
+    h2 {
+        font-size: 1.5rem;
+        margin: 0.8rem 0;
+        text-align: center;
+    }
+    h3 {
+        font-size: 0.95rem;
+        margin: 0.7rem 0;
+        text-align: center;
+    }
+    p, ul, ol, li, .qr-button {
+        font-size: 0.85rem;
+    }
+
+    /* ===== Perfil ===== */
+    .profile {
+        margin: 1rem 0 2rem;
+        text-align: center;
+    }
+
+    #profile-picture {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+        display: block;
+    }
+
+    /* ===== Listas ===== */
+    ul, ol {
+        padding-left: 1.2em;
+    }
+
+    /* ===== Contacto ===== */
+    #contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: center;
+    }
+
+    .contact-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .img-icons {
+        width: 40px;     /* Íconos más chicos en pantallas pequeñas */
+        height: 40px;    /* Mantengo la proporción cuadrada */
+        object-fit: contain;
+        margin-top: 10px; /* Menos espacio arriba que en escritorio */
+    }
+
+}
+
 /* Fondo apilado responsivo */
 .background-layers {
     position: fixed;
@@ -18,75 +123,6 @@
 #bg-underwater { top: 100vh; }
 #bg-stone { top: 200vh; }
 #bg-underground { top: 300vh; }
-/* =============================
-     Responsive: Móviles (<400px)
-     ============================= */
-/* =============================
-   Responsive: Móviles (<600px)
-   ============================= */
-@media (max-width: 600px) {
-
-    body {
-        font-size: 0.95rem;
-        overflow-x: hidden;  /* seguridad extra */
-    }
-
-    .main-content {
-        padding: 0 4vw;      /* más respiración que 1vw */
-        max-width: 100%;
-        margin: 0 auto;
-    }
-
-    /* Titulares */
-    h1 {
-        font-size: 2rem;
-        margin: 1.5rem 0;
-        text-align: center;
-    }
-
-    h2, h3 {
-        font-size: 1.2rem;
-        margin: 1.2rem 0;
-        text-align: center;
-    }
-
-    /* Perfil */
-    .profile {
-        margin: 1rem 0 2rem;
-        text-align: center;
-    }
-
-    #profile-picture {
-        width: 120px !important;
-        height: 120px !important;
-        margin: 0 auto;
-        display: block;
-    }
-
-    /* Listas */
-    ul, ol {
-        padding-left: 1.2em;
-    }
-
-    /* Contacto */
-    #contact-info {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-        align-items: center;
-    }
-
-    .contact-list {
-        display: flex;
-        gap: 1.2rem;
-        flex-wrap: wrap;
-        list-style: none;
-        justify-content: center;
-        align-items: center;
-        margin: 0;
-        padding: 0;
-    }
-}
 
 
 @font-face {
@@ -165,6 +201,37 @@ header {
     text-align: center;
 }
 
+.language-selector {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: flex-end; /* los empuja a la derecha */
+    margin: 1rem 2rem; /* separa del borde */
+}
+
+.language-selector #go-back {
+    text-decoration: none;
+    margin-right: auto; /* empuja el botón a la izquierda */
+}
+
+
+.language-selector .top-buttons {
+    background: #181828;
+    color: #fff;
+    border: 1.5px solid #3af;
+    border-radius: 6px;
+    padding: 0.4em 1.2em;
+    height: auto;
+    font-size: 1rem;
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    outline: none;
+    transition: border 0.2s;
+}
+
+.language-selector .top-buttons:focus {
+    border: 1.5px solid #fff;
+}
 
 body {
     margin: 0;
@@ -229,34 +296,6 @@ body {
 }
 
 .qr-button:hover {
-    transform: scale(1.1);
-}
-
-
-/* QR Generator */
-
-.roll-back {
-    margin-top: 0.5em;
-    margin-left: 0.5em;
-    display: inline-block;
-    width: auto;
-    min-width: 0;
-    padding: 0.5em 1em;
-    position: absolute;
-    top: 0;
-    left: 0;
-    background: #222;
-    color: #fff;
-    border: 2px solid white;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    object-fit: contain;
-    transition: transform 0.3s ease;
-}
-.roll-back:hover {
     transform: scale(1.1);
 }
 
@@ -367,32 +406,6 @@ body {
     
     background: #0056b3;
     transform: scale(1.1);
-}
-
-/* Language selector button */
-.language-selector {
-    position: fixed;
-    top: 18px;
-    right: 24px;
-    z-index: 2000;
-    /* Asegura que esté por encima de otros elementos */
-}
-.language-selector select,
-#font-select {
-    background: #181828;
-    color: #fff;
-    border: 1.5px solid #3af;
-    border-radius: 6px;
-    padding: 0.4em 1.2em;
-    font-size: 1rem;
-    font-family: inherit;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-    outline: none;
-    transition: border 0.2s;
-}
-.language-selector select:focus,
-#font-select:focus {
-    border: 1.5px solid #fff;
 }
 
 
