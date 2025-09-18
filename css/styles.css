@@ -29,10 +29,10 @@
 
 #contact-info {
     display: flex;
-    
+    justify-content: center;
     gap: 100px;
     align-items: center;
-    margin-top: 20px;
+    margin-top: 20px
 }
 
 h2, h3 {
