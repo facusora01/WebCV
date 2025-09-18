@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="../images/icons/Writable_Book.png">
+    <title>QR Code Generator - WebCV</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="../javascript/QRGenerator.js" defer></script>
+    <script src="../javascript/backgroundScroll.js" defer></script>
+</head>
+
+<body>
+
+    <!-- Fondo -->
+    <div class="background-layers">
+        <video id="bg-beach" class="bg-panel" src="../images/Background/Beach.mp4" autoplay loop muted playsinline></video>
+        <img id="bg-underwater" class="bg-panel" src="../images/Background/underwater.gif" />
+        <img id="bg-stone" class="bg-panel" src="../images/Background/stone.jpg" />
+        <video id="bg-underground" class="bg-panel" src="../images/Background/underground.mp4" autoplay loop muted playsinline></video>
+    </div>
+
+    <div class="main-content">
+
+        <!-- roll back button -->
+        <div class="roll-back">
+            <a href="../index.html" class="roll-back-button">Go Back</a>
+        </div>
+
+        <header>
+            <h1>QR Code Generator</h1>
+        </header>
+
+        <section id="qr-generator">
+            <h2>Generate Your QR Code</h2>
+            <form id="qr-form">
+                <label for="qr-text">Enter text or URL:</label>
+                <input type="text" id="qr-text" name="qr-text" required>
+                <button type="submit">Generate QR Code</button>
+            </form>
+            <div id="qr-result">
+                <h3>Your QR Code:</h3>
+                <canvas id="qr-canvas"></canvas>
+
+
+                <!-- copy and download buttons -->
+                <div class="qr-buttons">
+                    <button id="copy-button">Copy</button>
+                    <button id="download-button">Download</button>
+                </div>
+            </div>
+        </section>
+    </div>
+</html>
