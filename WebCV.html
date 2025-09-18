@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="images/icons/Writable_Book.png">
+    <title>WebCV - Facundo Sorasio</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="scripts.js" defer></script>
+    <script src="javascript/backgroundScroll.js" defer></script>
+
+</head>
+<body>
+
+    <!-- Fondo -->
+    <div id="background-layers" style="position: fixed; top: 0; left: 0; width: 100vw; height: 400vh; z-index: -10; pointer-events: none;">
+
+        <video id="bg-beach" src="images/Background/Beach.mp4" autoplay loop muted playsinline style="position: absolute; top: 0vh; left: 0; width: 100vw; height: 100vh; object-fit: cover;"></video>
+
+        <img id="bg-underwater" src="images/Background/underwater.gif" style="position: absolute; top: 100vh; left: 0; width: 100vw; height: 100vh; object-fit: cover;" />
+        
+        <img id="bg-stone" src="images/Background/stone.jpg" style="position: absolute; top: 200vh; left: 0; width: 100vw; height: 100vh; object-fit: cover;" />
+        
+        <video id="bg-underground" src="images/Background/underground.mp4" autoplay loop muted playsinline style="position: absolute; top: 300vh; left: 0; width: 100vw; height: 100vh; object-fit: cover;"></video>
+
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Personal Web</h1>
+        </header>
+
+        <div class="profile">
+            <img id="profile-picture" src="images/ProfilePicture.jpg" alt="I will come soon!" width="200" height="200">
+            <h3>Facundo Sorasio</h3>
+        </div>
+
+        <section id="about">
+            <h2>About Me</h2>
+            <p>Welcome to my online resume! I am a web developer with a passion for creating beautiful and functional websites and some game design.</p>
+        </section>
+
+        <section id="skills">
+            <h2>Skills</h2>
+            <ul>
+                <li>HTML/CSS</li>
+                <li>JavaScript</li>
+                <li>Python</li>
+                <li>C++</li>
+                <li>Java</li>
+            </ul>
+        </section>
+
+        <section id="experience">
+            <h2>Experience</h2>
+            <div class="job">
+                <h3>Web Developer</h3>
+                <p>June 2023 - Present</p>
+                <ul>
+                    <li>Developed and maintained small personal website.</li>
+                    <li>Collaborated with design team to implement new features.</li>
+                    <li>Optimized website performance and frontend responsiveness.</li>
+                </ul>
+            </div>
+
+            <div class="job">
+                <h3>Python Developer</h3>
+                <p>Jan 2020 - Present</p>
+                <ul>
+                    <li>Assisted in developing client websites.</li>
+                    <li>Create automated scripts to streamline workflows.</li>
+                    <li>Worked in a team to deliver high-quality software solutions.</li>
+                </ul>
+            </div>
+
+            <div class="job">
+            <h3>Java Developer</h3>
+            <p>Jan 2024 - Present</p>
+            <ul>
+                <li>Collaborated in the development of a Java-based card game.</li>
+                <li>Implemented game logic and user interface components.</li>
+                <li>Implemented TDD to ensure code quality and functionality.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="education">
+        <h2>Education</h2>
+         <h3>UBA University of Engineering, 2021 - Present</h3>
+            <p>Software Engineering</p>
+
+    </section>
+
+    <section id="contact">
+        <h2>My Contact</h2>
+
+        <div id="contact-info">
+        <p>
+            <a href="mailto:facusorasio@hotmail.com" target="_blank">
+                <img class="img-icons" src="images/icons/Contact/MailIcon.png" alt="Email">
+            </a>
+        </p>
+
+        <p>
+            <a href="https://wa.me/542477624468" target="_blank">
+                <img class="img-icons" src="images/icons/Contact/Whatsapp.png" alt="WhatsApp">
+            </a>
+        </p>
+        <p>
+            <a href="https://github.com/facusora01" target="_blank">
+                <img class="img-icons" src="images/icons/Contact/Github.png" alt="GitHub">
+            </a>
+        </p>
+        </div>
+
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Facundo Sorasio. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
