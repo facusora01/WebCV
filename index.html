@@ -9,6 +9,7 @@
     <script src="scripts.js" defer></script>
     <script src="javascript/backgroundScroll.js" defer></script>
     <script src="javascript/language.js" defer></script>
+    <script src="javascript/fontToggle.js" defer></script>
 
 </head>
 <body>
@@ -21,17 +22,23 @@
         <video id="bg-underground" class="bg-panel" src="images/Background/underground.mp4" autoplay loop muted playsinline></video>
     </div>
 
-        <!-- Language selector button -->
-    <div class="language-selector">
+    <div class="language-selector" style="display: flex; gap: 0.5rem; align-items: center;">
+        
+        <select id="font-select" aria-label="Select font">
+            <option value="default" selected>Default Font</option>
+            <option value="courier">Courier Font</option>
+        </select>
+
         <select id="lang-select" aria-label="Select language">
             <option value="en">English</option>
-            <option value="es">Spanish</option>
+            <option value="es">Español</option>
         </select>
+
     </div>
 
     <div class="main-content">
         <header>
-            <h1 data-i18n="title">Personal Web</h1>
+            <h1 data-i18n="title">Web</h1>
         </header>
 
         <div class="profile">

@@ -9,6 +9,7 @@
     <script src="../javascript/QRGenerator.js" defer></script>
     <script src="../javascript/backgroundScroll.js" defer></script>
     <script src="../javascript/language.js" defer></script>
+    <script src="../javascript/fontToggle.js" defer></script>
 </head>
 
 <body>
@@ -22,20 +23,27 @@
     </div>
 
 
-    <!-- Language selector button -->
-    <div class="language-selector">
+    <div class="language-selector" style="display: flex; gap: 0.5rem; align-items: center;">
+        
+        <select id="font-select" aria-label="Select font">
+            <option value="default" selected>Default Font</option>
+            <option value="courier">Courier Font</option>
+        </select>
+
         <select id="lang-select" aria-label="Select language">
             <option value="en">English</option>
-            <option value="es">Spanish</option>
+            <option value="es">Español</option>
         </select>
+
     </div>
 
     <div class="main-content">
 
         <!-- roll back button -->
-        <div class="roll-back">
-            <a href="../index.html" class="roll-back-button">Go Back</a>
-        </div>
+
+        <a href="../index.html" class="roll-back">    
+                Go Back
+        </a>
 
         <header>
             <h1 data-i18n="qr-title">QR Code Generator</h1>
