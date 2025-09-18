@@ -18,44 +18,54 @@
 #bg-underwater { top: 100vh; }
 #bg-stone { top: 200vh; }
 #bg-underground { top: 300vh; }
-/* Responsive para móviles */
+/* =============================
+     Responsive: Móviles (<600px)
+     ============================= */
 @media (max-width: 600px) {
+    /* Layout general */
     body {
         margin: 10px;
         font-size: 0.95rem;
     }
+    .main-content {
+        min-height: 100vh;
+        padding: 0 2vw;
+    }
+
+    /* Tipografía */
     h1 {
         font-size: 2rem;
         margin-top: 2rem;
         margin-bottom: 2rem;
     }
     h2, h3 {
+        font-size: 1.2rem;
         margin-top: 2rem;
         margin-bottom: 2rem;
-        font-size: 1.2rem;
     }
+
+    /* Imagen de perfil */
     .profile-picture {
         width: 120px;
         height: 120px;
     }
-    .main-content {
-        min-height: 100vh;
-        padding: 0 2vw;
-    }
+
+    /* Navegación */
     .nav-links {
         gap: 10px;
         flex-direction: column;
         align-items: center;
     }
+
+    /* Listas */
     ul, ol {
         padding-left: 1.2em;
     }
-    footer {
-        font-size: 0.7rem;
-        left: 10px;
-        right: auto;
-        bottom: 10px;
-        padding: 4px 8px;
+
+    
+    .contact-list {
+        gap: 2rem;
+        flex-wrap: wrap;
     }
 }
 @font-face {
@@ -92,7 +102,19 @@
     justify-content: center;
     gap: 100px;
     align-items: center;
-    margin-top: 20px
+    margin-top: 20px;
+}
+
+.contact-list {
+    /* display horizontal */
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 10rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 h2, h3 {
@@ -153,26 +175,4 @@ header {
         transform: scale(1.2);
     }
     
-}
-
-footer {
-
-    position: fixed;
-    width: 25%;
-    left: 10px;
-    bottom: 10px;
-
-    font-size: 0.7rem;
-    color: #ccc;
-    background: rgba(0,0,0,0.5);
-    padding: 6px 14px;
-    border-radius: 8px;
-    z-index: 100;
-    text-align: center;
-
-    p {
-        padding: 20px;
-        margin: 0;
-        text-align: center;
-    }
 }
