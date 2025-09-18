@@ -13,16 +13,11 @@
 <body>
 
     <!-- Fondo -->
-    <div id="background-layers" style="position: fixed; top: 0; left: 0; width: 100vw; height: 400vh; z-index: -10; pointer-events: none;">
-
-        <video id="bg-beach" src="images/Background/Beach.mp4" autoplay loop muted playsinline style="position: absolute; top: 0vh; left: 0; width: 100vw; height: 100vh; object-fit: cover;"></video>
-
-        <img id="bg-underwater" src="images/Background/underwater.gif" style="position: absolute; top: 100vh; left: 0; width: 100vw; height: 100vh; object-fit: cover;" />
-        
-        <img id="bg-stone" src="images/Background/stone.jpg" style="position: absolute; top: 200vh; left: 0; width: 100vw; height: 100vh; object-fit: cover;" />
-        
-        <video id="bg-underground" src="images/Background/underground.mp4" autoplay loop muted playsinline style="position: absolute; top: 300vh; left: 0; width: 100vw; height: 100vh; object-fit: cover;"></video>
-
+    <div id="background-layers" class="background-layers">
+        <video id="bg-beach" class="bg-panel" src="images/Background/Beach.mp4" autoplay loop muted playsinline></video>
+        <img id="bg-underwater" class="bg-panel" src="images/Background/underwater.gif" />
+        <img id="bg-stone" class="bg-panel" src="images/Background/stone.jpg" />
+        <video id="bg-underground" class="bg-panel" src="images/Background/underground.mp4" autoplay loop muted playsinline></video>
     </div>
 
     <div class="main-content">
