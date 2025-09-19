@@ -84,22 +84,23 @@
     }
 
     .contact-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.8rem;
-        justify-content: center;
-        align-items: center;
+        display: flex !important;
+        flex-direction: row !important;
+        gap: clamp(0.2rem, 5vw, 2.5rem) !important;
+        justify-content: space-between !important;
+        width: 100%;
+    }
+
+    .contact-link {
         margin: 0;
         padding: 0;
-        list-style: none;
     }
 
     .img-icons {
-        width: 40px;     /* Íconos más chicos en pantallas pequeñas */
-        height: 40px;    /* Mantengo la proporción cuadrada */
-        object-fit: contain;
-        margin-top: 10px; /* Menos espacio arriba que en escritorio */
+        width: 10vh !important;
+        height: 10vh !important;
     }
+
 
 }
 
