@@ -300,6 +300,63 @@ body {
     transform: scale(1.1);
 }
 
+/* --- In Progress badge (minimal) --- */
+.in-progress {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    color: rgba(255,255,255,0.65);
+    margin-left: 0.6em;
+}
+/* Paréntesis de apertura antes del texto */
+.in-progress::before {
+    content: "(";
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.55);
+    margin-right: 3px;
+}
+/* Añadimos los puntos animados directamente con ::after para no tener que modificar el HTML */
+.in-progress::after {
+    content: "";
+    display: inline-block;
+    width: 1.6em; /* reserva espacio para que el texto no salte */
+    text-align: left;
+    animation: inProgressDots 1.2s steps(4,end) infinite;
+    color: rgba(255,255,255,0.55);
+    margin-left: 2px;
+}
+
+.in-progress span {
+    display: inline-block;
+    color: rgba(255,255,255,0.65);
+    animation: waveColor 1.5s ease-in-out infinite;
+}
+
+/* Cada letra tiene un delay distinto, creando la ola */
+.in-progress span:nth-child(1) { animation-delay: 0s; }
+.in-progress span:nth-child(2) { animation-delay: 0.1s; }
+.in-progress span:nth-child(3) { animation-delay: 0.2s; }
+.in-progress span:nth-child(4) { animation-delay: 0.3s; }
+.in-progress span:nth-child(5) { animation-delay: 0.4s; }
+.in-progress span:nth-child(6) { animation-delay: 0.5s; }
+.in-progress span:nth-child(7) { animation-delay: 0.6s; }
+.in-progress span:nth-child(8) { animation-delay: 0.7s; }
+
+@keyframes waveColor {
+    0%, 100% { color: rgba(255,255,255,0.65); }
+    50% { color: rgba(255,255,255,0.95); } /* más claro en el punto alto de la ola */
+}
+
+
+@keyframes inProgressDots {
+    0%   { content: "\00A0\00A0\00A0)"; }
+    25%  { content: ".\00A0\00A0)"; }
+    50%  { content: "..\00A0)"; }
+    75%  { content: "...)"; }
+    100% { content: "\00A0\00A0\00A0)"; }
+}
+
 
 /* ===== QR Generator Styles ===== */
 
