@@ -482,3 +482,17 @@ body {
     opacity: 0.95;
     transition: opacity 0.5s;
 }
+
+/* ===== Iconos de habilidades ===== */
+#skills ul li img  {
+    margin-right: 12px;
+    width: 24px;
+    text-align: center;
+    font-size: 1.3em;
+}
+
+#skills ul li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
