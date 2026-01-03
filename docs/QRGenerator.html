@@ -3,45 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="../images/icons/Writable_Book.png">
-    <title>QR Code Generator - WebCV</title>
+    <link rel="icon" type="image/png" href="../images/ProfilePicture.jpg">
+    <title>QR Code Generator - CV</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/QRGenerator.css">
+    
     <script src="../javascript/QRGenerator.js" defer></script>
-    <script src="../javascript/backgroundScroll.js" defer></script>
     <script src="../javascript/language.js" defer></script>
-    <script src="../javascript/fontToggle.js" defer></script>
 </head>
 
 <body>
-
-    <!-- Fondo -->
-    <div class="background-layers">
-        <video id="bg-beach" class="bg-panel" src="../images/Background/Beach.mp4" autoplay loop muted playsinline></video>
-        <img id="bg-underwater" class="bg-panel" src="../images/Background/underwater.gif" />
-        <img id="bg-stone" class="bg-panel" src="../images/Background/stone.jpg" />
-        <video id="bg-underground" class="bg-panel" src="../images/Background/underground.mp4" autoplay loop muted playsinline></video>
-    </div>
-
-
-    <div class="top-bar" style="display: flex; gap: 0.5rem; align-items: center;">
-
-        <a class="top-buttons" id="go-back" data-i18n="go-back" href="../index.html">Go Back</a>
-
-        <select class="top-buttons" id="font-select" aria-label="Select font">
-            <option value="default" selected>Default Font</option>
-            <option value="courier">Courier Font</option>
-        </select>
-
-        <select class="top-buttons" id="lang-select" aria-label="Select language">
+    <div class="top-bar">
+        <a id="go-back" data-i18n="go-back" href="../index.html" style="margin-right: auto;">Go Back</a>
+        <select id="lang-select" aria-label="Select language">
             <option value="en">English</option>
             <option value="es">Español</option>
         </select>
-
     </div>
 
     <div class="main-content">
-
         <header>
             <h1 class="title" data-i18n="qr-title">QR Code Generator</h1>
         </header>
@@ -50,20 +30,19 @@
             <h2 data-i18n="qr-generate">Generate Your QR Code</h2>
             <form id="qr-form">
                 <label for="qr-text" data-i18n="qr-label">Enter text or URL:</label>
-                <input type="text" id="qr-text" name="qr-text" required>
+                <input type="text" id="qr-text" name="qr-text" required placeholder="https://...">
                 <button type="submit" data-i18n="qr-generate-btn">Generate QR Code</button>
             </form>
+            
             <div id="qr-result">
                 <h3 data-i18n="qr-result-title">Your QR Code:</h3>
                 <canvas id="qr-canvas"></canvas>
-
-
-                <!-- copy and download buttons -->
                 <div class="qr-buttons">
-                    <button id="copy-button" data-i18n="qr-copy">Copy</button>
+                    <button id="copy-button" data-i18n="qr-copy">Copy Image</button>
                     <button id="download-button" data-i18n="qr-download">Download</button>
                 </div>
             </div>
         </section>
     </div>
+</body>
 </html>

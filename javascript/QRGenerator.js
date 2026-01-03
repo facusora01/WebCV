@@ -1,7 +1,5 @@
-/* ===== QR Generator ===== */
-
 document.addEventListener('DOMContentLoaded', function () {
-  // Elementos principales
+
   var form = document.getElementById('qr-form');
   var input = document.getElementById('qr-text');
   var result = document.getElementById('qr-result');
@@ -9,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var copyBtn = document.getElementById('copy-button');
   var downloadBtn = document.getElementById('download-button');
 
-  // Popup para feedback
+
   function showPopup(message) {
     var popup = document.createElement('div');
     popup.textContent = message;
@@ -44,7 +42,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Copiar QR al portapapeles como imagen
   if (copyBtn) {
     copyBtn.addEventListener('click', function (e) {
       e.preventDefault();
@@ -61,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Descargar QR como imagen
   if (downloadBtn) {
     downloadBtn.addEventListener('click', function (e) {
       e.preventDefault();

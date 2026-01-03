@@ -3,34 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="images/icons/Writable_Book.png">
-    <title>WebCV - Facundo Sorasio</title>
+    <link rel="icon" type="image/png" href="images/icons/web/webIcon.png"> 
+    <title>CV - Facundo Sorasio</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css">
-    <script src="scripts.js" defer></script>
-    <script src="javascript/backgroundScroll.js" defer></script>
-    <script src="javascript/language.js" defer></script>
-    <script src="javascript/fontToggle.js" defer></script>
-
+    <script src="javascript/language.js" defer></script> 
 </head>
 <body>
 
-    <!-- Fondo -->
-    <div id="background-layers" class="background-layers">
-        <video id="bg-beach" class="bg-panel" src="images/Background/Beach.mp4" autoplay loop muted playsinline></video>
-        <img id="bg-underwater" class="bg-panel" src="images/Background/underwater.gif" />
-        <img id="bg-stone" class="bg-panel" src="images/Background/stone.jpg" />
-        <video id="bg-underground" class="bg-panel" src="images/Background/underground.mp4" autoplay loop muted playsinline></video>
-    </div>
-
-    <div class="top-bar" style="display: flex; gap: 0.5rem; align-items: center;">
-
-        <select class="top-buttons" id="font-select" aria-label="Select font">
-            <option value="default" selected>Default Font</option>
-            <option value="courier">Courier Font</option>
-        </select>
-
-        <select class="top-buttons" id="lang-select" aria-label="Select language">
+    <div class="top-bar">
+        <select id="lang-select" aria-label="Select language">
             <option value="en">English</option>
             <option value="es">Español</option>
         </select>
@@ -38,121 +20,105 @@
 
     <div class="main-content">
         <header>
-            <h1 class="title" data-i18n="title">Web</h1>
+            <h1 class="title" data-i18n="title">Web Personal</h1>
         </header>
 
         <div class="profile">
-            <img id="profile-picture" src="images/ProfilePicture.jpg" alt="I will come soon!" width="200" height="200">
+            <img id="profile-picture" src="images/ProfilePicture.jpg" alt="Facundo Sorasio">
             <h3 id="profile-name">Facundo Sorasio</h3>
+            <p data-i18n="profession" style="color: #a0a0a0;">Computer Engineering Student</p>
         </div>
 
         <section id="about">
-            <h2 data-i18n="about-title">About Me</h2>
-            <p data-i18n="about-text">Welcome to my online resume! I am a web developer with a passion for creating beautiful and functional websites and some game design.</p>
+        <h2 data-i18n="about-title">About Me</h2>
+        <p data-i18n="about-text">
+            I am a Computer Engineering student focused on software development and algorithmic logic. I specialize in creating functional applications and enjoy the challenge of optimizing code. In my downtime, I expand my skill set by exploring game development engines and mechanics.
+        </p>
         </section>
 
         <section id="skills">
             <h2 data-i18n="skills-title">Skills</h2>
             <ul>
-                <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/html5/html5-original.svg" /> HTML/CSS</li>
-                <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg" /> JavaScript</li>
-                <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg" /> Python</li>
-                <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg" /> C++</li>
-                <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/csharp/csharp-original.svg" /> C# <span data-i18n="in-progress" class="in-progress">In progress</span></li>
-                <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/godot/godot-original.svg" /> GDScript <span data-i18n="in-progress" class="in-progress">In progress</span></li>
-                <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg" /> Java</li>
-            </ul>
+                <li><i class="devicon-html5-plain colored"></i> HTML/CSS</li>
+                <li><i class="devicon-javascript-plain colored"></i> JavaScript</li>
+                <li><i class="devicon-python-plain colored"></i> Python</li>
+                <li><i class="devicon-cplusplus-plain colored"></i> C++</li>
+                <li><i class="devicon-csharp-plain colored"></i> C#</li>
+                <li><i class="devicon-java-plain colored"></i> Java</li>
+                <li><i class="devicon-git-plain colored"></i> Git</li>
+                <li><i class="devicon-godot-plain colored"></i> Godot</li>
+                </ul>
         </section>
 
         <section id="experience">
             <h2 data-i18n="experience-title">Experience</h2>
-            <div class="job">
-                <h3 data-i18n="exp-webdev-title">Web Developer</h3>
-                <p data-i18n="exp-webdev-date">June 2023 - Present</p>
-
-                <ul>
-                    <li data-i18n="exp-webdev-1">Developed and maintained small personal website.</li>
-                    <li data-i18n="exp-webdev-2">Collaborated with design team to implement new features.</li>
-                    <li data-i18n="exp-webdev-3">Optimized website performance and frontend responsiveness.</li>
-                </ul>
-
-            </div>
-
+            
             <div class="job">
                 <h3 data-i18n="exp-pydev-title">Python Developer</h3>
-                <p data-i18n="exp-pydev-date">Jan 2020 - Present</p>
-
+                <p data-i18n="exp-pydev-date">Jan 2020</p>
                 <ul>
                     <li data-i18n="exp-pydev-1">Assisted in developing client websites.</li>
                     <li data-i18n="exp-pydev-2">Create automated scripts to streamline workflows.</li>
                     <li data-i18n="exp-pydev-3">Worked in a team to deliver high-quality software solutions.</li>
                 </ul>
-
+            </div>
+            
+            <div class="job">
+                <h3 data-i18n="exp-webdev-title">Web Developer</h3>
+                <p data-i18n="exp-webdev-date">June 2023</p>
+                <ul>
+                    <li data-i18n="exp-webdev-1">Developed and maintained personal website projects.</li>
+                    <li data-i18n="exp-webdev-2">Collaborated with design team to implement new features.</li>
+                    <li data-i18n="exp-webdev-3">Optimized website performance and frontend responsiveness.</li>
+                </ul>
             </div>
 
             <div class="job">
                 <h3 data-i18n="exp-javadev-title">Java Developer</h3>
-                <p data-i18n="exp-javadev-date">Jan 2024 - Present</p>
-                
+                <p data-i18n="exp-javadev-date">Jan 2024</p>
                 <ul>
-                    <li data-i18n="exp-javadev-1">Collaborated in the development of a Java-based card game.</li>
-                    <li data-i18n="exp-javadev-2">Implemented game logic and user interface components.</li>
-                    <li data-i18n="exp-javadev-3">Implemented TDD to ensure code quality and functionality.</li>
+                    <li data-i18n="exp-javadev-1">Collaborated in the development of Java-based applications.</li>
+                    <li data-i18n="exp-javadev-2">Implemented business logic and user interface components.</li>
+                    <li data-i18n="exp-javadev-3">Implemented TDD to ensure code quality.</li>
                 </ul>
-
             </div>
         </section>
 
-    <section id="education">
-        <h2 data-i18n="education-title">Education</h2>
-         <h3 data-i18n="edu-uni">UBA University of Engineering, 2021 - Present</h3>
-            <p data-i18n="edu-career">Software Engineering</p>
-    </section>
+        <section id="education">
+            <h2 data-i18n="education-title">Education</h2>
+            <h3 data-i18n="edu-uni">UBA University of Engineering, 2020 - Present</h3>
+            <p data-i18n="edu-career">Computer Engineering</p>
+        </section>
 
-    <div class="qr-section">
-        <h2 data-i18n="qr-title">QR Code Generator</h2>
-        <p>
+        <div class="qr-section">
+            <h2 data-i18n="qr-title">QR Code Generator</h2>
             <a href="docs/QRGenerator.html" class="qr-button" data-i18n="qr-generate-link">
-                Generate your own QR codes easily!
+                Go to Tool
             </a>
-        </p>
-    </div>
-
-    <section id="contact">
-        <h2 data-i18n="contact-title">My Contact</h2>
-
-        <div id="contact-info">
-            
-            <ul class="contact-list">
-
-                <li class="contact-link">
-                    <p>
-                        <a href="mailto:facusorasio@hotmail.com" target="_blank">
-                            <img class="img-icons" src="images/icons/Contact/MailIcon.png" alt="Email">
-                        </a>
-                    </p>
-                </li>
-
-                <li class="contact-link">
-                    <p>
-                        <a href="https://wa.me/542477624468" target="_blank">
-                            <img class="img-icons" src="images/icons/Contact/Whatsapp.png" alt="WhatsApp">
-                        </a>
-                    </p>
-                </li>
-
-                <li class="contact-link">
-                    <p>
-                        <a href="https://github.com/facusora01" target="_blank">
-                            <img class="img-icons" src="images/icons/Contact/Github.png" alt="GitHub">
-                        </a>
-                    </p>
-                </li>
-
-            </ul>
         </div>
 
-    </section>
-
+        <section id="contact">
+            <h2 data-i18n="contact-title">Contact</h2>
+            <div id="contact-info">
+                <ul class="contact-list">
+                    <li>
+                        <a href="mailto:facusorasio@hotmail.com">
+                            <img class="img-icons" src="images/icons/Contact/MailIcon.png" alt="Email">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://wa.me/542477624468">
+                            <img class="img-icons" src="images/icons/Contact/Whatsapp.png" alt="WhatsApp">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/facusora01">
+                            <img class="img-icons" src="images/icons/Contact/Github.png" alt="GitHub">
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </div>
 </body>
 </html>
