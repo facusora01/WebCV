@@ -10,14 +10,6 @@ document.addEventListener('DOMContentLoaded', function () {
       'about-title': 'About Me',
       'about-text': 'I am a Computer Engineering student focused on software development and algorithmic logic. I specialize in creating functional applications and enjoy the challenge of optimizing code. In my downtime, I expand my skill set by exploring game development engines and mechanics.',
       'skills-title': 'Skills',
-      'qr-title': 'QR Code Generator',
-      'qr-generate': 'Generate Your QR Code',
-      'qr-label': 'Enter text or URL:',
-      'qr-generate-btn': 'Generate QR Code',
-      'qr-copy': 'Copy',
-      'qr-download': 'Download',
-      'qr-result-title': 'Your QR Code:',
-      'go-back': 'Go Back',
       'in-progress': 'In progress',
       'experience-title': 'Experience',
       'exp-webdev-title': 'Web Developer',
@@ -43,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
       'education-title': 'Education',
       'edu-uni': 'UBA University of Engineering, 2021',
       'edu-career': 'Computer Engineering',
-      'qr-generate-link': 'Generate your own QR codes easily!',
+
       'contact-title': 'My Contact',
       'projects-title': 'Projects',
       'project-shapeshifter-title': 'ShapeShifter',
@@ -74,14 +66,6 @@ document.addEventListener('DOMContentLoaded', function () {
       'about-title': 'Sobre mí',
       'about-text': 'Soy un estudiante de Ingeniería Informática enfocado en el desarrollo de software y la lógica algorítmica. Me especializo en crear aplicaciones funcionales y disfruto el desafío de optimizar el código. En mi tiempo libre, amplío mis habilidades explorando motores y mecánicas de desarrollo de juegos.',
       'skills-title': 'Habilidades',
-      'qr-title': 'Generador de Códigos QR',
-      'qr-generate': 'Genera tu código QR',
-      'qr-label': 'Introduce texto o URL:',
-      'qr-generate-btn': 'Generar código QR',
-      'qr-copy': 'Copiar',
-      'qr-download': 'Descargar',
-      'qr-result-title': 'Tu código QR:',
-      'go-back': 'Volver',
       'in-progress': 'En progreso',
       'experience-title': 'Experiencia',
       'exp-webdev-title': 'Desarrollador Web',
@@ -107,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
       'education-title': 'Educación',
       'edu-uni': 'UBA Universidad de Ingeniería, 2021',
       'edu-career': 'Ingeniería en Informática',
-      'qr-generate-link': '¡Genera tus propios códigos QR fácilmente!',
+
       'contact-title': 'Contacto',
       'projects-title': 'Proyectos',
       'project-shapeshifter-title': 'ShapeShifter',
@@ -149,9 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
-    if (translations[lang]['qr-title'] && document.title.match(/QR/)) {
-      document.title = translations[lang]['qr-title'] + ' - WebCV';
-    } else if (translations[lang]['title']) {
+    if (translations[lang]['title']) {
       document.title = translations[lang]['title'] + ' - WebCV';
     }
 

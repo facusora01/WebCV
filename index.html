@@ -1,14 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="images/icons/web/webIcon.png"> 
+    <meta name="description"
+        content="Personal CV of Facundo Sorasio — Computer Engineering Student at UBA. Projects, skills, and experience in software development.">
+    <link rel="icon" type="image/png" href="images/icons/web/webIcon.png">
     <title>CV - Facundo Sorasio</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css">
-    <script src="javascript/language.js" defer></script> 
+
+    <!-- Scripts -->
+    <script src="javascript/language.js" defer></script>
+    <script src="javascript/scrollReveal.js" defer></script>
 </head>
+
 <body>
 
     <div class="top-bar">
@@ -19,24 +35,27 @@
     </div>
 
     <div class="main-content">
-        <header>
-            <h1 class="title" data-i18n="title">Web Personal</h1>
+
+        <header class="reveal">
+            <h1 class="title" data-i18n="title">Personal Web</h1>
         </header>
 
-        <div class="profile">
+        <div class="profile reveal">
             <img id="profile-picture" src="images/ProfilePicture.png" alt="Facundo Sorasio">
             <h3 id="profile-name">Facundo Sorasio</h3>
-            <p data-i18n="profession" style="color: #a0a0a0;">Computer Engineering Student</p>
+            <p class="profession-text" data-i18n="profession">Computer Engineering Student</p>
         </div>
 
-        <section id="about">
-        <h2 data-i18n="about-title">About Me</h2>
-        <p data-i18n="about-text">
-            I am a Computer Engineering student focused on software development and algorithmic logic. I specialize in creating functional applications and enjoy the challenge of optimizing code. In my downtime, I expand my skill set by exploring game development engines and mechanics.
-        </p>
+        <section id="about" class="reveal">
+            <h2 data-i18n="about-title">About Me</h2>
+            <p data-i18n="about-text">
+                I am a Computer Engineering student focused on software development and algorithmic logic. I specialize
+                in creating functional applications and enjoy the challenge of optimizing code. In my downtime, I expand
+                my skill set by exploring game development engines and mechanics.
+            </p>
         </section>
 
-        <section id="skills">
+        <section id="skills" class="reveal">
             <h2 data-i18n="skills-title">Skills</h2>
             <ul>
                 <li><i class="devicon-html5-plain colored"></i> HTML/CSS</li>
@@ -47,12 +66,12 @@
                 <li><i class="devicon-java-plain colored"></i> Java</li>
                 <li><i class="devicon-git-plain colored"></i> Git</li>
                 <li><i class="devicon-godot-plain colored"></i> Godot</li>
-                </ul>
+            </ul>
         </section>
 
-        <section id="experience">
+        <section id="experience" class="reveal">
             <h2 data-i18n="experience-title">Experience</h2>
-            
+
             <div class="job">
                 <h3 data-i18n="exp-pydev-title">Python Developer</h3>
                 <p data-i18n="exp-pydev-date">Jan 2020</p>
@@ -62,7 +81,7 @@
                     <li data-i18n="exp-pydev-3">Worked in a team to deliver high-quality software solutions.</li>
                 </ul>
             </div>
-            
+
             <div class="job">
                 <h3 data-i18n="exp-webdev-title">Web Developer</h3>
                 <p data-i18n="exp-webdev-date">June 2023</p>
@@ -89,24 +108,28 @@
                 <ul>
                     <li data-i18n="exp-appdev-1">Currently learning mobile app development using Flutter.</li>
                     <li data-i18n="exp-appdev-2">Exploring cross-platform solutions for Android and iOS.</li>
-                    <li data-i18n="exp-appdev-3">Building an app to improve management in Agricultural/Livestock areas.</li>
+                    <li data-i18n="exp-appdev-3">Building an app to improve management in Agricultural/Livestock areas.
+                    </li>
                 </ul>
             </div>
         </section>
 
-        <section id="projects">
+        <section id="projects" class="reveal">
             <h2 data-i18n="projects-title">Projects</h2>
-            
+
             <div class="project">
                 <h3 data-i18n="project-shapeshifter-title">ShapeShifter</h3>
-                <p data-i18n="project-shapeshifter-desc">Discord bot with AI voice cloning and conversational assistant</p>
+                <p data-i18n="project-shapeshifter-desc">Discord bot with AI voice cloning and conversational assistant
+                </p>
                 <ul>
-                    <li data-i18n="project-shapeshifter-1">Personally trained F5-TTS model to maintain Argentine accent</li>
-                    <li data-i18n="project-shapeshifter-2">Conversational AI assistant powered by Ollama llama3.2:3b</li>
+                    <li data-i18n="project-shapeshifter-1">Personally trained F5-TTS model to maintain Argentine accent
+                    </li>
+                    <li data-i18n="project-shapeshifter-2">Conversational AI assistant powered by Ollama llama3.2:3b
+                    </li>
                     <li data-i18n="project-shapeshifter-3">Real-time voice impersonation and chat responses</li>
                 </ul>
             </div>
-            
+
             <div class="project">
                 <h3 data-i18n="project-letitride-title">LetItRide Casino Bot</h3>
                 <p data-i18n="project-letitride-desc">WhatsApp casino bot with live roulette and betting system</p>
@@ -116,9 +139,12 @@
                     <li data-i18n="project-letitride-3">Web admin panel with real-time statistics</li>
                 </ul>
             </div>
-            
+
             <div class="project">
-                <h3 data-i18n="project-agroscanner-title">AgroScanner</h3>
+                <h3>
+                    <span data-i18n="project-agroscanner-title">AgroScanner</span>
+                    <span class="badge badge-mobile-iot">Mobile / IoT</span>
+                </h3>
                 <p data-i18n="project-agroscanner-desc">Mobile app for farm animal management and RFID scanning</p>
                 <ul>
                     <li data-i18n="project-agroscanner-1">Flutter mobile app with local backend integration</li>
@@ -126,54 +152,57 @@
                     <li data-i18n="project-agroscanner-3">Animal registration and tracking using RFID chips</li>
                 </ul>
             </div>
-            
+
             <div class="project">
                 <h3 data-i18n="project-amankay-title">Amankay Web</h3>
-                <p data-i18n="project-amankay-desc">Full-stack web application with data visualization and file management</p>
+                <p data-i18n="project-amankay-desc">Full-stack web application with data visualization and file
+                    management</p>
                 <ul>
                     <li data-i18n="project-amankay-1">React frontend with Express backend and SQLite database</li>
                     <li data-i18n="project-amankay-2">Firebase integration for deployment and authentication</li>
                     <li data-i18n="project-amankay-3">Data visualization using Recharts and file upload system</li>
                 </ul>
-                <a href="https://amankay-2eb11.web.app/" target="_blank" class="project-link" data-i18n="project-amankay-link">View Project</a>
+                <a href="https://amankay-2eb11.web.app/" target="_blank" class="project-link"
+                    data-i18n="project-amankay-link">View Project</a>
             </div>
         </section>
 
-        <section id="education">
+        <section id="education" class="reveal">
             <h2 data-i18n="education-title">Education</h2>
             <h3 data-i18n="edu-uni">UBA University of Engineering, 2020 - Present</h3>
             <p data-i18n="edu-career">Computer Engineering</p>
         </section>
 
-        <div class="qr-section">
-            <h2 data-i18n="qr-title">QR Code Generator</h2>
-            <a href="docs/QRGenerator.html" class="qr-button" data-i18n="qr-generate-link">
-                Go to Tool
-            </a>
-        </div>
-
-        <section id="contact">
+        <section id="contact" class="reveal">
             <h2 data-i18n="contact-title">Contact</h2>
             <div id="contact-info">
                 <ul class="contact-list">
                     <li>
-                        <a href="mailto:facusorasio@hotmail.com">
-                            <img class="img-icons" src="images/icons/Contact/MailIcon.png" alt="Email">
+                        <a href="mailto:facusorasio@hotmail.com" aria-label="Send email" class="contact-link">
+                            <svg class="contact-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
+                            </svg>
                         </a>
                     </li>
                     <li>
-                        <a href="https://wa.me/542477624468">
-                            <img class="img-icons" src="images/icons/Contact/Whatsapp.png" alt="WhatsApp">
+                        <a href="https://wa.me/542477624468" aria-label="WhatsApp" class="contact-link">
+                            <svg class="contact-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+                            </svg>
                         </a>
                     </li>
                     <li>
-                        <a href="https://github.com/facusora01">
-                            <img class="img-icons" src="images/icons/Contact/Github.png" alt="GitHub">
+                        <a href="https://github.com/facusora01" aria-label="GitHub profile" class="contact-link">
+                            <svg class="contact-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                            </svg>
                         </a>
                     </li>
                 </ul>
             </div>
         </section>
+
     </div>
 </body>
+
 </html>
