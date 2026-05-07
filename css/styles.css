@@ -112,9 +112,10 @@ header {
 }
 
 #profile-picture {
-    width: 168px;
-    height: 168px;
+    width: 252px;
+    height: 252px;
     object-fit: cover;
+    object-position: center top;
     border-radius: 50%;
     border: 3px solid var(--accent);
     box-shadow: 0 0 24px var(--shadow-warm), 0 4px 16px rgba(0,0,0,0.4);
