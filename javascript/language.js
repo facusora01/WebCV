@@ -59,6 +59,15 @@ document.addEventListener('DOMContentLoaded', function () {
       'project-amankay-2': 'Backend deployed on Linux server with SSH remote management',
       'project-amankay-3': 'Data visualization using Recharts and file upload system',
       'project-amankay-link': 'View Project',
+      'project-coupleapp-title': 'Couple App',
+      'project-coupleapp-desc': 'Web application for couples to like and share products',
+      'project-coupleapp-1': 'Interactive product swiping and liking system',
+      'project-coupleapp-2': 'Real-time matching and shared wishlists',
+      'project-onlinestore-title': 'Online Store with Chat',
+      'project-onlinestore-desc': 'E-commerce platform featuring integrated user-to-user chat',
+      'project-onlinestore-1': 'Complete online shopping experience with cart and checkout',
+      'project-onlinestore-2': 'Real-time messaging system between buyers and sellers',
+      'github-title': 'GitHub Contributions',
     },
     es: {
       'title': 'Web Personal',
@@ -115,12 +124,21 @@ document.addEventListener('DOMContentLoaded', function () {
       'project-amankay-2': 'Backend desplegado en servidor Linux con administración remota SSH',
       'project-amankay-3': 'Visualización de datos usando Recharts y sistema de subida de archivos',
       'project-amankay-link': 'Ver Proyecto',
+      'project-coupleapp-title': 'App para Parejas',
+      'project-coupleapp-desc': 'Aplicación web para parejas donde pueden darse like y compartir productos',
+      'project-coupleapp-1': 'Sistema interactivo de deslizamiento y likes de productos',
+      'project-coupleapp-2': 'Emparejamiento en tiempo real y listas de deseos compartidas',
+      'project-onlinestore-title': 'Tienda Online con Chat',
+      'project-onlinestore-desc': 'Plataforma de comercio electrónico con chat integrado entre usuarios',
+      'project-onlinestore-1': 'Experiencia completa de compra online con carrito y checkout',
+      'project-onlinestore-2': 'Sistema de mensajería en tiempo real entre compradores y vendedores',
+      'github-title': 'Contribuciones en GitHub',
     }
   };
 
   function setLang(lang) {
     var elements = document.querySelectorAll('[data-i18n]');
-    elements.forEach(function(el) {
+    elements.forEach(function (el) {
       var key = el.getAttribute('data-i18n');
       if (translations[lang][key]) {
         if (el.tagName === 'INPUT' && el.type === 'submit') {

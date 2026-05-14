@@ -3,16 +3,16 @@
 
 /* ===== Design Tokens (Cyber-Warm) ===== */
 :root {
-    --bg-base:      #1A120B;
-    --bg-card:      #3C2A21;
-    --bg-card-alt:  #2E1F17;
+    --bg-base: #1A120B;
+    --bg-card: #3C2A21;
+    --bg-card-alt: #2E1F17;
     --text-primary: #E5BA73;
-    --text-muted:   #A0845C;
-    --accent:       #C58940;
-    --accent-dark:  #A27035;
-    --gold:         #FAEAB1;
-    --border-card:  rgba(197, 137, 64, 0.35);
-    --shadow-warm:  rgba(197, 137, 64, 0.15);
+    --text-muted: #A0845C;
+    --accent: #C58940;
+    --accent-dark: #A27035;
+    --gold: #FAEAB1;
+    --border-card: rgba(197, 137, 64, 0.35);
+    --shadow-warm: rgba(197, 137, 64, 0.15);
 }
 
 /* ===== Base Reset & Typography ===== */
@@ -118,7 +118,7 @@ header {
     object-position: center top;
     border-radius: 50%;
     border: 3px solid var(--accent);
-    box-shadow: 0 0 24px var(--shadow-warm), 0 4px 16px rgba(0,0,0,0.4);
+    box-shadow: 0 0 24px var(--shadow-warm), 0 4px 16px rgba(0, 0, 0, 0.4);
     margin-bottom: 1.2rem;
     transition: transform 0.4s ease, border-radius 0.4s ease, box-shadow 0.4s ease;
 }
@@ -287,7 +287,7 @@ li {
     background: var(--bg-card-alt);
     border: 1px solid var(--border-card);
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     position: relative;
 }
@@ -374,6 +374,95 @@ li {
     background: rgba(250, 234, 177, 0.12);
     color: var(--gold);
     border: 1px solid rgba(250, 234, 177, 0.4);
+}
+
+/* ===== GitHub Graph as Background ===== */
+.header-with-calendar {
+    position: relative;
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-top: 1rem;
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.calendar-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    z-index: 1;
+    opacity: 0.5;
+    /* Reduced opacity to act as background */
+    pointer-events: none;
+    /* Make non-interactive */
+}
+
+.header-overlay-title-container {
+    position: relative;
+    z-index: 2;
+    background: var(--bg-base);
+    padding: 0.5rem 2.5rem;
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+}
+
+.calendar {
+    border: none !important;
+    font-family: inherit !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+}
+
+/* Make the whole table larger and reduce spacing */
+.calendar table.ContributionCalendar-grid {
+    transform: scale(1.4) !important;
+    transform-origin: center;
+    margin: 0 auto;
+    border-spacing: 2px !important; /* Closes the gap between boxes */
+}
+
+/* Aggressively hide ALL texts, links, legends, and footers */
+.calendar .width-full, /* Hides the bottom footer */
+.calendar .graph-before-activity-overview,
+.calendar th, /* Hides the month and day labels */
+.calendar a,
+.calendar .sr-only {
+    display: none !important;
+}
+
+/* Round boxes more */
+.calendar td.ContributionCalendar-day {
+    border-radius: 4px !important;
+    border: none !important;
+}
+
+/* Colors for the table cells based on contribution level */
+.calendar .ContributionCalendar-day[data-level="0"] {
+    background-color: var(--bg-card-alt) !important;
+    outline: none !important;
+}
+
+.calendar .ContributionCalendar-day[data-level="1"] {
+    background-color: rgba(197, 137, 64, 0.4) !important;
+}
+
+.calendar .ContributionCalendar-day[data-level="2"] {
+    background-color: rgba(197, 137, 64, 0.6) !important;
+}
+
+.calendar .ContributionCalendar-day[data-level="3"] {
+    background-color: rgba(197, 137, 64, 0.8) !important;
+}
+
+.calendar .ContributionCalendar-day[data-level="4"] {
+    background-color: var(--accent) !important;
 }
 
 /* ===== Education ===== */

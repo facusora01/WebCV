@@ -6,19 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
         content="Facundo Sorasio - Computer Engineering Student at UBA. Specialized in Backend, Mobile (Flutter), and AI integrations.">
-    
+
     <!-- Open Graph / Rich Link Metadata -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://facusora01.github.io/WebCV/">
     <meta property="og:title" content="Facundo Sorasio | Software Developer">
-    <meta property="og:description" content="Computer Engineering Student at UBA. Building mobile apps, scalable backends, and AI-powered tools.">
+    <meta property="og:description"
+        content="Computer Engineering Student at UBA. Building mobile apps, scalable backends, and AI-powered tools.">
     <meta property="og:image" content="https://facusora01.github.io/WebCV/images/ProfilePicture_400.png">
-    
+
     <!-- Twitter Card Metadata -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://facusora01.github.io/WebCV/">
     <meta property="twitter:title" content="Facundo Sorasio | Software Developer">
-    <meta property="twitter:description" content="Computer Engineering Student at UBA. Building mobile apps, scalable backends, and AI-powered tools.">
+    <meta property="twitter:description"
+        content="Computer Engineering Student at UBA. Building mobile apps, scalable backends, and AI-powered tools.">
     <meta property="twitter:image" content="https://facusora01.github.io/WebCV/images/ProfilePicture_400.png">
 
     <link rel="icon" type="image/png" href="images/icons/web/webIcon.png">
@@ -38,6 +40,8 @@
     <!-- Scripts -->
     <script src="javascript/language.js" defer></script>
     <script src="javascript/scrollReveal.js" defer></script>
+    <script src="https://unpkg.com/github-calendar@latest/dist/github-calendar.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/github-calendar@latest/dist/github-calendar-responsive.css" />
 </head>
 
 <body>
@@ -51,8 +55,13 @@
 
     <div class="main-content">
 
-        <header class="reveal">
-            <h1 class="title" data-i18n="title">Personal Web</h1>
+        <header class="reveal header-with-calendar">
+            <div class="calendar-bg">
+                <div class="calendar"></div>
+            </div>
+            <div class="header-overlay-title-container">
+                <h1 class="title" data-i18n="title">Personal Web</h1>
+            </div>
         </header>
 
         <div class="profile reveal">
@@ -151,7 +160,8 @@
                 <ul>
                     <li data-i18n="project-letitride-1">European roulette with multiple bet types and odds</li>
                     <li data-i18n="project-letitride-2">Weekly credit system and automatic scheduled games</li>
-                    <li data-i18n="project-letitride-3">Deployed on Linux server with SSH access and web admin panel</li>
+                    <li data-i18n="project-letitride-3">Deployed on Linux server with SSH access and web admin panel
+                    </li>
                 </ul>
             </div>
 
@@ -180,6 +190,25 @@
                 <a href="https://amankay-2eb11.web.app/" target="_blank" class="project-link"
                     data-i18n="project-amankay-link">View Project</a>
             </div>
+
+            <div class="project">
+                <h3 data-i18n="project-coupleapp-title">Couple App</h3>
+                <p data-i18n="project-coupleapp-desc">Web application for couples to like and share products.</p>
+                <ul>
+                    <li data-i18n="project-coupleapp-1">Interactive product swiping and liking system</li>
+                    <li data-i18n="project-coupleapp-2">Real-time matching and shared wishlists</li>
+                </ul>
+            </div>
+
+            <div class="project">
+                <h3 data-i18n="project-onlinestore-title">Online Store with Chat</h3>
+                <p data-i18n="project-onlinestore-desc">E-commerce platform featuring integrated user-to-user chat.</p>
+                <ul>
+                    <li data-i18n="project-onlinestore-1">Complete online shopping experience with cart and checkout
+                    </li>
+                    <li data-i18n="project-onlinestore-2">Real-time messaging system between buyers and sellers</li>
+                </ul>
+            </div>
         </section>
 
         <section id="education" class="reveal">
@@ -194,22 +223,28 @@
                 <ul class="contact-list">
                     <li>
                         <a href="mailto:facusorasio@hotmail.com" aria-label="Send email" class="contact-link">
-                            <svg class="contact-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
+                            <svg class="contact-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                aria-hidden="true">
+                                <path
+                                    d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" />
                             </svg>
                         </a>
                     </li>
                     <li>
                         <a href="https://wa.me/542477624468" aria-label="WhatsApp" class="contact-link">
-                            <svg class="contact-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
+                            <svg class="contact-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                aria-hidden="true">
+                                <path
+                                    d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" />
                             </svg>
                         </a>
                     </li>
                     <li>
                         <a href="https://github.com/facusora01" aria-label="GitHub profile" class="contact-link">
-                            <svg class="contact-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                            <svg class="contact-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                aria-hidden="true">
+                                <path
+                                    d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
                             </svg>
                         </a>
                     </li>
@@ -218,6 +253,10 @@
         </section>
 
     </div>
+
+    <script>
+        GitHubCalendar(".calendar", "facusora01", { responsive: true, global_stats: false });
+    </script>
 </body>
 
 </html>
