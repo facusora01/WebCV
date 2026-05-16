@@ -377,92 +377,89 @@ li {
 }
 
 /* ===== GitHub Graph as Background ===== */
+
+/*
+ * STRATEGY: Do NOT override the library's table cell layout.
+ * Let github-calendar render at its natural size.
+ * We only clip, color, and hide unwanted chrome.
+ */
+
 .header-with-calendar {
     position: relative;
-    text-align: center;
     margin-bottom: 2rem;
-    padding-top: 1rem;
-    min-height: 140px;
+    overflow: hidden;          /* clip calendar at header edges */
+    min-height: 165px;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
 }
 
 .calendar-bg {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
+    inset: 0;
     z-index: 1;
-    opacity: 0.5;
-    /* Reduced opacity to act as background */
+    opacity: 0.6;
     pointer-events: none;
-    /* Make non-interactive */
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .header-overlay-title-container {
     position: relative;
     z-index: 2;
-    background: var(--bg-base);
-    padding: 0.5rem 2.5rem;
+    background: rgba(26, 18, 11, 0.80);
+    padding: 0.6rem 2.5rem;
     border: 2px solid var(--accent);
     border-radius: 10px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(3px);
 }
 
-.calendar {
-    border: none !important;
-    font-family: inherit !important;
+/* ---- Transparent backgrounds only — no layout overrides ---- */
+.calendar,
+.calendar > div,
+.calendar .js-calendar-graph,
+.calendar .graph-before-activity-overview {
     background: transparent !important;
-    padding: 0 !important;
-    margin: 0 auto !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
-/* Make the whole table larger and reduce spacing */
-.calendar table.ContributionCalendar-grid {
-    transform: scale(1.4) !important;
-    transform-origin: center;
-    margin: 0 auto;
-    border-spacing: 2px !important; /* Closes the gap between boxes */
-}
-
-/* Aggressively hide ALL texts, links, legends, and footers */
-.calendar .width-full, /* Hides the bottom footer */
-.calendar .graph-before-activity-overview,
-.calendar th, /* Hides the month and day labels */
+/* ---- Hide unwanted chrome ---- */
+.calendar .width-full,
+.calendar h2,
 .calendar a,
-.calendar .sr-only {
+.calendar .sr-only,
+.calendar .contrib-legend,
+.calendar .contrib-footer,
+.calendar p {
     display: none !important;
 }
 
-/* Round boxes more */
-.calendar td.ContributionCalendar-day {
-    border-radius: 4px !important;
-    border: none !important;
-}
-
-/* Colors for the table cells based on contribution level */
+/* ---- Contribution colors (only structural-neutral overrides) ---- */
 .calendar .ContributionCalendar-day[data-level="0"] {
-    background-color: var(--bg-card-alt) !important;
+    background-color: rgba(255, 255, 255, 0.07) !important;
     outline: none !important;
 }
-
 .calendar .ContributionCalendar-day[data-level="1"] {
-    background-color: rgba(197, 137, 64, 0.4) !important;
+    background-color: rgba(197, 137, 64, 0.45) !important;
 }
-
 .calendar .ContributionCalendar-day[data-level="2"] {
-    background-color: rgba(197, 137, 64, 0.6) !important;
+    background-color: rgba(197, 137, 64, 0.65) !important;
 }
-
 .calendar .ContributionCalendar-day[data-level="3"] {
-    background-color: rgba(197, 137, 64, 0.8) !important;
+    background-color: rgba(197, 137, 64, 0.85) !important;
+}
+.calendar .ContributionCalendar-day[data-level="4"] {
+    background-color: rgb(197, 137, 64) !important;
 }
 
-.calendar .ContributionCalendar-day[data-level="4"] {
-    background-color: var(--accent) !important;
+/* ---- Label colors ---- */
+.calendar thead th span[aria-hidden="true"],
+.calendar .ContributionCalendar-label {
+    color: rgba(255, 220, 160, 0.7) !important;
 }
 
 /* ===== Education ===== */
