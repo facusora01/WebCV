@@ -387,11 +387,8 @@ li {
 .header-with-calendar {
     position: relative;
     margin-bottom: 2rem;
-    overflow: hidden;          /* clip calendar at header edges */
-    min-height: 165px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden;
+    min-height: 200px;
 }
 
 .calendar-bg {
@@ -402,22 +399,24 @@ li {
     pointer-events: none;
     overflow: hidden;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
 }
 
 .header-overlay-title-container {
-    position: relative;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 2;
-    background: rgba(26, 18, 11, 0.80);
-    padding: 0.6rem 2.5rem;
-    border: 2px solid var(--accent);
-    border-radius: 10px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(3px);
+    white-space: nowrap;
 }
 
-/* ---- Transparent backgrounds only — no layout overrides ---- */
+.header-overlay-title-container .title {
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- Transparent backgrounds + full-width layout ---- */
 .calendar,
 .calendar > div,
 .calendar .js-calendar-graph,
@@ -425,6 +424,13 @@ li {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    width: 100% !important;
+}
+
+/* ---- Scale calendar up — clipped by calendar-bg overflow:hidden, no page scrollbar ---- */
+.calendar {
+    transform: scaleY(1.5);
+    transform-origin: top center;
 }
 
 /* ---- Hide unwanted chrome ---- */
@@ -455,6 +461,13 @@ li {
 .calendar .ContributionCalendar-day[data-level="4"] {
     background-color: rgb(197, 137, 64) !important;
 }
+
+/* ---- SVG rect overrides (library may render rects instead of td cells) ---- */
+.calendar rect[data-level="0"] { fill: rgba(255, 255, 255, 0.07) !important; }
+.calendar rect[data-level="1"] { fill: rgba(197, 137, 64, 0.45) !important; }
+.calendar rect[data-level="2"] { fill: rgba(197, 137, 64, 0.65) !important; }
+.calendar rect[data-level="3"] { fill: rgba(197, 137, 64, 0.85) !important; }
+.calendar rect[data-level="4"] { fill: rgb(197, 137, 64) !important; }
 
 /* ---- Label colors ---- */
 .calendar thead th span[aria-hidden="true"],
