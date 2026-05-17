@@ -34,14 +34,12 @@
         rel="stylesheet">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="https://unpkg.com/github-calendar@latest/dist/github-calendar-responsive.css" />
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css">
 
     <!-- Scripts -->
     <script src="javascript/language.js" defer></script>
     <script src="javascript/scrollReveal.js" defer></script>
-    <script src="https://unpkg.com/github-calendar@latest/dist/github-calendar.min.js"></script>
 </head>
 
 <body>
@@ -255,7 +253,63 @@
     </div>
 
     <script>
-        GitHubCalendar(".calendar", "facusora01", { responsive: true, global_stats: false });
+        (async function () {
+            const container = document.querySelector('.calendar');
+            if (!container) return;
+
+            const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+
+            try {
+                const res = await fetch('https://github-contributions-api.jogruber.de/v4/facusora01?y=last');
+                if (!res.ok) throw new Error(res.status);
+                const { contributions } = await res.json();
+
+                contributions.sort((a, b) => a.date < b.date ? -1 : 1);
+
+                // Group into week columns (Sun=0 … Sat=6)
+                const weeks = [];
+                let week = null;
+                for (const c of contributions) {
+                    const dow = new Date(c.date + 'T12:00:00Z').getUTCDay();
+                    if (dow === 0 || !week) { week = Array(7).fill(null); weeks.push(week); }
+                    week[dow] = c;
+                }
+
+                // Month header
+                let prevMonth = -1;
+                let headCells = '<th class="ContributionCalendar-label"></th>';
+                for (const w of weeks) {
+                    const first = w.find(Boolean);
+                    const m = first ? new Date(first.date + 'T12:00:00Z').getUTCMonth() : -1;
+                    headCells += (m !== prevMonth && m !== -1)
+                        ? `<th class="ContributionCalendar-label">${MONTHS[m]}</th>`
+                        : '<th class="ContributionCalendar-label"></th>';
+                    if (m !== -1) prevMonth = m;
+                }
+
+                // Day rows
+                let bodyRows = '';
+                for (let d = 0; d < 7; d++) {
+                    bodyRows += `<tr><td class="ContributionCalendar-label">${DAY_LABELS[d]}</td>`;
+                    for (const w of weeks) {
+                        const c = w[d];
+                        bodyRows += c
+                            ? `<td class="ContributionCalendar-day" data-level="${c.level}"></td>`
+                            : `<td class="ContributionCalendar-day" data-level="0"></td>`;
+                    }
+                    bodyRows += '</tr>';
+                }
+
+                container.innerHTML = `
+                    <table class="ContributionCalendar-grid">
+                        <thead><tr>${headCells}</tr></thead>
+                        <tbody>${bodyRows}</tbody>
+                    </table>`;
+            } catch (e) {
+                console.error('GitHub calendar error:', e);
+            }
+        })();
     </script>
 </body>
 

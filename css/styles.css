@@ -388,7 +388,7 @@ li {
     position: relative;
     margin-bottom: 2rem;
     overflow: hidden;
-    min-height: 200px;
+    min-height: 185px;
 }
 
 .calendar-bg {
@@ -416,21 +416,45 @@ li {
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 0, 0, 0.6);
 }
 
-/* ---- Transparent backgrounds + full-width layout ---- */
-.calendar,
-.calendar > div,
-.calendar .js-calendar-graph,
-.calendar .graph-before-activity-overview {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    width: 100% !important;
+/* ---- Calendar table sizing ---- */
+.ContributionCalendar-grid {
+    border-collapse: separate;
+    border-spacing: 2px;
+    width: 100%;
+    table-layout: fixed;
 }
 
-/* ---- Scale calendar up — clipped by calendar-bg overflow:hidden, no page scrollbar ---- */
-.calendar {
-    transform: scaleY(1.5);
-    transform-origin: top center;
+.ContributionCalendar-day {
+    height: 16px;
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.07);
+    padding: 0;
+}
+
+thead .ContributionCalendar-label {
+    font-size: 11px;
+    font-weight: normal;
+    color: rgba(255, 220, 160, 0.7);
+    text-align: left;
+    vertical-align: bottom;
+    padding-bottom: 3px;
+    overflow: visible;
+    white-space: nowrap;
+}
+
+tbody .ContributionCalendar-label {
+    font-size: 11px;
+    font-weight: normal;
+    color: rgba(255, 220, 160, 0.7);
+    text-align: right;
+    vertical-align: middle;
+    padding-right: 5px;
+    white-space: nowrap;
+}
+
+/* fixed layout reads col width from first row — set corner cell explicitly */
+.ContributionCalendar-grid thead th:first-child {
+    width: 34px;
 }
 
 /* ---- Hide unwanted chrome ---- */
