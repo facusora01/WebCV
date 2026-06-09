@@ -357,6 +357,58 @@ li {
     border-color: var(--gold);
 }
 
+/* ===== Repositories ===== */
+.repo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.repo-card {
+    padding: 1rem 1.15rem;
+    background: var(--bg-card-alt);
+    border: 1px solid var(--border-card);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.repo-card:hover {
+    background: #3f2c22;
+    border-color: var(--accent);
+    box-shadow: 0 6px 28px var(--shadow-warm);
+}
+
+.repo-card h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+}
+
+.repo-card h4 i {
+    font-size: 1.15rem;
+}
+
+.repo-lang {
+    margin-left: auto;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.repo-card p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.5;
+}
+
 /* ===== Badge ===== */
 .badge {
     display: inline-block;
@@ -597,6 +649,40 @@ tbody .ContributionCalendar-label {
 
     section {
         padding: 1.5rem 1.25rem;
+    }
+
+    /* GitHub calendar header: give it breathing room so it isn't cramped */
+    .header-with-calendar {
+        min-height: 120px;
+        margin-bottom: 1.5rem;
+    }
+
+    .calendar-bg {
+        opacity: 0.5;
+        align-items: center;
+    }
+
+    .ContributionCalendar-day {
+        height: 11px;
+    }
+
+    .ContributionCalendar-grid {
+        border-spacing: 1.5px;
+    }
+
+    /* hide month/day labels on mobile — too cramped to read */
+    .header-with-calendar .ContributionCalendar-label {
+        display: none;
+    }
+
+    .header-with-calendar .ContributionCalendar-grid thead th:first-child,
+    .header-with-calendar tbody .ContributionCalendar-label {
+        width: 0;
+        padding: 0;
+    }
+
+    .header-overlay-title-container .title {
+        font-size: 1.9rem;
     }
 }
 
