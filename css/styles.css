@@ -376,6 +376,36 @@ li {
     border: 1px solid rgba(250, 234, 177, 0.4);
 }
 
+.badge-ai {
+    background: rgba(167, 139, 250, 0.12);
+    color: #a78bfa;
+    border: 1px solid rgba(167, 139, 250, 0.4);
+}
+
+.badge-bot {
+    background: rgba(94, 234, 212, 0.12);
+    color: #5eead4;
+    border: 1px solid rgba(94, 234, 212, 0.4);
+}
+
+.badge-fullstack {
+    background: rgba(96, 165, 250, 0.12);
+    color: #60a5fa;
+    border: 1px solid rgba(96, 165, 250, 0.4);
+}
+
+.badge-web {
+    background: rgba(244, 114, 182, 0.12);
+    color: #f472b6;
+    border: 1px solid rgba(244, 114, 182, 0.4);
+}
+
+.badge-desktop {
+    background: rgba(251, 146, 60, 0.12);
+    color: #fb923c;
+    border: 1px solid rgba(251, 146, 60, 0.4);
+}
+
 /* ===== GitHub Graph as Background ===== */
 
 /*
