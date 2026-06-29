@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
-  var langSelect = document.getElementById('lang-select');
-  if (!langSelect) return;
+  var langDropdown = document.querySelector('.lang-dropdown');
+  if (!langDropdown) return;
+  var langTrigger = langDropdown.querySelector('.lang-trigger');
+  var langCurrent = langDropdown.querySelector('.lang-current');
+  var langItems = langDropdown.querySelectorAll('.lang-item');
 
   // Texts for both languages
   var translations = {
@@ -10,28 +13,58 @@ document.addEventListener('DOMContentLoaded', function () {
       'about-title': 'About Me',
       'about-text': 'I am a Computer Engineering student focused on software development and algorithmic logic. I specialize in creating functional applications and enjoy the challenge of optimizing code. In my downtime, I expand my skill set by creating web and mobile applications, and managing locally-run AI systems.',
       'skills-title': 'Skills',
+      'skills-cat-languages': 'Languages',
+      'skills-cat-frontend': 'Frontend',
+      'skills-cat-backend': 'Backend & Data',
+      'skills-cat-mobile': 'Mobile & Desktop',
+      'skills-cat-tools': 'DevOps & Tools',
       'in-progress': 'In progress',
       'experience-title': 'Experience',
-      'exp-webdev-title': 'Web Developer',
+      'exp-webdev-title': 'Frontend Web',
       'exp-webdev-date': 'June 2023',
       'exp-webdev-1': 'Developed and maintained small personal website.',
       'exp-webdev-2': 'Collaborated with design team to implement new features.',
       'exp-webdev-3': 'Optimized website performance and frontend responsiveness.',
-      'exp-pydev-title': 'Python Developer',
+      'exp-pydev-title': 'Backend & Automation',
       'exp-pydev-date': 'Jan 2020',
       'exp-pydev-1': 'Assisted in developing client websites.',
       'exp-pydev-2': 'Create automated scripts to streamline workflows.',
       'exp-pydev-3': 'Worked in a team to deliver high-quality software solutions.',
-      'exp-javadev-title': 'Java Developer',
+      'exp-javadev-title': 'Software Engineering',
       'exp-javadev-date': 'Jan 2024',
       'exp-javadev-1': 'Collaborated in the development of Java-based applications.',
       'exp-javadev-2': 'Implemented logic and user interface components.',
       'exp-javadev-3': 'Implemented TDD to ensure code quality and functionality.',
-      'exp-appdev-title': 'App Developer',
-      'exp-appdev-date': 'Nov 2025 - In progress',
+      'exp-appdev-title': 'Mobile (Flutter)',
+      'exp-appdev-date': '2025',
       'exp-appdev-1': 'Currently learning mobile app development using Flutter.',
       'exp-appdev-2': 'Exploring cross-platform solutions for Android and iOS.',
       'exp-appdev-3': 'Building an app to improve management in Agricultural/Livestock areas.',
+      'exp-saas-title': 'SaaS & Product Development',
+      'exp-saas-date': '2026',
+      'exp-saas-1': 'Designed and shipped full-stack SaaS web apps from concept to deployment.',
+      'exp-saas-2': 'Built React/Next.js frontends with Node/Express and Firebase backends.',
+      'exp-saas-3': 'Implemented authentication, scheduling and real-time features for end users.',
+      'exp-ai-title': 'AI & Bot Engineering',
+      'exp-ai-date': '2024',
+      'exp-ai-1': 'Trained an F5-TTS voice model to preserve an Argentine accent.',
+      'exp-ai-2': 'Built conversational assistants powered by Ollama (llama3.2).',
+      'exp-ai-3': 'Developed and deployed Discord/WhatsApp bots on a Linux server.',
+      'exp-fullstack-title': 'Full-Stack Projects',
+      'exp-fullstack-date': '2024',
+      'exp-fullstack-1': 'Built web apps with React, Express and SQLite/PostgreSQL.',
+      'exp-fullstack-2': 'Deployed FastAPI backends on Linux servers via SSH with JWT auth.',
+      'exp-fullstack-3': 'Implemented data visualization, file uploads and admin panels.',
+      'exp-devops-title': 'DevOps & Linux Infrastructure',
+      'exp-devops-date': '2024',
+      'exp-devops-1': 'Deployed and managed backends on Linux servers via SSH.',
+      'exp-devops-2': 'Configured web admin panels and scheduled automated jobs.',
+      'exp-devops-3': 'Set up remote management and service deployment workflows.',
+      'exp-db-title': 'Database Design',
+      'exp-db-date': '2024',
+      'exp-db-1': 'Designed relational schemas with PostgreSQL and SQLite.',
+      'exp-db-2': 'Modeled entities, relationships and normalization for projects.',
+      'exp-db-3': 'Wrote queries and managed data for full-stack applications.',
       'education-title': 'Education',
       'edu-uni': 'UBA University of Engineering, 2021',
       'edu-career': 'Computer Engineering',
@@ -97,28 +130,58 @@ document.addEventListener('DOMContentLoaded', function () {
       'about-title': 'Sobre mí',
       'about-text': 'Soy un estudiante de Ingeniería Informática enfocado en el desarrollo de software y la lógica algorítmica. Me especializo en crear aplicaciones funcionales y disfruto el desafío de optimizar el código. En mi tiempo libre, amplío mis habilidades creando aplicaciones web y móviles, y gestionando sistemas de Inteligencia Artificial de ejecución local.',
       'skills-title': 'Habilidades',
+      'skills-cat-languages': 'Lenguajes',
+      'skills-cat-frontend': 'Frontend',
+      'skills-cat-backend': 'Backend y Datos',
+      'skills-cat-mobile': 'Mobile y Escritorio',
+      'skills-cat-tools': 'DevOps y Herramientas',
       'in-progress': 'En progreso',
       'experience-title': 'Experiencia',
-      'exp-webdev-title': 'Desarrollador Web',
+      'exp-webdev-title': 'Frontend Web',
       'exp-webdev-date': 'Junio 2023',
       'exp-webdev-1': 'Desarrollé y mantuve un sitio web personal pequeño.',
       'exp-webdev-2': 'Colaboré con el equipo de diseño para implementar nuevas funciones.',
       'exp-webdev-3': 'Optimizé el rendimiento y la respuesta del frontend.',
-      'exp-pydev-title': 'Desarrollador Python',
+      'exp-pydev-title': 'Backend y Automatización',
       'exp-pydev-date': 'Enero 2020',
       'exp-pydev-1': 'Asistí en el desarrollo de sitios web para clientes.',
       'exp-pydev-2': 'Creé scripts automatizados para agilizar flujos de trabajo.',
       'exp-pydev-3': 'Trabajé en equipo para entregar soluciones de software de calidad.',
-      'exp-javadev-title': 'Desarrollador Java',
+      'exp-javadev-title': 'Ingeniería de Software',
       'exp-javadev-date': 'Enero 2024',
       'exp-javadev-1': 'Colaboré en el desarrollo de aplicaciones basadas en Java.',
       'exp-javadev-2': 'Implementé la lógica y componentes de interfaz.',
       'exp-javadev-3': 'Implementé TDD para asegurar calidad y funcionalidad.',
-      'exp-appdev-title': 'Desarrollador de Apps',
-      'exp-appdev-date': 'Noviembre 2025 - En progreso',
+      'exp-appdev-title': 'Mobile (Flutter)',
+      'exp-appdev-date': '2025',
       'exp-appdev-1': 'Actualmente aprendiendo desarrollo de apps móviles con Flutter.',
       'exp-appdev-2': 'Explorando soluciones multiplataforma para Android e iOS.',
       'exp-appdev-3': 'Construyendo una app para mejorar la gestion en las zonas Agricolas/Ganaderas.',
+      'exp-saas-title': 'Desarrollo de Producto y SaaS',
+      'exp-saas-date': '2026',
+      'exp-saas-1': 'Diseñé y publiqué apps web SaaS full-stack desde la idea hasta el despliegue.',
+      'exp-saas-2': 'Construí frontends React/Next.js con backends Node/Express y Firebase.',
+      'exp-saas-3': 'Implementé autenticación, turnos y funciones en tiempo real para usuarios.',
+      'exp-ai-title': 'IA y Bots',
+      'exp-ai-date': '2024',
+      'exp-ai-1': 'Entrené un modelo de voz F5-TTS para conservar el acento argentino.',
+      'exp-ai-2': 'Construí asistentes conversacionales con Ollama (llama3.2).',
+      'exp-ai-3': 'Desarrollé y desplegué bots de Discord/WhatsApp en un servidor Linux.',
+      'exp-fullstack-title': 'Proyectos Full-Stack',
+      'exp-fullstack-date': '2024',
+      'exp-fullstack-1': 'Construí apps web con React, Express y SQLite/PostgreSQL.',
+      'exp-fullstack-2': 'Desplegué backends FastAPI en servidores Linux por SSH con auth JWT.',
+      'exp-fullstack-3': 'Implementé visualización de datos, carga de archivos y paneles de admin.',
+      'exp-devops-title': 'DevOps e Infraestructura Linux',
+      'exp-devops-date': '2024',
+      'exp-devops-1': 'Desplegué y administré backends en servidores Linux por SSH.',
+      'exp-devops-2': 'Configuré paneles de administración web y tareas automáticas programadas.',
+      'exp-devops-3': 'Armé flujos de despliegue y gestión remota de servicios.',
+      'exp-db-title': 'Diseño de Bases de Datos',
+      'exp-db-date': '2024',
+      'exp-db-1': 'Diseñé esquemas relacionales con PostgreSQL y SQLite.',
+      'exp-db-2': 'Modelé entidades, relaciones y normalización para proyectos.',
+      'exp-db-3': 'Escribí consultas y gestioné datos para aplicaciones full-stack.',
       'education-title': 'Educación',
       'edu-uni': 'UBA Universidad de Ingeniería, 2021',
       'edu-career': 'Ingeniería en Informática',
@@ -202,11 +265,52 @@ document.addEventListener('DOMContentLoaded', function () {
     localStorage.setItem('lang', lang);
   }
 
-  langSelect.addEventListener('change', function () {
-    setLang(this.value);
+  function openMenu() {
+    langDropdown.setAttribute('data-open', 'true');
+    langTrigger.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeMenu() {
+    langDropdown.setAttribute('data-open', 'false');
+    langTrigger.setAttribute('aria-expanded', 'false');
+  }
+
+  function updateUI(lang) {
+    langItems.forEach(function (item) {
+      var on = item.getAttribute('data-lang') === lang;
+      item.classList.toggle('selected', on);
+      item.setAttribute('aria-selected', on ? 'true' : 'false');
+      if (on) {
+        langCurrent.textContent = item.textContent;
+        langCurrent.setAttribute('data-lang', lang);
+      }
+    });
+  }
+
+  langTrigger.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (langDropdown.getAttribute('data-open') === 'true') closeMenu();
+    else openMenu();
   });
 
-  var saved = localStorage.getItem('lang') || langSelect.value;
-  langSelect.value = saved;
+  langItems.forEach(function (item) {
+    item.addEventListener('click', function () {
+      var lang = item.getAttribute('data-lang');
+      setLang(lang);
+      updateUI(lang);
+      closeMenu();
+    });
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!langDropdown.contains(e.target)) closeMenu();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeMenu();
+  });
+
+  var saved = localStorage.getItem('lang') || 'en';
   setLang(saved);
+  updateUI(saved);
 });

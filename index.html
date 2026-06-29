@@ -46,10 +46,20 @@
 <body>
 
     <div class="top-bar">
-        <select id="lang-select" aria-label="Select language">
-            <option value="en">English</option>
-            <option value="es">Español</option>
-        </select>
+        <div class="lang-dropdown" aria-label="Select language">
+            <button type="button" class="lang-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="lang-current" data-lang="en">English</span>
+                <svg class="lang-caret" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <ul class="lang-menu" role="listbox" tabindex="-1">
+                <li class="lang-item selected" role="option" data-lang="en" aria-selected="true">English</li>
+                <li class="lang-item" role="option" data-lang="es" aria-selected="false">Español</li>
+            </ul>
+        </div>
     </div>
 
     <div class="main-content">
@@ -80,34 +90,64 @@
 
         <section id="skills" class="reveal">
             <h2 data-i18n="skills-title">Skills</h2>
-            <ul>
-                <li><i class="devicon-html5-plain colored"></i> HTML/CSS</li>
-                <li><i class="devicon-javascript-plain colored"></i> JavaScript</li>
-                <li><i class="devicon-typescript-plain colored"></i> TypeScript</li>
-                <li><i class="devicon-python-plain colored"></i> Python</li>
-                <li><i class="devicon-cplusplus-plain colored"></i> C++</li>
-                <li><i class="devicon-csharp-plain colored"></i> C#</li>
-                <li><i class="devicon-java-plain colored"></i> Java</li>
-                <li><i class="devicon-react-original colored"></i> React</li>
-                <li><i class="devicon-nextjs-original"></i> Next.js</li>
-                <li><i class="devicon-tailwindcss-plain colored"></i> Tailwind CSS</li>
-                <li><i class="devicon-nodejs-plain colored"></i> Node.js</li>
-                <li><i class="devicon-express-original"></i> Express</li>
-                <li><i class="devicon-postgresql-plain colored"></i> PostgreSQL</li>
-                <li><i class="devicon-sqlite-plain colored"></i> SQLite</li>
-                <li><i class="devicon-flutter-plain colored"></i> Flutter</li>
-                <li><i class="devicon-firebase-plain colored"></i> Firebase</li>
-                <li><i class="devicon-electron-original colored"></i> Electron</li>
-                <li><i class="devicon-git-plain colored"></i> Git</li>
-                <li><i class="devicon-godot-plain colored"></i> Godot</li>
-            </ul>
+
+            <div class="skill-group">
+                <h3 class="skill-cat" data-i18n="skills-cat-languages">Languages</h3>
+                <ul>
+                    <li><i class="devicon-html5-plain colored"></i> HTML/CSS</li>
+                    <li><i class="devicon-javascript-plain colored"></i> JavaScript</li>
+                    <li><i class="devicon-typescript-plain colored"></i> TypeScript</li>
+                    <li><i class="devicon-python-plain colored"></i> Python</li>
+                    <li><i class="devicon-java-plain colored"></i> Java</li>
+                    <li><i class="devicon-cplusplus-plain colored"></i> C++</li>
+                    <li><i class="devicon-csharp-plain colored"></i> C#</li>
+                </ul>
+            </div>
+
+            <div class="skill-group">
+                <h3 class="skill-cat" data-i18n="skills-cat-frontend">Frontend</h3>
+                <ul>
+                    <li><i class="devicon-react-original colored"></i> React</li>
+                    <li><i class="devicon-nextjs-original"></i> Next.js</li>
+                    <li><i class="devicon-tailwindcss-plain colored"></i> Tailwind CSS</li>
+                </ul>
+            </div>
+
+            <div class="skill-group">
+                <h3 class="skill-cat" data-i18n="skills-cat-backend">Backend &amp; Data</h3>
+                <ul>
+                    <li><i class="devicon-nodejs-plain colored"></i> Node.js</li>
+                    <li><i class="devicon-express-original"></i> Express</li>
+                    <li><i class="devicon-fastapi-plain colored"></i> FastAPI</li>
+                    <li><i class="devicon-postgresql-plain colored"></i> PostgreSQL</li>
+                    <li><i class="devicon-sqlite-plain colored"></i> SQLite</li>
+                    <li><i class="devicon-firebase-plain colored"></i> Firebase</li>
+                </ul>
+            </div>
+
+            <div class="skill-group">
+                <h3 class="skill-cat" data-i18n="skills-cat-mobile">Mobile &amp; Desktop</h3>
+                <ul>
+                    <li><i class="devicon-flutter-plain colored"></i> Flutter</li>
+                    <li><i class="devicon-electron-original colored"></i> Electron</li>
+                </ul>
+            </div>
+
+            <div class="skill-group">
+                <h3 class="skill-cat" data-i18n="skills-cat-tools">DevOps &amp; Tools</h3>
+                <ul>
+                    <li><i class="devicon-docker-plain colored"></i> Docker</li>
+                    <li><i class="devicon-linux-plain colored"></i> Linux</li>
+                    <li><i class="devicon-git-plain colored"></i> Git</li>
+                </ul>
+            </div>
         </section>
 
         <section id="experience" class="reveal">
             <h2 data-i18n="experience-title">Experience</h2>
 
             <div class="job">
-                <h3 data-i18n="exp-pydev-title">Python Developer</h3>
+                <h3 data-i18n="exp-pydev-title">Backend &amp; Automation</h3>
                 <p data-i18n="exp-pydev-date">Jan 2020</p>
                 <ul>
                     <li data-i18n="exp-pydev-1">Assisted in developing client websites.</li>
@@ -117,7 +157,7 @@
             </div>
 
             <div class="job">
-                <h3 data-i18n="exp-webdev-title">Web Developer</h3>
+                <h3 data-i18n="exp-webdev-title">Frontend Web</h3>
                 <p data-i18n="exp-webdev-date">June 2023</p>
                 <ul>
                     <li data-i18n="exp-webdev-1">Developed and maintained personal website projects.</li>
@@ -127,7 +167,7 @@
             </div>
 
             <div class="job">
-                <h3 data-i18n="exp-javadev-title">Java Developer</h3>
+                <h3 data-i18n="exp-javadev-title">Software Engineering</h3>
                 <p data-i18n="exp-javadev-date">Jan 2024</p>
                 <ul>
                     <li data-i18n="exp-javadev-1">Collaborated in the development of Java-based applications.</li>
@@ -137,13 +177,63 @@
             </div>
 
             <div class="job">
-                <h3 data-i18n="exp-appdev-title">App Developer</h3>
-                <p data-i18n="exp-appdev-date">Nov 2025 - In progress</p>
+                <h3 data-i18n="exp-ai-title">AI &amp; Bot Engineering</h3>
+                <p data-i18n="exp-ai-date">2024</p>
+                <ul>
+                    <li data-i18n="exp-ai-1">Trained an F5-TTS voice model to preserve an Argentine accent.</li>
+                    <li data-i18n="exp-ai-2">Built conversational assistants powered by Ollama (llama3.2).</li>
+                    <li data-i18n="exp-ai-3">Developed and deployed Discord/WhatsApp bots on a Linux server.</li>
+                </ul>
+            </div>
+
+            <div class="job">
+                <h3 data-i18n="exp-fullstack-title">Full-Stack Projects</h3>
+                <p data-i18n="exp-fullstack-date">2024</p>
+                <ul>
+                    <li data-i18n="exp-fullstack-1">Built web apps with React, Express and SQLite/PostgreSQL.</li>
+                    <li data-i18n="exp-fullstack-2">Deployed FastAPI backends on Linux servers via SSH with JWT auth.</li>
+                    <li data-i18n="exp-fullstack-3">Implemented data visualization, file uploads and admin panels.</li>
+                </ul>
+            </div>
+
+            <div class="job">
+                <h3 data-i18n="exp-devops-title">DevOps &amp; Linux Infrastructure</h3>
+                <p data-i18n="exp-devops-date">2024</p>
+                <ul>
+                    <li data-i18n="exp-devops-1">Deployed and managed backends on Linux servers via SSH.</li>
+                    <li data-i18n="exp-devops-2">Configured web admin panels and scheduled automated jobs.</li>
+                    <li data-i18n="exp-devops-3">Set up remote management and service deployment workflows.</li>
+                </ul>
+            </div>
+
+            <div class="job">
+                <h3 data-i18n="exp-db-title">Database Design</h3>
+                <p data-i18n="exp-db-date">2024</p>
+                <ul>
+                    <li data-i18n="exp-db-1">Designed relational schemas with PostgreSQL and SQLite.</li>
+                    <li data-i18n="exp-db-2">Modeled entities, relationships and normalization for projects.</li>
+                    <li data-i18n="exp-db-3">Wrote queries and managed data for full-stack applications.</li>
+                </ul>
+            </div>
+
+            <div class="job">
+                <h3 data-i18n="exp-appdev-title">Mobile (Flutter)</h3>
+                <p data-i18n="exp-appdev-date">2025</p>
                 <ul>
                     <li data-i18n="exp-appdev-1">Currently learning mobile app development using Flutter.</li>
                     <li data-i18n="exp-appdev-2">Exploring cross-platform solutions for Android and iOS.</li>
                     <li data-i18n="exp-appdev-3">Building an app to improve management in Agricultural/Livestock areas.
                     </li>
+                </ul>
+            </div>
+
+            <div class="job">
+                <h3 data-i18n="exp-saas-title">SaaS &amp; Product Development</h3>
+                <p data-i18n="exp-saas-date">2026</p>
+                <ul>
+                    <li data-i18n="exp-saas-1">Designed and shipped full-stack SaaS web apps from concept to deployment.</li>
+                    <li data-i18n="exp-saas-2">Built React/Next.js frontends with Node/Express and Firebase backends.</li>
+                    <li data-i18n="exp-saas-3">Implemented authentication, scheduling and real-time features for end users.</li>
                 </ul>
             </div>
         </section>
