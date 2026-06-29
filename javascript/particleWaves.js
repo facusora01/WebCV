@@ -2,12 +2,16 @@
  * Random scattered points drifting on random trajectories. Lines link the
  * nearest points to each other and to the cursor (constellation / net effect).
  * Line opacity fades with distance. Fixed to the viewport.
+ *
+ * Accessibility: when prefers-reduced-motion is set we DON'T bail out (that
+ * left those visitors with no background at all). Instead we render a single
+ * static frame and only redraw on cursor move / resize — visible for everyone,
+ * just not continuously animated.
  */
 (() => {
     'use strict';
 
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReduced) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const canvas = document.createElement('canvas');
     canvas.id = 'particle-waves';
@@ -19,10 +23,11 @@
     const LINE_RGB = '197, 137, 64';   // --accent
 
     // Tunables
-    const DENSITY = 13000;       // 1 point per N px^2 of viewport
-    const MAX_POINTS = 120;
-    const LINK_DIST = 135;       // px to link two points
-    const MOUSE_DIST = 190;      // px to link a point to the cursor
+    const DENSITY = 9000;        // 1 point per N px^2 of viewport (lower = denser)
+    const MAX_POINTS = 140;
+    const MIN_POINTS = 14;       // floor so small screens still show a network
+    const LINK_DIST = 150;       // px to link two points
+    const MOUSE_DIST = 200;      // px to link a point to the cursor
     const SPEED = 0.35;          // base drift speed (px/frame)
 
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -43,7 +48,8 @@
         canvas.style.height = height + 'px';
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        const count = Math.min(Math.round((width * height) / DENSITY), MAX_POINTS);
+        let count = Math.round((width * height) / DENSITY);
+        count = Math.max(MIN_POINTS, Math.min(count, MAX_POINTS));
         points = new Array(count);
         for (let i = 0; i < count; i++) {
             const ang = rand(0, Math.PI * 2);
@@ -53,28 +59,13 @@
                 y: rand(0, height),
                 vx: Math.cos(ang) * sp,
                 vy: Math.sin(ang) * sp,
-                r: rand(2, 4.5),
+                r: rand(2.5, 5),
                 color: PALETTE[(Math.random() * PALETTE.length) | 0]
             };
         }
     }
 
-    window.addEventListener('pointermove', (e) => {
-        mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true;
-    }, { passive: true });
-    window.addEventListener('pointerleave', () => { mouse.active = false; });
-    window.addEventListener('touchend', () => { mouse.active = false; }, { passive: true });
-
-    let resizeRAF = null;
-    window.addEventListener('resize', () => {
-        if (resizeRAF) cancelAnimationFrame(resizeRAF);
-        resizeRAF = requestAnimationFrame(build);
-    });
-
-    function frame() {
-        ctx.clearRect(0, 0, width, height);
-
-        // Move + bounce off edges
+    function step() {
         for (let i = 0; i < points.length; i++) {
             const p = points[i];
             p.x += p.vx;
@@ -82,9 +73,12 @@
             if (p.x < 0 || p.x > width) p.vx *= -1;
             if (p.y < 0 || p.y > height) p.vy *= -1;
         }
+    }
 
-        // Links between nearest points
+    function render() {
+        ctx.clearRect(0, 0, width, height);
         ctx.lineWidth = 1;
+
         for (let i = 0; i < points.length; i++) {
             const a = points[i];
             for (let j = i + 1; j < points.length; j++) {
@@ -92,7 +86,7 @@
                 const dx = a.x - b.x, dy = a.y - b.y;
                 const d2 = dx * dx + dy * dy;
                 if (d2 < LINK_DIST * LINK_DIST) {
-                    const alpha = (1 - Math.sqrt(d2) / LINK_DIST) * 0.5;
+                    const alpha = (1 - Math.sqrt(d2) / LINK_DIST) * 0.55;
                     ctx.strokeStyle = `rgba(${LINE_RGB}, ${alpha})`;
                     ctx.beginPath();
                     ctx.moveTo(a.x, a.y);
@@ -101,7 +95,6 @@
                 }
             }
 
-            // Link to cursor
             if (mouse.active) {
                 const dx = a.x - mouse.x, dy = a.y - mouse.y;
                 const d2 = dx * dx + dy * dy;
@@ -116,7 +109,6 @@
             }
         }
 
-        // Dots on top
         for (let i = 0; i < points.length; i++) {
             const p = points[i];
             ctx.beginPath();
@@ -124,10 +116,38 @@
             ctx.arc(p.x, p.y, p.r, 0, 6.2832);
             ctx.fill();
         }
-
-        requestAnimationFrame(frame);
     }
 
+    function animate() {
+        step();
+        render();
+        requestAnimationFrame(animate);
+    }
+
+    // Reduced motion: redraw only on interaction, no continuous loop
+    let staticRAF = null;
+    function renderOnce() {
+        if (staticRAF) return;
+        staticRAF = requestAnimationFrame(() => { staticRAF = null; render(); });
+    }
+
+    window.addEventListener('pointermove', (e) => {
+        mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true;
+        if (reduced) renderOnce();
+    }, { passive: true });
+    window.addEventListener('pointerleave', () => {
+        mouse.active = false;
+        if (reduced) renderOnce();
+    });
+    window.addEventListener('touchend', () => { mouse.active = false; }, { passive: true });
+
+    let resizeRAF = null;
+    window.addEventListener('resize', () => {
+        if (resizeRAF) cancelAnimationFrame(resizeRAF);
+        resizeRAF = requestAnimationFrame(() => { build(); if (reduced) render(); });
+    });
+
     build();
-    requestAnimationFrame(frame);
+    if (reduced) render();
+    else requestAnimationFrame(animate);
 })();
