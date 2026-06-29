@@ -1,7 +1,8 @@
 # ---- Files ----
 .antigravity
 .claude
-.github
+.github/*
+!.github/workflows
 .opencode
 .windsurf
 .clinerules
