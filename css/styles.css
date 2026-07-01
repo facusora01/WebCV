@@ -560,6 +560,12 @@ li {
     border: 1px solid rgba(251, 146, 60, 0.4);
 }
 
+.badge-security {
+    background: rgba(248, 113, 113, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.4);
+}
+
 /* ===== GitHub Graph as Background ===== */
 
 /*
