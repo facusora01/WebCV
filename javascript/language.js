@@ -71,6 +71,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       'contact-title': 'My Contact',
       'projects-title': 'Projects',
+      'project-more': 'View details →',
+      'pm-features': 'Key features',
       'project-lootmarket-title': 'LootMarket',
       'project-lootmarket-desc': 'Peer-to-peer gaming marketplace with escrow and a security-hardened database',
       'project-lootmarket-1': 'React, Node/Express and PostgreSQL 16 with a full escrow flow',
@@ -194,6 +196,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       'contact-title': 'Contacto',
       'projects-title': 'Proyectos',
+      'project-more': 'Ver detalles →',
+      'pm-features': 'Características',
       'project-lootmarket-title': 'LootMarket',
       'project-lootmarket-desc': 'Marketplace peer-to-peer de gaming con escrow y base de datos endurecida en seguridad',
       'project-lootmarket-1': 'React, Node/Express y PostgreSQL 16 con flujo de escrow completo',
@@ -275,6 +279,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     localStorage.setItem('lang', lang);
+    window.dispatchEvent(new CustomEvent('langchange', { detail: lang }));
   }
 
   function openMenu() {

@@ -41,6 +41,7 @@
     <script src="javascript/language.js" defer></script>
     <script src="javascript/scrollReveal.js" defer></script>
     <script src="javascript/particleWaves.js" defer></script>
+    <script src="javascript/projectModal.js" defer></script>
 </head>
 
 <body>
@@ -94,13 +95,11 @@
             <div class="skill-group">
                 <h3 class="skill-cat" data-i18n="skills-cat-languages">Languages</h3>
                 <ul>
-                    <li><i class="devicon-html5-plain colored"></i> HTML/CSS</li>
                     <li><i class="devicon-javascript-plain colored"></i> JavaScript</li>
                     <li><i class="devicon-typescript-plain colored"></i> TypeScript</li>
                     <li><i class="devicon-python-plain colored"></i> Python</li>
                     <li><i class="devicon-java-plain colored"></i> Java</li>
                     <li><i class="devicon-cplusplus-plain colored"></i> C++</li>
-                    <li><i class="devicon-csharp-plain colored"></i> C#</li>
                 </ul>
             </div>
 
@@ -147,7 +146,12 @@
             <h2 data-i18n="experience-title">Experience</h2>
 
             <div class="job">
-                <h3 data-i18n="exp-saas-title">SaaS &amp; Product Development</h3>
+                <div class="job-head">
+                    <h3 data-i18n="exp-saas-title">SaaS &amp; Product Development</h3>
+                    <div class="job-tags">
+                        <span class="tech-chip tech-react">React</span><span class="tech-chip tech-next">Next.js</span><span class="tech-chip tech-node">Node.js</span><span class="tech-chip tech-firebase">Firebase</span>
+                    </div>
+                </div>
                 <p data-i18n="exp-saas-date">2026</p>
                 <ul>
                     <li data-i18n="exp-saas-1">Designed and shipped full-stack SaaS web apps from concept to deployment.</li>
@@ -157,7 +161,12 @@
             </div>
 
             <div class="job">
-                <h3 data-i18n="exp-appdev-title">Mobile (Flutter)</h3>
+                <div class="job-head">
+                    <h3 data-i18n="exp-appdev-title">Mobile (Flutter)</h3>
+                    <div class="job-tags">
+                        <span class="tech-chip tech-flutter">Flutter</span><span class="tech-chip tech-dart">Dart</span><span class="tech-chip tech-firebase">Firebase</span>
+                    </div>
+                </div>
                 <p data-i18n="exp-appdev-date">2025</p>
                 <ul>
                     <li data-i18n="exp-appdev-1">Currently learning mobile app development using Flutter.</li>
@@ -168,7 +177,12 @@
             </div>
 
             <div class="job">
-                <h3 data-i18n="exp-db-title">Database Design</h3>
+                <div class="job-head">
+                    <h3 data-i18n="exp-db-title">Database Design</h3>
+                    <div class="job-tags">
+                        <span class="tech-chip tech-postgres">PostgreSQL</span><span class="tech-chip tech-sqlite">SQLite</span><span class="tech-chip tech-sql">SQL</span>
+                    </div>
+                </div>
                 <p data-i18n="exp-db-date">2024</p>
                 <ul>
                     <li data-i18n="exp-db-1">Designed relational schemas with PostgreSQL and SQLite.</li>
@@ -178,7 +192,12 @@
             </div>
 
             <div class="job">
-                <h3 data-i18n="exp-devops-title">DevOps &amp; Linux Infrastructure</h3>
+                <div class="job-head">
+                    <h3 data-i18n="exp-devops-title">DevOps &amp; Linux Infrastructure</h3>
+                    <div class="job-tags">
+                        <span class="tech-chip tech-linux">Linux</span><span class="tech-chip tech-ssh">SSH</span><span class="tech-chip tech-docker">Docker</span>
+                    </div>
+                </div>
                 <p data-i18n="exp-devops-date">2024</p>
                 <ul>
                     <li data-i18n="exp-devops-1">Deployed and managed backends on Linux servers via SSH.</li>
@@ -188,7 +207,12 @@
             </div>
 
             <div class="job">
-                <h3 data-i18n="exp-fullstack-title">Full-Stack Projects</h3>
+                <div class="job-head">
+                    <h3 data-i18n="exp-fullstack-title">Full-Stack Projects</h3>
+                    <div class="job-tags">
+                        <span class="tech-chip tech-react">React</span><span class="tech-chip tech-express">Express</span><span class="tech-chip tech-fastapi">FastAPI</span><span class="tech-chip tech-postgres">PostgreSQL</span>
+                    </div>
+                </div>
                 <p data-i18n="exp-fullstack-date">2024</p>
                 <ul>
                     <li data-i18n="exp-fullstack-1">Built web apps with React, Express and SQLite/PostgreSQL.</li>
@@ -198,7 +222,12 @@
             </div>
 
             <div class="job">
-                <h3 data-i18n="exp-ai-title">AI &amp; Bot Engineering</h3>
+                <div class="job-head">
+                    <h3 data-i18n="exp-ai-title">AI &amp; Bot Engineering</h3>
+                    <div class="job-tags">
+                        <span class="tech-chip tech-python">Python</span><span class="tech-chip tech-ollama">Ollama</span><span class="tech-chip tech-f5">F5-TTS</span>
+                    </div>
+                </div>
                 <p data-i18n="exp-ai-date">2024</p>
                 <ul>
                     <li data-i18n="exp-ai-1">Trained an F5-TTS voice model to preserve an Argentine accent.</li>
@@ -208,7 +237,12 @@
             </div>
 
             <div class="job">
-                <h3 data-i18n="exp-javadev-title">Software Engineering</h3>
+                <div class="job-head">
+                    <h3 data-i18n="exp-javadev-title">Software Engineering</h3>
+                    <div class="job-tags">
+                        <span class="tech-chip tech-java">Java</span><span class="tech-chip tech-tdd">TDD</span><span class="tech-chip tech-junit">JUnit</span>
+                    </div>
+                </div>
                 <p data-i18n="exp-javadev-date">Jan 2024</p>
                 <ul>
                     <li data-i18n="exp-javadev-1">Collaborated in the development of Java-based applications.</li>
@@ -218,7 +252,12 @@
             </div>
 
             <div class="job">
-                <h3 data-i18n="exp-webdev-title">Frontend Web</h3>
+                <div class="job-head">
+                    <h3 data-i18n="exp-webdev-title">Frontend Web</h3>
+                    <div class="job-tags">
+                        <span class="tech-chip tech-html">HTML/CSS</span><span class="tech-chip tech-js">JavaScript</span><span class="tech-chip tech-react">React</span>
+                    </div>
+                </div>
                 <p data-i18n="exp-webdev-date">June 2023</p>
                 <ul>
                     <li data-i18n="exp-webdev-1">Developed and maintained personal website projects.</li>
@@ -228,7 +267,12 @@
             </div>
 
             <div class="job">
-                <h3 data-i18n="exp-pydev-title">Backend &amp; Automation</h3>
+                <div class="job-head">
+                    <h3 data-i18n="exp-pydev-title">Backend &amp; Automation</h3>
+                    <div class="job-tags">
+                        <span class="tech-chip tech-python">Python</span><span class="tech-chip tech-auto">Automation</span><span class="tech-chip tech-git">Git</span>
+                    </div>
+                </div>
                 <p data-i18n="exp-pydev-date">Jan 2020</p>
                 <ul>
                     <li data-i18n="exp-pydev-1">Assisted in developing client websites.</li>
@@ -241,7 +285,8 @@
         <section id="projects" class="reveal">
             <h2 data-i18n="projects-title">Projects</h2>
 
-            <div class="project">
+            <div class="project" data-project="lootmarket" role="button" tabindex="0"
+                aria-label="LootMarket — open details">
                 <h3>
                     <span data-i18n="project-lootmarket-title">LootMarket</span>
                     <span class="badge badge-security">E-commerce / Security</span>
@@ -256,9 +301,11 @@
                     <li data-i18n="project-lootmarket-3">Database security: RLS/ABAC, data masking, encryption at rest and
                         forensic auditing</li>
                 </ul>
+                <span class="project-more" data-i18n="project-more">View details &rarr;</span>
             </div>
 
-            <div class="project">
+            <div class="project" data-project="shapeshifter" role="button" tabindex="0"
+                aria-label="ShapeShifter — open details">
                 <h3>
                     <span data-i18n="project-shapeshifter-title">ShapeShifter</span>
                     <span class="badge badge-ai">AI / Bot</span>
@@ -272,9 +319,11 @@
                     </li>
                     <li data-i18n="project-shapeshifter-3">Real-time voice impersonation and chat responses</li>
                 </ul>
+                <span class="project-more" data-i18n="project-more">View details &rarr;</span>
             </div>
 
-            <div class="project">
+            <div class="project" data-project="letitride" role="button" tabindex="0"
+                aria-label="LetItRide Casino Bot — open details">
                 <h3>
                     <span data-i18n="project-letitride-title">LetItRide Casino Bot</span>
                     <span class="badge badge-bot">Bot</span>
@@ -286,9 +335,11 @@
                     <li data-i18n="project-letitride-3">Deployed on Linux server with SSH access and web admin panel
                     </li>
                 </ul>
+                <span class="project-more" data-i18n="project-more">View details &rarr;</span>
             </div>
 
-            <div class="project">
+            <div class="project" data-project="agroscanner" role="button" tabindex="0"
+                aria-label="AgroScanner — open details">
                 <h3>
                     <span data-i18n="project-agroscanner-title">AgroScanner</span>
                     <span class="badge badge-mobile-iot">Mobile / IoT</span>
@@ -299,9 +350,11 @@
                     <li data-i18n="project-agroscanner-2">Python/FastAPI backend deployed on Linux server via SSH</li>
                     <li data-i18n="project-agroscanner-3">Animal registration and tracking using RFID chips</li>
                 </ul>
+                <span class="project-more" data-i18n="project-more">View details &rarr;</span>
             </div>
 
-            <div class="project">
+            <div class="project" data-project="amankay" role="button" tabindex="0"
+                aria-label="Amankay Web — open details">
                 <h3>
                     <span data-i18n="project-amankay-title">Amankay Web</span>
                     <span class="badge badge-fullstack">Full-Stack</span>
@@ -313,11 +366,11 @@
                     <li data-i18n="project-amankay-2">Backend deployed on Linux server with SSH remote management</li>
                     <li data-i18n="project-amankay-3">Data visualization using Recharts and file upload system</li>
                 </ul>
-                <a href="https://amankay-2eb11.web.app/" target="_blank" class="project-link"
-                    data-i18n="project-amankay-link">View Project</a>
+                <span class="project-more" data-i18n="project-more">View details &rarr;</span>
             </div>
 
-            <div class="project">
+            <div class="project" data-project="coupleapp" role="button" tabindex="0"
+                aria-label="Couple App — open details">
                 <h3>
                     <span data-i18n="project-coupleapp-title">Couple App</span>
                     <span class="badge badge-fullstack">Full-Stack</span>
@@ -327,11 +380,11 @@
                     <li data-i18n="project-coupleapp-1">Interactive product swiping and liking system</li>
                     <li data-i18n="project-coupleapp-2">Real-time matching and shared wishlists</li>
                 </ul>
-                <a href="https://wantit-e3418.web.app/" target="_blank" class="project-link"
-                    data-i18n="project-coupleapp-link">View Project</a>
+                <span class="project-more" data-i18n="project-more">View details &rarr;</span>
             </div>
 
-            <div class="project">
+            <div class="project" data-project="onlinestore" role="button" tabindex="0"
+                aria-label="Online Store with Chat — open details">
                 <h3>
                     <span data-i18n="project-onlinestore-title">Online Store with Chat</span>
                     <span class="badge badge-fullstack">Full-Stack</span>
@@ -342,9 +395,11 @@
                     </li>
                     <li data-i18n="project-onlinestore-2">Real-time messaging system between buyers and sellers</li>
                 </ul>
+                <span class="project-more" data-i18n="project-more">View details &rarr;</span>
             </div>
 
-            <div class="project">
+            <div class="project" data-project="appointa" role="button" tabindex="0"
+                aria-label="Appointa — open details">
                 <h3>
                     <span data-i18n="project-appointa-title">Appointa</span>
                     <span class="badge badge-web">Web</span>
@@ -356,9 +411,11 @@
                     </li>
                     <li data-i18n="project-appointa-2">Configurable services, availability and calendar management</li>
                 </ul>
+                <span class="project-more" data-i18n="project-more">View details &rarr;</span>
             </div>
 
-            <div class="project">
+            <div class="project" data-project="leaguedt" role="button" tabindex="0"
+                aria-label="LeagueDT — open details">
                 <h3>
                     <span data-i18n="project-leaguedt-title">LeagueDT</span>
                     <span class="badge badge-desktop">Desktop / AI</span>
@@ -369,8 +426,26 @@
                     <li data-i18n="project-leaguedt-1">Data-driven macro and micro decision recommendations</li>
                     <li data-i18n="project-leaguedt-2">Match statistics analysis to guide in-game strategy</li>
                 </ul>
+                <span class="project-more" data-i18n="project-more">View details &rarr;</span>
             </div>
         </section>
+
+        <!-- Project detail modal -->
+        <div class="project-modal" id="project-modal" aria-hidden="true">
+            <div class="project-modal-overlay" data-close></div>
+            <div class="project-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="pm-title">
+                <button class="project-modal-close" data-close aria-label="Close">&times;</button>
+                <div class="pm-head">
+                    <h3 id="pm-title"></h3>
+                    <span class="pm-badge"></span>
+                </div>
+                <div class="pm-stack"></div>
+                <p class="pm-detail"></p>
+                <h4 class="pm-features-title" data-i18n="pm-features">Key features</h4>
+                <ul class="pm-features"></ul>
+                <div class="pm-links"></div>
+            </div>
+        </div>
 
         <section id="repositories" class="reveal">
             <h2 data-i18n="repos-title">Repositories</h2>

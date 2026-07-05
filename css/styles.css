@@ -459,6 +459,255 @@ li {
     border-color: var(--gold);
 }
 
+/* ===== Tech chips (experience tags) ===== */
+.job-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.8rem;
+}
+
+.job-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.tech-chip {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    padding: 0.16rem 0.58rem;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+/* Characteristic per-technology colors */
+.tech-react { color: #61dafb; }
+.tech-next { color: #cbd5e1; }
+.tech-node { color: #8cc84b; }
+.tech-express { color: #b8b2a8; }
+.tech-fastapi { color: #22b8a8; }
+.tech-firebase { color: #ffca28; }
+.tech-flutter { color: #54c5f8; }
+.tech-dart { color: #2bb7b3; }
+.tech-postgres { color: #7aa6d6; }
+.tech-sqlite { color: #4fb0e0; }
+.tech-sql { color: #d8a657; }
+.tech-linux { color: #e0b341; }
+.tech-ssh { color: #b0a48f; }
+.tech-docker { color: #2496ed; }
+.tech-python { color: #6aa2d8; }
+.tech-ollama { color: #c9c2b6; }
+.tech-f5 { color: #c79be0; }
+.tech-java { color: #e0964a; }
+.tech-tdd { color: #7cc46a; }
+.tech-junit { color: #4bb78a; }
+.tech-html { color: #e8734a; }
+.tech-js { color: #e6c84a; }
+.tech-auto { color: #b0a48f; }
+.tech-git { color: #ef6a4a; }
+
+/* ===== Clickable project cards ===== */
+.project[role="button"] {
+    cursor: pointer;
+    outline: none;
+}
+
+.project[role="button"]:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--shadow-warm);
+}
+
+.project-more {
+    display: inline-block;
+    margin-top: 0.9rem;
+    color: var(--accent);
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: 'Fira Code', monospace;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.project:hover .project-more {
+    color: var(--gold);
+    transform: translateX(3px);
+}
+
+/* ===== Project detail modal ===== */
+.project-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+}
+
+.project-modal.open {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.25s ease;
+}
+
+.project-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 7, 4, 0.72);
+    backdrop-filter: blur(3px);
+}
+
+.project-modal-dialog {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
+    border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+    padding: 1.75rem 1.9rem 1.9rem;
+    transform: translateY(16px) scale(0.97);
+    transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.project-modal.open .project-modal-dialog {
+    transform: translateY(0) scale(1);
+}
+
+.project-modal-close {
+    position: absolute;
+    top: 0.9rem;
+    right: 1rem;
+    width: 34px;
+    height: 34px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.project-modal-close:hover {
+    color: var(--gold);
+    background: var(--bg-card-alt);
+}
+
+.pm-head {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    padding-right: 2.2rem;
+    margin-bottom: 0.9rem;
+}
+
+.pm-head h3 {
+    color: var(--gold);
+    font-size: 1.3rem;
+}
+
+.pm-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.1rem;
+}
+
+.pm-stack .tech-chip {
+    color: var(--accent);
+    background: rgba(197, 137, 64, 0.12);
+}
+
+.pm-detail {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin-bottom: 1.2rem;
+}
+
+.pm-features-title {
+    color: var(--accent);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.6rem;
+}
+
+.pm-features {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1.2rem;
+}
+
+.pm-features li {
+    position: relative;
+    padding-left: 1.4rem;
+    margin-bottom: 0.45rem;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+}
+
+.pm-features li::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-family: 'Fira Code', monospace;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.pm-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+}
+
+.pm-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pm-links a:hover {
+    background: var(--accent);
+    color: var(--bg-base);
+}
+
+.pm-links a.pm-link-primary {
+    background: var(--accent);
+    color: var(--bg-base);
+}
+
+.pm-links a.pm-link-primary:hover {
+    background: var(--gold);
+    border-color: var(--gold);
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
 /* ===== Repositories ===== */
 .repo-grid {
     display: grid;
