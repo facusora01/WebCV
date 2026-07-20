@@ -46,13 +46,16 @@ body {
 }
 
 /* ===== Scroll Reveal Animation ===== */
-.reveal {
+/* Content is hidden for the reveal animation ONLY when JS is active
+ * (html.js-reveal, set by an inline head script). If scripts never run,
+ * content stays fully visible instead of blanking. */
+.js-reveal .reveal {
     opacity: 0;
     transform: translateY(28px);
     transition: opacity 0.55s ease, transform 0.55s ease;
 }
 
-.reveal.visible {
+.js-reveal .reveal.visible {
     opacity: 1;
     transform: translateY(0);
 }
