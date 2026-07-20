@@ -3,57 +3,70 @@
  * nearest points to each other and to the cursor (constellation / net effect).
  * Line opacity fades with distance. Fixed to the viewport.
  *
- * Accessibility: when prefers-reduced-motion is set we DON'T bail out (that
- * left those visitors with no background at all). Instead we render a single
- * static frame and only redraw on cursor move / resize — visible for everyone,
- * just not continuously animated.
+ * iOS note: showing/hiding the Safari address bar on scroll fires `resize`
+ * with a changed innerHeight. We must NOT regenerate the points there (that
+ * made them jump to new random spots on every scroll). `fit()` only resizes
+ * the canvas and keeps the existing points; points are re-created only once.
  */
-(() => {
+(function () {
     'use strict';
 
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const canvas = document.createElement('canvas');
+    var canvas = document.createElement('canvas');
     canvas.id = 'particle-waves';
     document.body.insertBefore(canvas, document.body.firstChild);
-    const ctx = canvas.getContext('2d');
+    var ctx = canvas.getContext('2d');
 
-    // Warm palette dots (match site theme)
-    const PALETTE = ['#C58940', '#FAEAB1', '#E5BA73', '#A27035'];
-    const LINE_RGB = '197, 137, 64';   // --accent
+    var PALETTE = ['#C58940', '#FAEAB1', '#E5BA73', '#A27035'];
+    var LINE_RGB = '197, 137, 64';
 
-    // Tunables
-    const DENSITY = 9000;        // 1 point per N px^2 of viewport (lower = denser)
-    const MAX_POINTS = 140;
-    const MIN_POINTS = 14;       // floor so small screens still show a network
-    const LINK_DIST = 150;       // px to link two points
-    const MOUSE_DIST = 200;      // px to link a point to the cursor
-    const SPEED = 0.35;          // base drift speed (px/frame)
+    var DENSITY = 9000;
+    var MAX_POINTS = 140;
+    var MIN_POINTS = 14;
+    var LINK_DIST = 150;
+    var MOUSE_DIST = 200;
+    var SPEED = 0.35;
 
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let width = 0, height = 0;
-    let points = [];
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var width = 0, height = 0;
+    var points = [];
 
-    const mouse = { x: -9999, y: -9999, active: false };
+    var mouse = { x: -9999, y: -9999, active: false };
 
     function rand(min, max) { return min + Math.random() * (max - min); }
 
-    function build() {
-        width = window.innerWidth;
-        height = window.innerHeight;
+    // Resize the canvas to the viewport. Scale existing point X positions only
+    // when the WIDTH changes (orientation / real resize); a height-only change
+    // (iOS URL bar) leaves points untouched — no reset, no jitter.
+    function fit() {
+        var newW = window.innerWidth;
+        var newH = window.innerHeight;
+        var widthChanged = width !== 0 && newW !== width;
+
         dpr = Math.min(window.devicePixelRatio || 1, 2);
-        canvas.width = Math.floor(width * dpr);
-        canvas.height = Math.floor(height * dpr);
-        canvas.style.width = width + 'px';
-        canvas.style.height = height + 'px';
+        canvas.width = Math.floor(newW * dpr);
+        canvas.height = Math.floor(newH * dpr);
+        canvas.style.width = newW + 'px';
+        canvas.style.height = newH + 'px';
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        let count = Math.round((width * height) / DENSITY);
+        if (widthChanged && points.length) {
+            var sx = newW / width;
+            for (var i = 0; i < points.length; i++) points[i].x *= sx;
+        }
+
+        width = newW;
+        height = newH;
+    }
+
+    function initPoints() {
+        var count = Math.round((width * height) / DENSITY);
         count = Math.max(MIN_POINTS, Math.min(count, MAX_POINTS));
         points = new Array(count);
-        for (let i = 0; i < count; i++) {
-            const ang = rand(0, Math.PI * 2);
-            const sp = rand(0.4, 1) * SPEED;
+        for (var i = 0; i < count; i++) {
+            var ang = rand(0, Math.PI * 2);
+            var sp = rand(0.4, 1) * SPEED;
             points[i] = {
                 x: rand(0, width),
                 y: rand(0, height),
@@ -65,9 +78,26 @@
         }
     }
 
+    // Pointer / touch: drive the cursor link, clear it when the finger lifts.
+    function setMouse(x, y) { mouse.x = x; mouse.y = y; mouse.active = true; }
+    function clearMouse() { mouse.active = false; }
+
+    window.addEventListener('pointermove', function (e) { setMouse(e.clientX, e.clientY); }, { passive: true });
+    window.addEventListener('pointerup', clearMouse, { passive: true });
+    window.addEventListener('pointercancel', clearMouse, { passive: true });
+    window.addEventListener('pointerleave', clearMouse, { passive: true });
+    window.addEventListener('touchend', clearMouse, { passive: true });
+    window.addEventListener('touchcancel', clearMouse, { passive: true });
+
+    var resizeRAF = null;
+    window.addEventListener('resize', function () {
+        if (resizeRAF) cancelAnimationFrame(resizeRAF);
+        resizeRAF = requestAnimationFrame(fit);
+    });
+
     function step() {
-        for (let i = 0; i < points.length; i++) {
-            const p = points[i];
+        for (var i = 0; i < points.length; i++) {
+            var p = points[i];
             p.x += p.vx;
             p.y += p.vy;
             if (p.x < 0 || p.x > width) p.vx *= -1;
@@ -79,15 +109,15 @@
         ctx.clearRect(0, 0, width, height);
         ctx.lineWidth = 1;
 
-        for (let i = 0; i < points.length; i++) {
-            const a = points[i];
-            for (let j = i + 1; j < points.length; j++) {
-                const b = points[j];
-                const dx = a.x - b.x, dy = a.y - b.y;
-                const d2 = dx * dx + dy * dy;
+        for (var i = 0; i < points.length; i++) {
+            var a = points[i];
+            for (var j = i + 1; j < points.length; j++) {
+                var b = points[j];
+                var dx = a.x - b.x, dy = a.y - b.y;
+                var d2 = dx * dx + dy * dy;
                 if (d2 < LINK_DIST * LINK_DIST) {
-                    const alpha = (1 - Math.sqrt(d2) / LINK_DIST) * 0.55;
-                    ctx.strokeStyle = `rgba(${LINE_RGB}, ${alpha})`;
+                    var alpha = (1 - Math.sqrt(d2) / LINK_DIST) * 0.55;
+                    ctx.strokeStyle = 'rgba(' + LINE_RGB + ', ' + alpha + ')';
                     ctx.beginPath();
                     ctx.moveTo(a.x, a.y);
                     ctx.lineTo(b.x, b.y);
@@ -96,11 +126,11 @@
             }
 
             if (mouse.active) {
-                const dx = a.x - mouse.x, dy = a.y - mouse.y;
-                const d2 = dx * dx + dy * dy;
-                if (d2 < MOUSE_DIST * MOUSE_DIST) {
-                    const alpha = (1 - Math.sqrt(d2) / MOUSE_DIST) * 0.7;
-                    ctx.strokeStyle = `rgba(${LINE_RGB}, ${alpha})`;
+                var mdx = a.x - mouse.x, mdy = a.y - mouse.y;
+                var md2 = mdx * mdx + mdy * mdy;
+                if (md2 < MOUSE_DIST * MOUSE_DIST) {
+                    var ma = (1 - Math.sqrt(md2) / MOUSE_DIST) * 0.7;
+                    ctx.strokeStyle = 'rgba(' + LINE_RGB + ', ' + ma + ')';
                     ctx.beginPath();
                     ctx.moveTo(a.x, a.y);
                     ctx.lineTo(mouse.x, mouse.y);
@@ -109,11 +139,11 @@
             }
         }
 
-        for (let i = 0; i < points.length; i++) {
-            const p = points[i];
+        for (var k = 0; k < points.length; k++) {
+            var p2 = points[k];
             ctx.beginPath();
-            ctx.fillStyle = p.color;
-            ctx.arc(p.x, p.y, p.r, 0, 6.2832);
+            ctx.fillStyle = p2.color;
+            ctx.arc(p2.x, p2.y, p2.r, 0, 6.2832);
             ctx.fill();
         }
     }
@@ -124,30 +154,8 @@
         requestAnimationFrame(animate);
     }
 
-    // Reduced motion: redraw only on interaction, no continuous loop
-    let staticRAF = null;
-    function renderOnce() {
-        if (staticRAF) return;
-        staticRAF = requestAnimationFrame(() => { staticRAF = null; render(); });
-    }
-
-    window.addEventListener('pointermove', (e) => {
-        mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true;
-        if (reduced) renderOnce();
-    }, { passive: true });
-    window.addEventListener('pointerleave', () => {
-        mouse.active = false;
-        if (reduced) renderOnce();
-    });
-    window.addEventListener('touchend', () => { mouse.active = false; }, { passive: true });
-
-    let resizeRAF = null;
-    window.addEventListener('resize', () => {
-        if (resizeRAF) cancelAnimationFrame(resizeRAF);
-        resizeRAF = requestAnimationFrame(() => { build(); if (reduced) render(); });
-    });
-
-    build();
+    fit();
+    initPoints();
     if (reduced) render();
     else requestAnimationFrame(animate);
 })();
