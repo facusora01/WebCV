@@ -79,35 +79,87 @@
     }
 
     // Pointer / touch: drive the cursor link, clear it when the finger lifts.
-    // While the page scrolls, the browser takes over the gesture and fires
-    // `pointercancel` (pointermove stops), so a touch would lose the link
-    // mid-scroll. `touchmove` keeps firing during the scroll, so touches are
-    // tracked from the touch events and only cleared when the finger lifts.
-    var touching = false;
-    function setMouse(x, y) { mouse.x = x; mouse.y = y; mouse.active = true; }
-    function clearMouse() { if (!touching) mouse.active = false; }
+    //
+    // Mobile is the tricky part. Once the browser decides the gesture is a
+    // scroll it takes the touch over: it fires `touchcancel` / `pointercancel`
+    // and (on several engines) stops delivering `touchmove` to the page, so a
+    // naive handler drops the link the moment the user starts scrolling.
+    // Two paths keep it alive:
+    //   1. `touchmove` still arrives  -> track the finger directly.
+    //   2. the touch was cancelled    -> keep the link and move it with the
+    //      scroll offset, since the finger travels with the page. It is
+    //      released when the scrolling stops or leaves the viewport.
+    var scrollLinked = false;  // touch taken over by the scroll, following it
+    var anchorY = 0, anchorScroll = 0;
+    var scrollIdle = null;
+
+    function setMouse(x, y) { mouse.x = x; mouse.y = y; mouse.active = true; dirty(); }
+    function release() {
+        scrollLinked = false;
+        mouse.active = false;
+        if (scrollIdle) { clearTimeout(scrollIdle); scrollIdle = null; }
+        dirty();
+    }
+
+    // With reduced motion there is no animation loop, so the canvas has to be
+    // repainted explicitly for the cursor link to react at all.
+    var renderRAF = null;
+    function dirty() {
+        if (!reduced || renderRAF) return;
+        renderRAF = requestAnimationFrame(function () { renderRAF = null; render(); });
+    }
 
     function setTouch(e) {
         var t = e.touches && e.touches[0];
-        if (t) { touching = true; setMouse(t.clientX, t.clientY); }
-    }
-    function endTouch(e) {
-        if (e.touches && e.touches.length) { setTouch(e); return; }
-        touching = false;
-        mouse.active = false;
+        if (!t) return;
+        scrollLinked = false;
+        if (scrollIdle) { clearTimeout(scrollIdle); scrollIdle = null; }
+        setMouse(t.clientX, t.clientY);
     }
 
+    function endTouch(e) {
+        if (e.touches && e.touches.length) { setTouch(e); return; }
+        release();
+    }
+
+    // Scroll takeover: hand the link over to the scroll tracker instead of
+    // dropping it.
+    function cancelTouch(e) {
+        if (e.touches && e.touches.length) { setTouch(e); return; }
+        if (!mouse.active) return;
+        scrollLinked = true;
+        anchorY = mouse.y;
+        anchorScroll = window.pageYOffset;
+        armScrollIdle();
+    }
+
+    function armScrollIdle() {
+        if (scrollIdle) clearTimeout(scrollIdle);
+        scrollIdle = setTimeout(release, 350);
+    }
+
+    window.addEventListener('scroll', function () {
+        if (!scrollLinked) return;
+        setMouse(mouse.x, anchorY - (window.pageYOffset - anchorScroll));
+        if (mouse.y < -MOUSE_DIST || mouse.y > height + MOUSE_DIST) { release(); return; }
+        armScrollIdle();
+    }, { passive: true });
+
+    // Mouse / pen only — touch is handled entirely by the touch events above.
+    function pointerIsTouch(e) { return e.pointerType === 'touch'; }
     window.addEventListener('pointermove', function (e) {
-        if (e.pointerType === 'touch') return; // handled by touchmove
+        if (pointerIsTouch(e)) return;
         setMouse(e.clientX, e.clientY);
     }, { passive: true });
-    window.addEventListener('pointerup', clearMouse, { passive: true });
-    window.addEventListener('pointercancel', clearMouse, { passive: true });
-    window.addEventListener('pointerleave', clearMouse, { passive: true });
+    function pointerEnd(e) { if (!pointerIsTouch(e)) release(); }
+    window.addEventListener('pointerup', pointerEnd, { passive: true });
+    window.addEventListener('pointercancel', pointerEnd, { passive: true });
+    window.addEventListener('pointerleave', pointerEnd, { passive: true });
+
     window.addEventListener('touchstart', setTouch, { passive: true });
     window.addEventListener('touchmove', setTouch, { passive: true });
     window.addEventListener('touchend', endTouch, { passive: true });
-    window.addEventListener('touchcancel', endTouch, { passive: true });
+    window.addEventListener('touchcancel', cancelTouch, { passive: true });
 
     var resizeRAF = null;
     window.addEventListener('resize', function () {
