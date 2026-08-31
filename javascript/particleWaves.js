@@ -79,15 +79,35 @@
     }
 
     // Pointer / touch: drive the cursor link, clear it when the finger lifts.
+    // While the page scrolls, the browser takes over the gesture and fires
+    // `pointercancel` (pointermove stops), so a touch would lose the link
+    // mid-scroll. `touchmove` keeps firing during the scroll, so touches are
+    // tracked from the touch events and only cleared when the finger lifts.
+    var touching = false;
     function setMouse(x, y) { mouse.x = x; mouse.y = y; mouse.active = true; }
-    function clearMouse() { mouse.active = false; }
+    function clearMouse() { if (!touching) mouse.active = false; }
 
-    window.addEventListener('pointermove', function (e) { setMouse(e.clientX, e.clientY); }, { passive: true });
+    function setTouch(e) {
+        var t = e.touches && e.touches[0];
+        if (t) { touching = true; setMouse(t.clientX, t.clientY); }
+    }
+    function endTouch(e) {
+        if (e.touches && e.touches.length) { setTouch(e); return; }
+        touching = false;
+        mouse.active = false;
+    }
+
+    window.addEventListener('pointermove', function (e) {
+        if (e.pointerType === 'touch') return; // handled by touchmove
+        setMouse(e.clientX, e.clientY);
+    }, { passive: true });
     window.addEventListener('pointerup', clearMouse, { passive: true });
     window.addEventListener('pointercancel', clearMouse, { passive: true });
     window.addEventListener('pointerleave', clearMouse, { passive: true });
-    window.addEventListener('touchend', clearMouse, { passive: true });
-    window.addEventListener('touchcancel', clearMouse, { passive: true });
+    window.addEventListener('touchstart', setTouch, { passive: true });
+    window.addEventListener('touchmove', setTouch, { passive: true });
+    window.addEventListener('touchend', endTouch, { passive: true });
+    window.addEventListener('touchcancel', endTouch, { passive: true });
 
     var resizeRAF = null;
     window.addEventListener('resize', function () {
