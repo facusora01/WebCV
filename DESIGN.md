@@ -1,62 +1,78 @@
-# 🎨 Guía de Diseño: WebCV - Facundo Sorasio
+# WebCV design guide
 
-Este documento detalla la nueva identidad visual para el CV de Facundo Sorasio, estudiante de Ingeniería Informática en la UBA. El diseño se aleja de los tonos industriales para adoptar una estética **Cyber-Warm** (Ámbar y Café), ideal para resaltar proyectos técnicos como **LetItRide** y **AgroScanner**.
+The site is Facundo's real room, modelled low-poly from photos (kept locally in
+`images/Reference/`, which is git-ignored because it includes an ID photo). You
+start in the hallway in front of a white door with a crooked name sign, the sun
+coming from a window behind you and your own shadow on the left wall. Clicking
+the handle opens the door and walks you in. Inside, the view is first person:
+drag to look around, click an object to fly to it, click anywhere else to leave.
 
----
+## Palette
 
-## 1. Paleta de Colores (Warm Tech)
-Esta paleta sustituye por completo los grises y blancos estándar por tonos profundos y cálidos que reducen la fatiga visual.
+| Token | Hex | Use |
+|---|---|---|
+| night | `#15132a` | Panels background, classic CV |
+| dusk | `#221f3d` | Panels, cards |
+| cream | `#f3ead8` | Text, primary buttons |
+| lamp | `#ffcf8a` | Markers, warm light, highlights |
+| peach | `#f4b393` | Eyebrows, links, bullets |
+| mint | `#8fd6b8` | Tech chips, "on" states, server LEDs |
+| pink / lavender | `#e98ea0` / `#a69cd9` | Room accents |
 
-| Uso | Color | Hex | Descripción |
-| :--- | :--- | :--- | :--- |
-| **Fondo Base** | Café Profundo | `#1A120B` | Fondo principal oscuro con matiz cálido. |
-| **Fondo de Tarjetas** | Madera Sombría | `#3C2A21` | Para bloques de proyectos y experiencia. |
-| **Texto Principal** | Crema de Trigo | `#E5BA73` | Reemplaza al blanco para una lectura orgánica. |
-| **Color de Acento** | Ámbar Eléctrico | `#C58940` | Para botones, iconos de herramientas y links. |
-| **Resaltado** | Oro Viejo | `#FAEAB1` | Usado en títulos y estados de "hover". |
+The 3D colours live in `C` at the top of `src/room.js`; the CSS tokens in
+`src/style.css`. Keep both in sync.
 
----
+## Type
 
-## 2. Tipografía y Estilo Visual
-Para reflejar el rigor de la Ingeniería Informática:
-* **Títulos:** `Montserrat` o `Inter` (Sans-serif) para una estructura sólida.
-* **Cuerpo y Detalles:** `Fira Code` o `JetBrains Mono` en etiquetas de habilidades, reforzando la identidad de programador.
+- Fraunces (serif): name, headings. Soft and warm, sets the lofi tone.
+- Inter: body text.
+- JetBrains Mono: tags, dates, labels, the terminal on the monitor.
 
----
+## Room map
 
-## 3. Interacciones y Micro-animaciones
-Para mejorar la experiencia de usuario en las secciones definidas en `index.html`:
+No side panels: every piece of information lives in the room. From the room you
+walk up to a zone (the desk, the printer table); there each object becomes
+clickable. Clicking outside, or Esc, always steps back one level.
 
-### A. Resplandor de Habilidades (Skills Glow)
-* **Acción:** Al pasar el cursor sobre los iconos de `devicon` (Python, Java, Flutter, etc.).
-* **Efecto:** El icono debe emitir un resplandor ámbar sutil.
-* **CSS:** `filter: drop-shadow(0 0 10px #C58940); transform: translateY(-5px);`.
+| Where | Object | What it does |
+|---|---|---|
+| Desk | Main monitor (cheat sheet on the bezel) | Interactive terminal: `ls`, `cd`, `cat`, Tab completion |
+| Desk | Second monitor | Browser with the web projects (martusorasio.com, Amankay, Wantit) |
+| Desk | TV | Farmacéutica's live on-duty screen, with an "about this system" page |
+| Desk | Purple DualSense on the PC tower | Turns the TV into a console menu: gaming projects as games |
+| Desk | Creeper plush under the TV | Turns the TV into a Minecraft menu: the mods |
+| Desk | Phone | Contact app; the buttons open email, WhatsApp, GitHub |
+| Printer table | Wallet | Opens like the real bifold; a card taken out flies to the centre and flips over |
+| Printer table | Printer touch screen | Print queue: ShapeShifter, LetItRide |
+| Printer table | Blue printed cow | Its ear tag: AgroScanner (private, minimal info) |
+| Room | Backpack | The notebook inside: education and experience, page by page |
+| Room | Old laptop on the shelf | The server: `pm2 list`, MotiBot and vikunja-extra |
+| Room | Appointa name tag | Flips over to show Appointa |
+| Room | Simón y Manolo | Their staff badge |
+| Room | Pendant lamp | Turns the light on and off |
 
-### B. Revelado Dinámico (Scroll Reveal)
-* **Acción:** A medida que el usuario baja por las secciones de **Experiencia** y **Proyectos**.
-* **Efecto:** Los bloques aparecen con un fundido suave y un ligero desplazamiento hacia arriba.
+CDF is never shown anywhere on the site. The ID and the cards in the wallet are
+made up: no real document numbers, no real bank or government branding.
 
-### C. Tarjetas Interactivas (Glassmorphism Cálido)
-* Las tarjetas de proyectos como **LetItRide** y **Amankay Web** deben tener un borde sutil de 1px en `#C58940`.
-* **Efecto Hover:** Al posicionar el mouse, el fondo de la tarjeta aumenta levemente su brillo.
+## Rules
 
----
+- Content lives only in `src/content.js`. The room panels and the classic CV both
+  render from it.
+- The classic CV is the accessible path and the fallback when WebGL is missing.
+- Respect `prefers-reduced-motion`: camera moves become instant.
+- No external models or textures: everything is built from primitives and
+  canvas textures, so the page loads in one JS file.
 
-## 4. Mejoras Específicas por Sección
+## Generated models
 
-### Perfil y Profesión
-* La foto de perfil (`#profile-picture`) debe tener un borde circular en color Ámbar.
-* El texto "Computer Engineering Student" debe resaltarse en Oro Viejo (`#FAEAB1`).
+The dogs, the backpack and the DualSense in `public/models/` were made with
+fal.ai: a reference image from a text prompt (flux/dev), then image-to-3D
+(Trellis), then `gltf-transform optimize` (simplify, WebP textures, meshopt).
+Each is about 50 KB. Everything else is built from primitives in `room.js`.
 
-### Proyectos y Experiencia
-* Utilizar el icono de un cursor de terminal (`>`) como viñeta para los logros en **Python Developer** o **Java Developer**.
-* Para el proyecto **AgroScanner**, incluir un pequeño distintivo (badge) que diga "Mobile / IoT" usando el color secundario.
+## Performance
 
-### Herramienta QR
-* El botón de **"Go to Tool"** debe ser el elemento con mayor jerarquía visual, utilizando un gradiente lineal de `#C58940` a `#A27035`.
-
----
-
-## 5. Notas Técnicas
-* **Contraste:** Verificar que el texto Crema sea legible sobre los fondos de Madera Sombría para cumplir con estándares de accesibilidad.
-* **Mobile:** El selector de idioma (`#lang-select`) debe mantenerse accesible en la parte superior derecha de forma fija.
+Static meshes are merged into one draw call per material at load. Shadows are
+rendered on demand, not every frame. Canvas screens redraw only as often as
+they change. Software renderers (no GPU) start at half resolution, and the
+resolution drops further on its own if the frame rate falls under 45 fps.
