@@ -20,9 +20,11 @@ const ui = createUI({
 });
 const terminal = createTerminal({ getLang: ui.lang, onExit: () => api.back?.() });
 
+// on low-density displays edges get MSAA instead of extra resolution (see maxScale)
+const msaa = devicePixelRatio < 2;
 let renderer;
 try {
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: devicePixelRatio < 2, powerPreference: 'high-performance' });
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: msaa, powerPreference: 'high-performance' });
 } catch {
   ui.noWebgl();
 }
@@ -40,7 +42,8 @@ function start() {
   const dbg = gl.getExtension('WEBGL_debug_renderer_info');
   const software = /swiftshader|basic render|llvmpipe|software/i.test(dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : '');
   const lowPower = software || coarse || navigator.hardwareConcurrency <= 4;
-  const maxScale = Math.min(devicePixelRatio, lowPower ? 1.25 : 1.5);
+  // MSAA already smooths the edges: rendering more pixels on top of it roughly doubles the cost
+  const maxScale = Math.min(devicePixelRatio, lowPower ? 1.25 : msaa ? 1 : 1.5);
   let scale = software ? Math.min(maxScale, 0.6) : maxScale;
   renderer.setPixelRatio(scale);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -144,9 +147,9 @@ function start() {
     if (mode === 'wallet') closeWallet();
     if (top.holding) putDownController();
     if (mode === 'screen' || mode === 'terminal') {
-      const tv = byId.tv.app;
-      tv.focused = false;
-      tv.setMode('turnero');
+      const app = byId[top.focus]?.app;
+      if (app) app.focused = false;
+      byId.tv.app.setMode('turnero');
     }
     zone = top.zone;
     setMode(top.mode);
@@ -184,7 +187,8 @@ function start() {
       flyTo(p, q);
     } else if (s.kind === 'screen' || s.kind === 'tvmode' || s.kind === 'terminal') {
       const target = s.kind === 'tvmode' ? byId.tv : s;
-      if (target === byId.tv) { target.app.setMode(s.kind === 'tvmode' ? s.mode : 'turnero'); target.app.focused = true; }
+      if (target === byId.tv) target.app.setMode(s.kind === 'tvmode' ? s.mode : 'turnero');
+      if (target.app) target.app.focused = true;
       push(s.kind === 'terminal' ? 'terminal' : 'screen', { focus: target.id, holding: id === 'ps5' });
       const v = screenView(target);
       flyTo(v.pos, v.quat);
@@ -331,6 +335,11 @@ function start() {
     setMode('entering');
     camera.far = 40;
     camera.updateProjectionMatrix();
+    // Hiding the hallway sun once inside changes the number of lights, which makes every
+    // material recompile mid-animation. Compile that version now, while the door opens.
+    hallSun.visible = false;
+    renderer.compileAsync(scene, camera);
+    hallSun.visible = true;
     audio.click();
     const { handle, hinge } = room.door;
     await tween(0.3, (e) => { handle.rotation.z = -0.55 * e; });
@@ -369,9 +378,9 @@ function start() {
   let drag = null;
   const vel = { x: 0, y: 0 };
   const groups = spots.map((s) => s.group);
+  let rect = canvas.getBoundingClientRect(); // refreshed on resize
   function hit(e, targets) {
-    const r = canvas.getBoundingClientRect();
-    ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    ndc.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
     return ray.intersectObjects(targets, true).find((h) => h.object.visible) || null;
   }
@@ -403,15 +412,21 @@ function start() {
       }
       return;
     }
-    if (e.pointerType === 'touch' || !ui.ready()) return;
+    if (e.pointerType !== 'touch') hoverEvent = e; // raycast once per frame, in the loop
+  });
+  // hover: what is under the pointer, for the cursor and the markers
+  let hoverEvent = null, hovered, cursor;
+  function hover(e) {
+    if (!ui.ready()) return;
     const id = clickable(e);
     let over = !!id;
     if (mode === 'screen' || mode === 'terminal') over = !!hit(e, [byId[stack.at(-1).focus].mesh]);
     if (mode === 'inspect') over = !!hit(e, [inspectMesh]);
     if (mode === 'wallet') over = !!hit(e, room.wallet.cards);
-    canvas.style.cursor = over ? 'pointer' : mode === 'room' || mode === 'zone' ? 'grab' : 'default';
-    ui.hover(id);
-  });
+    const c = over ? 'pointer' : mode === 'room' || mode === 'zone' ? 'grab' : 'default';
+    if (c !== cursor) canvas.style.cursor = cursor = c;
+    if (id !== hovered) ui.hover(hovered = id);
+  }
   canvas.addEventListener('pointerup', (e) => {
     const d = drag;
     drag = null;
@@ -446,6 +461,7 @@ function start() {
   function resize() {
     const w = innerWidth, h = innerHeight;
     renderer.setSize(w, h, false);
+    rect = canvas.getBoundingClientRect();
     camera.aspect = w / h;
     camera.fov = w / h < 0.8 ? 78 : 60;
     camera.updateProjectionMatrix();
@@ -498,11 +514,14 @@ function start() {
       camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
     }
 
+    if (hoverEvent) { hover(hoverEvent); hoverEvent = null; }
+
     // markers: the room's top-level things, or the things of the zone you walked up to
     const settled = !tweens.length;
     for (const s of spots) {
       if (s.kind === 'toggle') continue;
       const show = settled && ((mode === 'room' && !s.zone) || (mode === 'zone' && s.zone === zone));
+      if (!show) { ui.placeMarker(s.id, 0, 0, false); continue; }
       v.copy(s.anchorWorld).project(camera);
       ui.placeMarker(s.id, (v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight, show && v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1);
     }
