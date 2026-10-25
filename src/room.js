@@ -687,7 +687,8 @@ function topOf(model, frame, points, fallback = 0.38) {
   let sum = 0, n = 0;
   for (const [x, z] of points) {
     frame.localToWorld(o.set(x, 2, z));
-    const hit = ray.set(o, down).intersectObject(model, true)[0];
+    ray.set(o, down);
+    const hit = ray.intersectObject(model, true)[0];
     if (hit) { sum += frame.worldToLocal(hit.point).y; n++; }
   }
   return n ? sum / n : fallback;
