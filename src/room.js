@@ -219,14 +219,17 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     const term = canvasTex(2048, 1200, (ctx, w, h, t) => { ctx.setTransform(2, 0, 0, 2, 0, 0); terminal.draw(ctx, 1024, 600, t); });
     const mesh = put(g, new THREE.PlaneGeometry(0.535, 0.31), screenMat(term.tex, 0.95), [0, 0.365, 0.0131]);
     mesh.userData.keep = true; // raycast and framing target
-    const cheat = canvasTex(256, 256, (ctx, w, h) => {
+    // drawn at 4x in a 256 px space, so the commands stay readable up close
+    const cheat = canvasTex(1024, 1024, (ctx) => {
+      const w = 256, h = 256;
+      ctx.setTransform(4, 0, 0, 4, 0, 0);
       ctx.fillStyle = '#ffe680'; ctx.fillRect(0, 0, w, h);
       ctx.fillStyle = '#e8cd5c'; ctx.fillRect(0, 0, w, 24);
-      ctx.fillStyle = '#2a2a2a';
-      T().cheat.forEach((line, i) => { ctx.font = i ? `24px ${HAND}` : `bold 26px ${HAND}`; ctx.fillText(line, 14, 50 + i * 27); });
+      ctx.fillStyle = '#1c1c1c';
+      T().cheat.forEach((line, i) => { ctx.font = i ? `600 30px ${HAND}` : `700 28px ${HAND}`; ctx.fillText(line, 12, 48 + i * 29, w - 22); });
     });
     onLang.push(cheat.redraw);
-    box(g, [0.09, 0.09, 0.002], [-0.2, 0.162, 0.014], paperMat(cheat.tex), [0, 0, -0.05]);
+    box(g, [0.13, 0.13, 0.002], [-0.19, 0.142, 0.014], paperMat(cheat.tex), [0, 0, -0.05]); // big enough to read from the chair
     // the cursor only blinks while you are typing; otherwise redraw just when the text changes
     let last = -1;
     anim.push((t, dt, view) => {
