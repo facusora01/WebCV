@@ -15,6 +15,18 @@ const P = (id) => projects.find((p) => p.id === id);
 const baClock = new Intl.DateTimeFormat('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit', hour12: false });
 export const baTime = () => baClock.format(new Date());
 
+// How dark it is there now: 0 by day, 1 at night, in between at dawn and dusk. Sunrise and
+// sunset follow the seasons (about 5:40 and 20:10 in December, 8:00 and 18:00 in June).
+const baParts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Argentina/Buenos_Aires', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' });
+export function baNight(date = new Date()) {
+  const p = Object.fromEntries(baParts.formatToParts(date).map((x) => [x.type, +x.value]));
+  const h = p.hour + p.minute / 60;
+  const season = Math.cos((((p.month - 1) * 30.44 + p.day - 355) / 365) * 2 * Math.PI); // 1 at midsummer, -1 at midwinter
+  const rise = 6.9 - 1.2 * season, set = 19.1 + 1.05 * season;
+  const s = (a, b) => THREE.MathUtils.smoothstep(h, a, b);
+  return 1 - s(rise - 0.5, rise + 0.3) * (1 - s(set - 0.2, set + 0.7));
+}
+
 // Draws `text` wrapped to maxW; returns the y after the last line.
 export function wrap(ctx, text, x, y, maxW, lh, maxLines = 99) {
   let line = '', n = 0;

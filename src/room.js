@@ -13,7 +13,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { screenText, cards as CARDS } from './content.js';
 import {
   makeScreen, tvApp, browserApp, serverApp, phoneApp, printerApp, pageCanvas, CARD_THEMES,
-  skillBack, idBack, stickerBack, earTag, earTagBack, notebookPages, drawCover, baTime, dogTag, dogTagBack
+  skillBack, idBack, stickerBack, earTag, earTagBack, notebookPages, drawCover, baTime, baNight, dogTag, dogTagBack
 } from './screens.js';
 
 export const C = {
@@ -157,7 +157,9 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   box(root, [0.02, 0.1, 3.8], [R.x1 - 0.01, 0.05, 0], C.trim);
   box(root, [0.02, 0.1, 3.8], [R.x0 + 0.01, 0.05, 0], C.trim);
 
-  buildWindow(root);
+  // day or night, by the time in Buenos Aires; the window and the lamps follow it
+  const sky = { night: -1 };
+  buildWindow(root, anim, sky);
   const hall = dynamic(group(root, [0, 0, 0]));
   buildHallway(hall, anim);
   const door = buildDoor(root, anim);
@@ -199,10 +201,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   const hp = group(desk, [0.58, 0.62, 0.15]); // headphones hanging off the side
   put(hp, new THREE.TorusGeometry(0.075, 0.012, 6, 12, Math.PI), C.black, [0, 0, 0], [0, Math.PI / 2, 0]);
   for (const z of [-0.075, 0.075]) cyl(hp, [0.04, 0.04, 0.03, 10], [0, -0.01, z], C.black, [Math.PI / 2, 0, 0]);
-  const lampG = group(desk, [0.55, 0.765, -0.24]); // black desk lamp, back right corner by the wall
-  cyl(lampG, [0.06, 0.07, 0.025], [0, 0.012, 0], C.black);
-  cyl(lampG, [0.01, 0.01, 0.28], [0, 0.15, 0], C.black, [0, 0, -0.25]);
-  put(lampG, new THREE.ConeGeometry(0.07, 0.12, 10, 1, true), M(C.black, { side: THREE.DoubleSide }), [-0.06, 0.3, 0.03], [0.4, 0, 0.9]);
+  hotspots.lamp = buildDeskLamp(group(desk, [0.5, 0.768, 0.15], 'lamp', Math.PI + 0.35), anim, sky); // right of the phone
 
   // monitor 1: the terminal. The cheat sheet hangs off the left bezel, outside the screen.
   {
@@ -611,6 +610,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
 
   return {
     hotspots,
+    get night() { return sky.night; },
     door,
     hall,
     wallet,
@@ -1081,8 +1081,9 @@ function buildHallway(hall, anim) {
 }
 
 // The view out of the window, in layers so it has depth and parallax: the
-// building across the street, the city further back, then the sky.
-function buildWindow(root) {
+// building across the street, the city further back, then the sky. Each layer
+// has a day and a night version; at dusk the night one fades in over the day.
+function buildWindow(root, anim, sky) {
   const x = R.x0 - 0.06, zc = (WIN.z0 + WIN.z1) / 2, yc = (WIN.y0 + WIN.y1) / 2;
   const frame = M('#9a9ca2', { roughness: 0.5, metalness: 0.3 });
   box(root, [0.14, 0.025, WIN.z1 - WIN.z0 + 0.04], [x + 0.01, WIN.y0 - 0.012, zc], '#eeebe5'); // slim sill, flush with the wall
@@ -1091,8 +1092,14 @@ function buildWindow(root) {
   box(root, [0.05, 0.08, WIN.z1 - WIN.z0 + 0.12], [x + 0.1, WIN.y1 + 0.08, zc], '#e3d6b4');
   box(root, [0.01, 0.34, WIN.z1 - WIN.z0], [x + 0.1, WIN.y1 - 0.14, zc], M('#e9dcb8', { transparent: true, opacity: 0.85 })).castShadow = false;
 
-  const layer = (dist, w, h, y, draw, transparent = true) => {
-    const t = canvasTex(1024, Math.round(1024 * h / w), draw);
+  const layers = [];
+  const layer = (dist, w, h, y, day, night, transparent = true) => {
+    const t = canvasTex(1024, Math.round(1024 * h / w), (ctx, cw, ch, n) => {
+      ctx.clearRect(0, 0, cw, ch);
+      day(ctx, cw, ch);
+      if (n > 0) { ctx.save(); ctx.globalAlpha = n; night(ctx, cw, ch); ctx.restore(); }
+    });
+    layers.push(t);
     const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: t.tex, transparent, depthWrite: !transparent }));
     m.position.set(R.x0 - dist, y, zc);
     m.rotation.y = Math.PI / 2;
@@ -1108,6 +1115,23 @@ function buildWindow(root) {
     }
     if (haze) { ctx.fillStyle = `rgba(246,199,154,${haze})`; ctx.fillRect(0, 0, w, h); }
   };
+  // at night: dark walls, and a few windows with the lights on
+  const facadeNight = (ctx, w, h, base, rows, cols) => {
+    ctx.fillStyle = base; ctx.fillRect(0, 0, w, h);
+    const cw = w / cols, rh = h / rows;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      ctx.fillStyle = (r * 3 + c * 7) % 5 < 2 ? '#ffc874' : '#161b28';
+      ctx.fillRect(c * cw + cw * 0.2, r * rh + rh * 0.25, cw * 0.6, rh * 0.55);
+    }
+  };
+  // the far city's skyline, the same by day and by night
+  const blocks = (w, h, fn) => {
+    for (let bx = 0; bx < w;) {
+      const bw = 60 + ((bx * 37) % 90), bh = h * (0.35 + ((bx * 13) % 50) / 100);
+      fn(bx, bw, bh);
+      bx += bw + 6;
+    }
+  };
   // sky
   layer(30, 70, 34, 6, (ctx, w, h) => {
     const g = ctx.createLinearGradient(0, 0, 0, h);
@@ -1115,27 +1139,100 @@ function buildWindow(root) {
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     for (const [cx, cy, r] of [[220, 120, 40], [260, 110, 50], [300, 125, 36], [700, 80, 30], [740, 72, 42]]) { ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fill(); }
+  }, (ctx, w, h) => {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#060b1f'); g.addColorStop(0.6, '#16224a'); g.addColorStop(1, '#3a3858');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 160; i++) {
+      ctx.fillStyle = `rgba(255,255,240,${0.35 + (i % 5) * 0.13})`;
+      ctx.fillRect((i * 197) % w, (i * 89) % (h * 0.6), 1.5 + (i % 3) * 0.7, 1.5 + (i % 3) * 0.7);
+    }
+    const mx = 640, my = 130;
+    const halo = ctx.createRadialGradient(mx, my, 20, mx, my, 90);
+    halo.addColorStop(0, 'rgba(240,236,220,0.35)'); halo.addColorStop(1, 'rgba(240,236,220,0)');
+    ctx.fillStyle = halo; ctx.fillRect(mx - 90, my - 90, 180, 180);
+    ctx.fillStyle = '#f3efe0'; ctx.beginPath(); ctx.arc(mx, my, 24, 0, 7); ctx.fill();
   }, false);
   // far city, hazy
   layer(16, 34, 14, 2, (ctx, w, h) => {
-    let bx = 0;
-    while (bx < w) {
-      const bw = 60 + ((bx * 37) % 90), bh = h * (0.35 + ((bx * 13) % 50) / 100);
+    blocks(w, h, (bx, bw, bh) => {
       ctx.fillStyle = ['#e8ddd3', '#ddd2c8', '#efe6dc'][(bx / 7 | 0) % 3];
       ctx.fillRect(bx, h - bh, bw, bh);
       ctx.fillStyle = 'rgba(160,170,190,0.5)';
       for (let y = h - bh + 14; y < h - 10; y += 22) for (let x = bx + 8; x < bx + bw - 12; x += 18) ctx.fillRect(x, y, 8, 10);
-      bx += bw + 6;
-    }
+    });
     ctx.fillStyle = 'rgba(246,199,154,0.35)'; ctx.fillRect(0, 0, w, h);
+  }, (ctx, w, h) => {
+    blocks(w, h, (bx, bw, bh) => {
+      ctx.fillStyle = ['#1b2033', '#20263a', '#171c2c'][(bx / 7 | 0) % 3];
+      ctx.fillRect(bx, h - bh, bw, bh);
+      for (let y = h - bh + 14; y < h - 10; y += 22) for (let x = bx + 8; x < bx + bw - 12; x += 18) {
+        ctx.fillStyle = (x * 7 + y * 13) % 11 < 3 ? 'rgba(255,205,130,0.9)' : 'rgba(40,48,70,0.9)';
+        ctx.fillRect(x, y, 8, 10);
+      }
+    });
+    ctx.fillStyle = 'rgba(30,40,80,0.2)'; ctx.fillRect(0, 0, w, h);
   });
   // the building across the street, close and sharp
-  layer(5, 9, 7, 1.6, (ctx, w, h) => {
-    ctx.clearRect(0, 0, w, h);
+  const across = (draw) => (ctx, w, h) => {
     ctx.save(); ctx.beginPath(); ctx.rect(0, h * 0.12, w * 0.42, h); ctx.rect(w * 0.6, h * 0.25, w * 0.4, h); ctx.clip();
-    facade(ctx, w, h, '#f3eee6', '#b7c2cf', 9, 10);
+    draw(ctx, w, h);
     ctx.restore();
+  };
+  layer(5, 9, 7, 1.6, across((ctx, w, h) => facade(ctx, w, h, '#f3eee6', '#b7c2cf', 9, 10)),
+    across((ctx, w, h) => facadeNight(ctx, w, h, '#2d2e38', 9, 10)));
+
+  // check the time now and then; at dawn and dusk the view changes in small steps
+  let checked = -Infinity;
+  anim.push((t) => {
+    if (t - checked < 20 && sky.night >= 0) return;
+    checked = t;
+    const n = Math.round(baNight() * 20) / 20;
+    if (n === sky.night) return;
+    sky.night = n;
+    for (const l of layers) l.redraw(n);
   });
+}
+
+// The desk lamp, like the real one: a round base with a switch, a ribbed gooseneck
+// and a black dome shade, silver inside. It turns on by itself when night falls
+// and off at daybreak; clicking it switches it in between.
+function buildDeskLamp(g, anim, sky) {
+  const black = M('#1d1d21', { roughness: 0.6, flatShading: false });
+  cyl(g, [0.06, 0.065, 0.024, 24], [0, 0.012, 0], black);
+  cyl(g, [0.066, 0.066, 0.003, 24], [0, 0.0015, 0], M('#9a9ca2', { metalness: 0.6, roughness: 0.4 })); // the metal rim at the bottom
+  box(g, [0.014, 0.006, 0.012], [0.03, 0.026, 0.0], C.black); // the switch
+  // gooseneck: up from the back of the base, over, and level at the joint
+  const neck = new THREE.CatmullRomCurve3([[-0.035, 0.02, 0], [-0.04, 0.12, 0], [-0.025, 0.2, 0], [0.02, 0.245, 0], [0.065, 0.255, 0]].map((p) => new THREE.Vector3(...p)));
+  const ribs = canvasTex(64, 16, (ctx, w, h) => {
+    ctx.fillStyle = '#26262b'; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#0c0c0e'; ctx.fillRect(w / 2, 0, w / 4, h);
+  }, [36, 1]);
+  put(g, new THREE.TubeGeometry(neck, 40, 0.008, 8), new THREE.MeshStandardMaterial({ map: ribs.tex, roughness: 0.5 }), [0, 0, 0]);
+  cyl(g, [0.014, 0.014, 0.03, 12], [0.075, 0.255, 0], black, [Math.PI / 2, 0, 0]); // the joint
+  // the shade: a dome around its own axis, tilted so it lights the desk in front
+  const shade = group(g, [0.153, 0.156, 0]);
+  shade.rotation.z = 0.6;
+  // bottom to top, so the faces point outwards
+  const profile = [[0.067, 0], [0.062, 0.012], [0.05, 0.035], [0.038, 0.06], [0.033, 0.085], [0.03, 0.11], [0.02, 0.119], [0.001, 0.12]].map(([x, y]) => new THREE.Vector2(x, y));
+  put(shade, new THREE.LatheGeometry(profile, 24), M('#1d1d21', { roughness: 0.55, flatShading: false, side: THREE.FrontSide }), [0, 0, 0]);
+  put(shade, new THREE.LatheGeometry(profile.map((v) => new THREE.Vector2(v.x * 0.96, v.y + 0.002)), 24),
+    M('#d9dade', { roughness: 0.3, metalness: 0.7, flatShading: false, side: THREE.BackSide }), [0, 0, 0]).castShadow = false;
+  const bulb = ball(shade, 0.026, [0, 0.03, 0], glow(C.lamp, 0.1), 2);
+  bulb.castShadow = false;
+  const light = new THREE.SpotLight(C.lamp, 0, 2.2, 0.75, 0.6, 1.4); // no shadow: it would render the room again
+  light.position.set(0, 0.03, 0);
+  light.target.position.set(0, -1, 0);
+  shade.add(light, light.target);
+
+  let on = false;
+  const set = (v) => { on = v; light.intensity = on ? 3 : 0; bulb.material.emissiveIntensity = on ? 3 : 0.1; };
+  let dark = null;
+  anim.push(() => {
+    const d = sky.night > 0.5;
+    if (d !== dark) { dark = d; set(d); }
+  });
+  return { kind: 'toggle', group: g, anchor: [0.1, 0.3, 0], toggle() { set(!on); } };
 }
 
 function buildDoor(root, anim) {

@@ -62,7 +62,8 @@ function start() {
   const camera = new THREE.PerspectiveCamera(60, 1, 0.02, 60);
   camera.rotation.order = 'YXZ';
 
-  scene.add(new THREE.HemisphereLight('#fff1dd', '#c9ab90', 1.1));
+  const hemi = new THREE.HemisphereLight('#fff1dd', '#c9ab90', 1.1);
+  scene.add(hemi);
   // late-afternoon sun through the bedroom window
   const sun = new THREE.DirectionalLight('#ffc98f', 3.2);
   sun.position.set(-6, 4.4, -0.8);
@@ -87,6 +88,21 @@ function start() {
   scene.add(hallSun, hallSun.target);
 
   const room = buildRoom(scene, { lowPower, terminal, getLang: ui.lang, avatarUrl: `${import.meta.env.BASE_URL}images/ProfilePicture.png` });
+
+  // At night (by the time in Buenos Aires) the sun is gone: the room is lit by its lamps, a
+  // little blue light comes in from outside, and the moon lights the hallway instead.
+  const DAY = { hemi: [hemi.color.clone(), hemi.groundColor.clone(), hemi.intensity], sun: sun.intensity, hall: [hallSun.color.clone(), hallSun.intensity] };
+  const NIGHT = { hemi: [new THREE.Color('#8f9cc8'), new THREE.Color('#4a3d33'), 0.6], hall: [new THREE.Color('#aebfff'), 3.2] };
+  let night = null;
+  function applyNight(n) {
+    night = n;
+    hemi.color.lerpColors(DAY.hemi[0], NIGHT.hemi[0], n);
+    hemi.groundColor.lerpColors(DAY.hemi[1], NIGHT.hemi[1], n);
+    hemi.intensity = THREE.MathUtils.lerp(DAY.hemi[2], NIGHT.hemi[2], n);
+    sun.intensity = DAY.sun * (1 - n);
+    hallSun.color.lerpColors(DAY.hall[0], NIGHT.hall[0], n);
+    hallSun.intensity = THREE.MathUtils.lerp(DAY.hall[1], NIGHT.hall[1], n);
+  }
   shadowsDirty();
   THREE.DefaultLoadingManager.onLoad = shadowsDirty; // models arrive later
 
@@ -480,6 +496,7 @@ function start() {
     room.dogs.lookAt.copy(camera.position);
     frustum.setFromProjectionMatrix(projView.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
     room.update(t, dt, view);
+    if (room.night !== night) applyNight(room.night);
 
     tweens = tweens.filter((tw) => {
       if (t < tw.start) return true;
