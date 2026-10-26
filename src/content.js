@@ -515,10 +515,10 @@ export const screenText = {
 
 // Made-up pharmacies for the TV demo; the real screen shows the city's real list.
 export const pharmacies = [
-  ['Farmacia Central', 'Av. Rivadavia 2140', '0.3 km'],
-  ['Farmacia del Pueblo', 'Belgrano 455', '0.8 km'],
-  ['Farmacia San Martín', 'San Martín 1020', '1.2 km'],
-  ['Farmacia Moreno', 'Moreno 731', '1.7 km'],
-  ['Farmacia Sol', 'Mitre 88', '2.1 km'],
-  ['Farmacia Norte', 'Av. Libertador 3300', '2.9 km']
+  ['Central', 'Av. Rivadavia 2140', '0.3 km'],
+  ['Del Pueblo', 'Belgrano 455', '0.8 km'],
+  ['San Martín', 'San Martín 1020', '1.2 km'],
+  ['Moreno', 'Moreno 731', '1.7 km'],
+  ['Sol', 'Mitre 88', '2.1 km'],
+  ['Norte', 'Av. Libertador 3300', '2.9 km']
 ];
