@@ -471,7 +471,8 @@ export const hotspots = {
   posterPast: { label: L('Poster', 'Cuadro') },
   simon:    { label: L('Simón', 'Simón') },
   manolo:   { label: L('Manolo', 'Manolo') },
-  pendant:  { label: L('Light', 'Luz') }
+  pendant:  { label: L('Light', 'Luz') },
+  lamp:     { zone: 'desk', label: L('Desk lamp', 'Velador') }
 };
 
 // Text drawn inside the 3D scene (screens, cards, the notebook).
