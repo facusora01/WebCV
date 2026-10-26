@@ -141,15 +141,17 @@ function start() {
   let zone = null;
   let zoneLook = null; // at a zone you can look around a little: offsets from its base direction
   const stack = [];
-  // reading something up close (a screen, a card) renders at full resolution: the
-  // camera is still, so the extra pixels cost nothing that matters
-  const CLOSE = ['screen', 'terminal', 'inspect', 'wallet'];
+  // Reading something up close (a screen, a card, a poster) may use up to the display's
+  // full resolution, but only as far as the dynamic resolution below finds frames to
+  // spare: jumping straight to it can cost four times the pixels on a dense display.
+  const CLOSE = ['screen', 'terminal', 'inspect', 'wallet', 'look'];
+  const closeMax = Math.min(devicePixelRatio, 2);
+  const capScale = () => (CLOSE.includes(mode) ? Math.max(maxScale, closeMax) : maxScale);
   const setMode = (m) => {
-    const was = CLOSE.includes(mode), now = CLOSE.includes(m);
     mode = m;
     terminal.active = m === 'terminal';
     ui.setMode(m);
-    if (was !== now) { renderer.setPixelRatio(now ? Math.min(devicePixelRatio, 2) : scale); resize(); }
+    if (scale > capScale()) { scale = capScale(); renderer.setPixelRatio(scale); resize(); }
   };
   function push(m, extra = {}) {
     stack.push({ mode, zone, pos: camera.position.clone(), quat: camera.quaternion.clone(), ...extra });
@@ -210,6 +212,10 @@ function start() {
       flyTo(v.pos, v.quat);
       if (id === 'ps5') pickUpController(v);
       if (s.kind === 'terminal') { terminal.dirty = true; ui.focusTerminal(); }
+    } else if (s.kind === 'poster') {
+      push('look');
+      const v = screenView(s);
+      flyTo(v.pos, v.quat);
     } else if (s.kind === 'inspect') {
       push('inspect', { keepCamera: true });
       openInspect(s.from || s.group, s.pages, s.aspect);
@@ -463,6 +469,8 @@ function start() {
       if (!h) back();
       else if (mode === 'terminal') ui.focusTerminal();
       else if (s.mesh.userData.screen.click(h.uv.x, h.uv.y)) audio.click();
+    } else if (mode === 'look') {
+      back();
     } else if (mode === 'inspect') {
       if (hit(e, [inspectMesh])) flipInspect(); else back();
     } else if (mode === 'wallet') {
@@ -516,10 +524,8 @@ function start() {
       frames = 0; fpsSince = t;
       // fewer pixels when frames drop; more again after a couple of smooth stretches
       smooth = fps > 57 ? smooth + 1 : 0;
-      if (!CLOSE.includes(mode)) {
-        if (fps < 45 && scale > 0.5) { scale = Math.max(0.5, scale * 0.8); renderer.setPixelRatio(scale); resize(); }
-        else if (smooth >= 2 && scale < maxScale) { smooth = 0; scale = Math.min(maxScale, scale * 1.15); renderer.setPixelRatio(scale); resize(); }
-      }
+      if (fps < 45 && scale > 0.5) { scale = Math.max(0.5, scale * 0.8); renderer.setPixelRatio(scale); resize(); }
+      else if (smooth >= 2 && scale < capScale()) { smooth = 0; scale = Math.min(capScale(), scale * 1.15); renderer.setPixelRatio(scale); resize(); }
     }
 
     if (mode === 'zone' && !tweens.length && zoneLook) {

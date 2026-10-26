@@ -97,6 +97,7 @@ export function createUI({ audio, onFocus, onLang, onTermKey }) {
     screen: () => s().screenHint,
     terminal: () => s().termHint,
     inspect: () => s().inspectHint,
+    look: () => s().lookHint,
     wallet: () => (coarse ? s().walletHintTouch : s().walletHint),
     entering: () => ''
   };

@@ -404,7 +404,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   cyl(root, [0.125, 0.125, 0.03, 10], [-1.55, 0.31, 0.35], '#b88a5a');
 
   // ---------- far wall: posters, ladder shelf, red nightstand ----------
-  // Framed posters: click one to bring it up close and read it. Drawn at 2x so they
+  // Framed posters: click one to walk up to it and read it. Drawn at 2x so they
   // stay sharp up close; the draw functions work in a 256 px wide space.
   const poster = (id, pos, w, h, draw, frame = '#f5f2ec') => {
     const g = group(root, pos, id);
@@ -412,8 +412,8 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     const H = Math.round(256 * h / w);
     const tx = canvasTex(512, H * 2, (ctx) => { ctx.setTransform(2, 0, 0, 2, 0, 0); draw(ctx, 256, H); });
     const face = put(g, new THREE.PlaneGeometry(w - 0.05, h - 0.05), paperMat(tx.tex), [0, 0, 0.0131]);
-    face.userData.keep = true; // the inspect view flies from it
-    hotspots[id] = { kind: 'inspect', group: g, anchor: [0, h / 2 + 0.06, 0], from: face, aspect: (w - 0.05) / (h - 0.05), pages: [{ tex: tx.tex }] };
+    face.userData.keep = true; // the camera frames it
+    hotspots[id] = { kind: 'poster', group: g, anchor: [0, h / 2 + 0.06, 0], mesh: face, size: [w + 0.06, h + 0.06] };
   };
   // chalkboard print in a worn white frame: LIVE YOUR Life LIKE THERE IS NO TOMORROW
   poster('posterLive', [-0.3, 1.58, R.z0 + 0.02], 0.26, 0.34, (ctx, w, h) => {
@@ -430,7 +430,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     ctx.font = 'bold 36px Georgia, serif'; ctx.fillText('LIKE THERE', w / 2, 196);
     ctx.beginPath(); ctx.moveTo(60, 214); ctx.lineTo(w - 60, 214); ctx.moveTo(60, 236); ctx.lineTo(w - 60, 236); ctx.stroke(); // ribbon
     ctx.font = 'bold 18px Georgia, serif'; ctx.fillText('IS NO', w / 2, 231);
-    ctx.font = '52px Impact, "Arial Narrow", sans-serif'; ctx.fillText('TOMORROW', w / 2, 296);
+    ctx.font = '52px Impact, "Arial Narrow", sans-serif'; ctx.fillText('TOMORROW', w / 2, 296, w - 24); // squeezed to fit when Impact is missing
     ctx.textAlign = 'left';
   }, '#ece6da');
   poster('posterPast', [0.18, 1.78, R.z0 + 0.02], 0.4, 0.52, (ctx, w, h) => {
