@@ -435,7 +435,7 @@ export const cards = [
   { name: 'TypeScript', kind: L('Platinum', 'Platinum'), theme: 'ts', items: ['TypeScript', 'React', 'Next.js', 'Node.js', 'NestJS', 'Three.js'] },
   { name: 'Data', kind: L('Gold', 'Gold'), theme: 'data', items: ['PostgreSQL', 'SQLite', 'Prisma', 'Drizzle', 'Socket.IO'] },
   { name: 'Infra', kind: L('Black', 'Black'), theme: 'infra', items: ['Linux', 'Docker', 'nginx', 'PM2', 'GitHub Actions', 'Cloudflare'] },
-  { name: 'Game Dev', kind: L('Gift card', 'Gift card'), theme: 'game', items: ['Java · Forge / NeoForge', 'Lua', 'C++ · Unreal 5'] },
+  { name: 'Game Dev', kind: L('Gift card', 'Gift card'), theme: 'game', items: ['Java · Minecraft modding', 'Lua', 'C++ · Unreal 5'] },
   { name: 'Mobile', kind: L('Prepaid', 'Prepaga'), theme: 'mobile', items: ['React Native', 'Expo', 'Flutter'] },
   { name: 'FIUBA', kind: L('Student', 'Estudiante'), theme: 'uni', items: ['C++', 'Java', 'Elixir', 'Algorithms', 'TDD'] }
 ];
@@ -457,6 +457,7 @@ export const contact = [
 export const hotspots = {
   desk:     { label: L('Desk', 'Escritorio') },
   table:    { label: L('Printer table', 'Mesa de la impresora') },
+  nightstand: { label: L('Nightstand', 'Mesa de luz') },
   monitor:  { zone: 'desk', label: L('Terminal', 'Terminal') },
   monitor2: { zone: 'desk', label: L('Computer', 'Computadora') },
   tv:       { zone: 'desk', label: L('Farmacéutica', 'Farmacéutica') },
@@ -468,12 +469,13 @@ export const hotspots = {
   cow:      { zone: 'table', label: L('AgroScanner', 'AgroScanner') },
   backpack: { label: L('Backpack', 'Mochila') },
   server:   { label: L('The server', 'El servidor') },
-  sticker:  { label: L('Appointa', 'Appointa') },
+  sticker:  { zone: 'nightstand', label: L('Appointa', 'Appointa') },
   posterLive: { label: L('Poster', 'Cuadro') },
   posterPast: { label: L('Poster', 'Cuadro') },
   simon:    { label: L('Simón', 'Simón') },
   manolo:   { label: L('Manolo', 'Manolo') },
   pendant:  { label: L('Light', 'Luz') },
+  lightSwitch: { label: L('Light switch', 'Interruptor') },
   lamp:     { zone: 'desk', label: L('Desk lamp', 'Velador') }
 };
 
