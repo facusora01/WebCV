@@ -65,8 +65,8 @@ body.loaded .topbar { opacity: 1; transform: none; }
 .pill {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 8px 14px; border-radius: 999px;
-  background: rgba(34, 31, 61, 0.7); border: 1px solid var(--line);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  /* no backdrop blur: the canvas behind changes every frame, so it would be recomputed every frame */
+  background: rgba(34, 31, 61, 0.85); border: 1px solid var(--line);
   font: 500 13px/1 var(--sans);
   transition: background 0.2s, border-color 0.2s, transform 0.2s var(--ease);
 }

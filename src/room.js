@@ -135,7 +135,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   const T = () => screenText[getLang()];
   const dynamic = (o) => { o.userData.dynamic = true; return o; }; // never merged
   const page = (w, h, draw) => { const p = pageCanvas(w, h, draw, getLang); onLang.push(p.redraw); return p; };
-  const screen = (w, h, app) => { const s = makeScreen(w, h, app, getLang); onLang.push(() => s.redraw()); return s; };
+  const screen = (w, h, app, dpr) => { const s = makeScreen(w, h, app, getLang, dpr); onLang.push(() => s.redraw()); return s; };
 
   // the profile photo, shared by the phone and the developer ID
   const avatar = { img: null, onload: [] };
@@ -159,7 +159,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
 
   buildWindow(root);
   const hall = dynamic(group(root, [0, 0, 0]));
-  const visitor = buildHallway(hall, anim);
+  buildHallway(hall, anim);
   const door = buildDoor(root, anim);
 
   // ---------- zones: walk up to the desk or the printer table first ----------
@@ -280,13 +280,15 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     const app = tvApp();
     const ui = screen(1024, 600, app);
     const mesh = screenPlane(g, 0.92, 0.53, ui, [0, 0, 0.026], 0.85);
-    // the live list only moves while it slides; while it rests, twice a second is plenty
-    let lastTv = 0;
+    // Every redraw uploads the whole canvas, so only redraw when what it shows changes:
+    // the list steps once per cycle (smoothly, 15 times a second, only when you are up
+    // close), the console menu shows the clock, and focusing adds the info button.
+    let lastTv = null;
     anim.push((t, dt, view) => {
       if (!view.sees(mesh) && !app.focused) return;
-      // the smooth slide only when you are looking at it up close; from the room, twice a second
       const sliding = app.focused && app.mode === 'turnero' && !app.info && (t % 6.4) > 5;
-      if (t - lastTv > (sliding ? 1 / 15 : 0.5)) { lastTv = t; ui.redraw(t); }
+      const k = `${app.mode}${app.info}${app.focused}${sliding ? Math.floor(t * 15) : Math.floor(t / 6.4)}${app.mode === 'console' ? baTime() : ''}`;
+      if (k !== lastTv) { lastTv = k; ui.redraw(t); }
     });
     hotspots.tv = { kind: 'screen', group: g, anchor: [0, 0.38, 0], mesh, size: [1.0, 0.6], app };
 
@@ -344,7 +346,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   // 3D printer (Creality bed-slinger): its touch screen holds the print queue
   {
     const g = group(table, [-0.02, 0.77, 0.45], 'printer', Math.PI / 2);
-    const ui = screen(512, 358, printerApp());
+    const ui = screen(512, 358, printerApp(), 1.5);
     const mesh = buildPrinter(g, ui, anim);
     hotspots.printer = { kind: 'screen', group: g, anchor: [0, 0.75, 0], mesh, size: [0.12, 0.085] };
   }
@@ -462,16 +464,18 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     const lid = group(s, [0, 0.02, -0.1]);
     lid.rotation.x = -0.35;
     box(lid, [0.3, 0.19, 0.012], [0, 0.095, 0], C.graphite);
-    const ui = screen(984, 600, serverApp());
+    const app = serverApp();
+    const ui = screen(984, 600, app, 1.5);
     const mesh = screenPlane(lid, 0.27, 0.165, ui, [0, 0.095, 0.0065], 0.85);
     const led = box(s, [0.01, 0.004, 0.01], [0.12, 0.022, 0.08], glow('#3ddc84', 2));
-    let lastPm = -1;
+    // the status dots only blink up close; from the room the screen redraws when it changes
+    let lastPm = null;
     anim.push((t, dt, view) => {
       led.material.emissiveIntensity = Math.sin(t * 9) > 0 ? 2.5 : 0.2;
-      const k = Math.floor(t * 2);
+      const k = `${app.sel}${app.focused && Math.floor(t * 2)}`;
       if (k !== lastPm && view.sees(mesh)) { lastPm = k; ui.redraw(t); }
     });
-    hotspots.server = { kind: 'screen', group: s, anchor: [0, 0.3, 0], mesh, size: [0.32, 0.2] };
+    hotspots.server = { kind: 'screen', group: s, anchor: [0, 0.3, 0], mesh, size: [0.32, 0.2], app };
   }
 
   // red nightstand: cabinet with a door, an open shelf above it, a curved back
@@ -609,7 +613,6 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     hotspots,
     door,
     hall,
-    visitor,
     wallet,
     dogs,
     update: (t, dt, view) => { for (const f of anim) f(t, dt, view); },
@@ -684,7 +687,8 @@ function topOf(model, frame, points, fallback = 0.38) {
   let sum = 0, n = 0;
   for (const [x, z] of points) {
     frame.localToWorld(o.set(x, 2, z));
-    const hit = ray.set(o, down).intersectObject(model, true)[0];
+    ray.set(o, down);
+    const hit = ray.intersectObject(model, true)[0];
     if (hit) { sum += frame.worldToLocal(hit.point).y; n++; }
   }
   return n ? sum / n : fallback;
@@ -854,6 +858,7 @@ function buildPrinter(g, ui, anim) {
   const tube = new THREE.Mesh(new THREE.BufferGeometry(), tubeMat), fil = new THREE.Mesh(new THREE.BufferGeometry(), filMat);
   g.add(tube, fil);
   const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), d = new THREE.Vector3();
+  const curve = new THREE.CubicBezierCurve3(a, b, c, d);
   let lastTube = -1, lastUi = -1;
 
   const PERIOD = 1.2; // seconds per layer
@@ -875,16 +880,38 @@ function buildPrinter(g, ui, anim) {
       a.set(0.1, 0.66, -0.15);
       d.set(head.position.x, gantry.position.y + 0.075, -0.02); // top of the toolhead
       b.set(0.12, 0.8, -0.1); c.set((d.x + 0.1) / 2, d.y + 0.14, -0.03);
-      const curve = new THREE.CubicBezierCurve3(a, b, c, d);
-      tube.geometry.dispose(); fil.geometry.dispose();
-      tube.geometry = new THREE.TubeGeometry(curve, 24, 0.0045, 6);
-      fil.geometry = new THREE.TubeGeometry(curve, 24, 0.0016, 4);
+      curve.needsUpdate = true; // its points moved: re-measure its arc length
+      if (tube.geometry.type !== 'TubeGeometry') {
+        tube.geometry = new THREE.TubeGeometry(curve, 24, 0.0045, 6);
+        fil.geometry = new THREE.TubeGeometry(curve, 24, 0.0016, 4);
+      } else { retube(tube.geometry, curve); retube(fil.geometry, curve); }
     }
     const u = Math.floor(t);
     if (u !== lastUi && view.sees(mesh)) { lastUi = u; ui.redraw(t); }
   });
   for (const o of [bed, gantry, spool, tube, fil]) o.userData.dynamic = true; // they move
   return mesh;
+}
+
+// Moves a TubeGeometry's vertices onto a new curve in place (the same layout
+// TubeGeometry builds), so a bending tube costs no new buffers.
+const tubeP = new THREE.Vector3(), tubeN = new THREE.Vector3();
+function retube(geo, curve) {
+  const { tubularSegments: n, radialSegments: r, radius } = geo.parameters;
+  const { normals, binormals } = curve.computeFrenetFrames(n, false);
+  const pos = geo.attributes.position, nor = geo.attributes.normal;
+  for (let i = 0, k = 0; i <= n; i++) {
+    curve.getPointAt(i / n, tubeP);
+    const N = normals[i], B = binormals[i];
+    for (let j = 0; j <= r; j++, k++) {
+      const v = (j / r) * Math.PI * 2, sin = Math.sin(v), cos = -Math.cos(v);
+      tubeN.set(cos * N.x + sin * B.x, cos * N.y + sin * B.y, cos * N.z + sin * B.z).normalize();
+      nor.setXYZ(k, tubeN.x, tubeN.y, tubeN.z);
+      pos.setXYZ(k, tubeP.x + radius * tubeN.x, tubeP.y + radius * tubeN.y, tubeP.z + radius * tubeN.z);
+    }
+  }
+  pos.needsUpdate = nor.needsUpdate = true;
+  geo.computeBoundingSphere();
 }
 
 // ---------- the wallet: a leather bifold like the real one ----------
@@ -965,20 +992,15 @@ function buildWallet(table, pos, page, avatar, anim) {
   return { group: g, cards: [...cards, id], layout, set, get k() { return k; } };
 }
 
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
-}
-
 const skillFront = (c) => (ctx, w, h, L) => {
   const [a, b, ink] = CARD_THEMES[c.theme];
-  roundRect(ctx, 0, 0, w, h, 28); ctx.save(); ctx.clip();
+  ctx.beginPath(); ctx.roundRect(0, 0, w, h, 28); ctx.save(); ctx.clip();
   const gr = ctx.createLinearGradient(0, 0, w, h); gr.addColorStop(0, a); gr.addColorStop(1, b);
   ctx.fillStyle = gr; ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = ink;
   ctx.font = 'bold 44px Georgia, serif'; ctx.fillText(c.name, 32, 64);
   ctx.font = `20px ${MONO}`; ctx.textAlign = 'right'; ctx.fillText(c.kind[L].toUpperCase(), w - 32, 58); ctx.textAlign = 'left';
-  ctx.fillStyle = '#e6c46c'; roundRect(ctx, 32, 92, 62, 46, 8); ctx.fill();
+  ctx.fillStyle = '#e6c46c'; ctx.beginPath(); ctx.roundRect(32, 92, 62, 46, 8); ctx.fill();
   ctx.fillStyle = ink; ctx.font = `22px ${MONO}`;
   c.items.slice(0, 6).forEach((it, i) => ctx.fillText(it, 32 + (i % 2) * 230, 186 + Math.floor(i / 2) * 32));
   ctx.font = `18px ${MONO}`; ctx.globalAlpha = 0.8; ctx.fillText('FACUNDO SORASIO', 32, h - 26); ctx.globalAlpha = 1;
@@ -991,7 +1013,7 @@ const ID_FIELDS = {
 };
 const idFrontDraw = (avatar) => (ctx, w, h, L) => {
   const [title, ...fields] = ID_FIELDS[L];
-  roundRect(ctx, 0, 0, w, h, 24); ctx.save(); ctx.clip();
+  ctx.beginPath(); ctx.roundRect(0, 0, w, h, 24); ctx.save(); ctx.clip();
   const gr = ctx.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#e9eef4'); gr.addColorStop(0.6, '#cfdbe6'); gr.addColorStop(1, '#e6d9ef');
   ctx.fillStyle = gr; ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = '#3a4a66'; ctx.font = `bold 20px ${MONO}`; ctx.fillText(title, 28, 40);
@@ -1056,7 +1078,6 @@ function buildHallway(hall, anim) {
     body.rotation.z = Math.sin(t * 0.8) * 0.012;
     head.rotation.z = Math.sin(t * 0.5) * 0.04;
   });
-  return me;
 }
 
 // The view out of the window, in layers so it has depth and parallax: the

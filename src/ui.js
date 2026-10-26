@@ -15,7 +15,16 @@ export function createUI({ audio, onFocus, onLang, onTermKey }) {
   let lang = storedLang();
   let mode = 'door';
   const markers = {};
-  const cv = $('#cv'), termInput = $('#term-input');
+  const cv = $('#cv'), termInput = $('#term-input'), handleBtn = $('#handle-btn');
+  // called every frame for every marker: touch the DOM only when something changed
+  const placed = new Map();
+  function place(el, x, y, visible) {
+    const p = placed.get(el) || placed.set(el, {}).get(el);
+    if (visible !== p.visible) { el.classList.toggle('hidden', !visible); p.visible = visible; }
+    if (!visible) return; // a hidden one keeps its place while it fades out
+    const tf = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+    if (tf !== p.tf) { el.style.transform = tf; p.tf = tf; }
+  }
   const s = () => STR[lang];
   const tr = (o) => (typeof o === 'string' ? o : o[lang]);
 
@@ -140,19 +149,11 @@ export function createUI({ audio, onFocus, onLang, onTermKey }) {
         markers[id] = b;
       }
     },
-    placeMarker(id, x, y, visible) {
-      const m = markers[id];
-      m.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-      m.classList.toggle('hidden', !visible);
-    },
-    placeHandle(x, y, visible) {
-      const b = $('#handle-btn');
-      b.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-      b.classList.toggle('hidden', !visible);
-    },
+    placeMarker(id, x, y, visible) { place(markers[id], x, y, visible); },
+    placeHandle(x, y, visible) { place(handleBtn, x, y, visible); },
     hover(id) {
       for (const [k, m] of Object.entries(markers)) m.classList.toggle('hot', k === id);
-      $('#handle-btn').classList.toggle('hot', id === 'handle');
+      handleBtn.classList.toggle('hot', id === 'handle');
     },
     loaded() { document.body.classList.add('loaded'); },
     noWebgl() {

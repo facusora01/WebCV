@@ -3,7 +3,7 @@
 // app registers while it draws. Pages are flat textures for the "inspect" view
 // (cards, the name tag, the ear tag, the notebook).
 import * as THREE from 'three';
-import { projects, about, experience, education, contact, cards, pharmacies, screenText } from './content.js';
+import { projects, about, experience, education, contact, pharmacies, screenText } from './content.js';
 
 const MONO = '"JetBrains Mono", ui-monospace, monospace';
 const SERIF = '"Fraunces", Georgia, serif';
@@ -35,17 +35,13 @@ export function drawCover(ctx, img, x, y, w, h) {
   ctx.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, x, y, w, h);
 }
 
-function rr(ctx, x, y, w, h, r) {
-  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
-}
 function chips(ctx, items, x, y, maxW, { font = `18px ${MONO}`, fg = '#8fd6b8', bg = 'rgba(143,214,184,0.12)', h = 30 } = {}) {
   ctx.font = font;
   let cx = x;
   for (const it of items) {
     const w = ctx.measureText(it).width + 20;
     if (cx + w > x + maxW) { cx = x; y += h + 8; }
-    ctx.fillStyle = bg; rr(ctx, cx, y, w, h, 6); ctx.fill();
+    ctx.fillStyle = bg; ctx.beginPath(); ctx.roundRect(cx, y, w, h, 6); ctx.fill();
     ctx.fillStyle = fg; ctx.fillText(it, cx + 10, y + h * 0.68);
     cx += w + 8;
   }
@@ -53,21 +49,23 @@ function chips(ctx, items, x, y, maxW, { font = `18px ${MONO}`, fg = '#8fd6b8', 
 }
 
 // A canvas texture with clickable regions. app.draw(ui) is called on every redraw.
-const SCREEN_DPR = 2, PAGE_DPR = 1.5;
-export function makeScreen(w, h, app, getLang) {
+// dpr: canvas pixels per layout pixel; every redraw uploads the whole canvas, so
+// screens that are only read from afar or redraw often should keep it low.
+const PAGE_DPR = 1.5;
+export function makeScreen(w, h, app, getLang, dpr = 2) {
   const canvas = document.createElement('canvas');
-  canvas.width = w * SCREEN_DPR; canvas.height = h * SCREEN_DPR;
+  canvas.width = w * dpr; canvas.height = h * dpr;
   const ctx = canvas.getContext('2d');
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 8;
+  tex.anisotropy = 4;
   const hits = [];
   const screen = {
     tex, app,
     redraw(t = screen.t || 0) {
       screen.t = t;
       hits.length = 0;
-      ctx.setTransform(SCREEN_DPR, 0, 0, SCREEN_DPR, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const L = getLang();
       app.draw({ ctx, w, h, t, L, T: screenText[L], btn: (x, y, bw, bh, fn) => hits.push({ x, y, bw, bh, fn }) });
       tex.needsUpdate = true;
@@ -100,7 +98,7 @@ export function tvApp() {
       const { ctx, w, h, T } = u;
       ctx.font = `bold 22px ${SANS}`;
       const label = `ⓘ  ${T.aboutSystem}`, bw = ctx.measureText(label).width + 40;
-      ctx.fillStyle = '#1f8a63'; rr(ctx, w - bw - 24, h - 66, bw, 46, 23); ctx.fill();
+      ctx.fillStyle = '#1f8a63'; ctx.beginPath(); ctx.roundRect(w - bw - 24, h - 66, bw, 46, 23); ctx.fill();
       ctx.fillStyle = '#fff'; ctx.fillText(label, w - bw - 4, h - 36);
       u.btn(w - bw - 24, h - 66, bw, 46, () => { app.info = true; });
     }
@@ -156,7 +154,7 @@ function drawProjectSheet(u, p, { bg, accent, ink = '#f2f0ea', sub = '#b9b4c9', 
     const label = p.links[0].kind === 'repo' ? T.repo : T.visit;
     ctx.font = `bold 20px ${SANS}`;
     const bw = ctx.measureText(label).width + 40;
-    ctx.fillStyle = accent; rr(ctx, w - bw - x0, y - 18, bw, 42, 21); ctx.fill();
+    ctx.fillStyle = accent; ctx.beginPath(); ctx.roundRect(w - bw - x0, y - 18, bw, 42, 21); ctx.fill();
     ctx.fillStyle = bg; ctx.fillText(label, w - bw - x0 + 20, y + 10);
     u.btn(w - bw - x0, y - 18, bw, 42, () => openUrl(p.links[0].url));
   }
@@ -179,8 +177,8 @@ function drawConsole(u, app, ids) {
   const colors = ['#2c6be0', '#e0532c', '#7a3ee0', '#2ca86b'];
   ids.forEach((id, i) => {
     const sel = i === app.sel, s = sel ? 132 : 104, x = 40 + i * 150, y = sel ? 66 : 80;
-    ctx.fillStyle = colors[i]; rr(ctx, x, y, s, s, 14); ctx.fill();
-    if (sel) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; rr(ctx, x - 4, y - 4, s + 8, s + 8, 16); ctx.stroke(); }
+    ctx.fillStyle = colors[i]; ctx.beginPath(); ctx.roundRect(x, y, s, s, 14); ctx.fill();
+    if (sel) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.roundRect(x - 4, y - 4, s + 8, s + 8, 16); ctx.stroke(); }
     ctx.fillStyle = '#fff'; ctx.font = `bold ${sel ? 40 : 32}px ${SANS}`;
     ctx.fillText(P(id).title.slice(0, 2).toUpperCase(), x + 18, y + s - 22);
     u.btn(x, y, s, s, () => { app.sel = i; });
@@ -193,7 +191,7 @@ function drawConsole(u, app, ids) {
   y = wrap(ctx, p.summary[L], 40, y, w - 80, 30, 4) + 4;
   chips(ctx, p.stack, 40, y, w - 300, { fg: '#fff', bg: 'rgba(255,255,255,0.14)' });
   if (p.links[0]) {
-    ctx.fillStyle = '#fff'; rr(ctx, w - 230, h - 76, 190, 48, 24); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.roundRect(w - 230, h - 76, 190, 48, 24); ctx.fill();
     ctx.fillStyle = '#0b1a3a'; ctx.font = `bold 20px ${SANS}`; ctx.fillText(`▶ ${T.repo}`, w - 205, h - 45);
     u.btn(w - 230, h - 76, 190, 48, () => openUrl(p.links[0].url));
   }
@@ -252,12 +250,12 @@ export function browserApp() {
     ctx.fillStyle = 'rgba(255,240,200,0.8)'; ctx.beginPath(); ctx.arc(w - 160, 90, 22, 0, 7); ctx.fill();
     // taskbar with the real time
     ctx.fillStyle = 'rgba(20,24,32,0.85)'; ctx.fillRect(0, h - 48, w, 48);
-    ctx.fillStyle = '#7aa7ff'; rr(ctx, w / 2 - 20, h - 40, 32, 32, 6); ctx.fill();
+    ctx.fillStyle = '#7aa7ff'; ctx.beginPath(); ctx.roundRect(w / 2 - 20, h - 40, 32, 32, 6); ctx.fill();
     ctx.fillStyle = '#e8ecf4'; ctx.font = `18px ${SANS}`; ctx.textAlign = 'right'; ctx.fillText(baTime(), w - 20, h - 18); ctx.textAlign = 'left';
     // desktop shortcuts
     ids.forEach((id, i) => {
       const x = 28, y = 24 + i * 112;
-      ctx.fillStyle = tints[id]; rr(ctx, x + 14, y, 64, 64, 14); ctx.fill();
+      ctx.fillStyle = tints[id]; ctx.beginPath(); ctx.roundRect(x + 14, y, 64, 64, 14); ctx.fill();
       ctx.fillStyle = '#fff'; ctx.font = `bold 30px ${SANS}`; ctx.textAlign = 'center';
       ctx.fillText(P(id).title[0].toUpperCase(), x + 46, y + 44);
       ctx.font = `15px ${SANS}`; ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 4;
@@ -269,14 +267,14 @@ export function browserApp() {
     // the browser window with the project
     const p = P(app.open);
     const X = 150, Y = 26, W = w - 190, H = h - 92;
-    ctx.fillStyle = 'rgba(0,0,0,0.3)'; rr(ctx, X + 6, Y + 8, W, H, 12); ctx.fill();
-    ctx.fillStyle = '#d7d2e2'; rr(ctx, X, Y, W, H, 12); ctx.fill();
-    ctx.fillStyle = '#ece9f2'; rr(ctx, X + 12, Y + 8, 260, 34, 8); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.roundRect(X + 6, Y + 8, W, H, 12); ctx.fill();
+    ctx.fillStyle = '#d7d2e2'; ctx.beginPath(); ctx.roundRect(X, Y, W, H, 12); ctx.fill();
+    ctx.fillStyle = '#ece9f2'; ctx.beginPath(); ctx.roundRect(X + 12, Y + 8, 260, 34, 8); ctx.fill();
     ctx.fillStyle = '#2b2430'; ctx.font = `16px ${SANS}`; ctx.fillText(p.title, X + 26, Y + 31);
     ctx.fillStyle = '#e0534a'; ctx.beginPath(); ctx.arc(X + W - 24, Y + 24, 10, 0, 7); ctx.fill();
     ctx.fillStyle = '#fff'; ctx.font = `bold 14px ${SANS}`; ctx.textAlign = 'center'; ctx.fillText('×', X + W - 24, Y + 29); ctx.textAlign = 'left';
     u.btn(X + W - 44, Y + 4, 40, 40, () => { app.open = null; });
-    ctx.fillStyle = '#fff'; rr(ctx, X + 12, Y + 48, W - 24, 30, 15); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.roundRect(X + 12, Y + 48, W - 24, 30, 15); ctx.fill();
     ctx.fillStyle = '#6a6375'; ctx.font = `15px ${MONO}`;
     ctx.fillText(`🔒 ${(p.links[0]?.url || `${p.dir}.local`).replace(/^https?:\/\//, '')}`, X + 28, Y + 69);
     ctx.save();
@@ -291,7 +289,7 @@ export function browserApp() {
 
 // ---------- the old laptop: the server ----------
 export function serverApp() {
-  const app = { sel: null };
+  const app = { sel: null, focused: false };
   const ids = ['motibot', 'vikunja'];
   app.draw = (u) => {
     const { ctx, w, h, t, T } = u;
@@ -306,7 +304,7 @@ export function serverApp() {
       const clickable = idx != null;
       if (clickable) { ctx.fillStyle = 'rgba(61,220,132,0.1)'; ctx.fillRect(20, y - 32, w - 40, 44); u.btn(20, y - 32, w - 40, 44, () => { app.sel = idx; }); }
       ctx.fillStyle = clickable ? '#e6efe9' : '#8a948f'; ctx.font = `20px ${MONO}`; ctx.fillText(n, 30, y);
-      ctx.fillStyle = Math.sin(t * 3 + i) > -0.95 ? '#3ddc84' : '#0c0f14'; ctx.fillText('● online', 300, y);
+      ctx.fillStyle = !app.focused || Math.sin(t * 3 + i) > -0.95 ? '#3ddc84' : '#0c0f14'; ctx.fillText('● online', 300, y); // blinks up close
       ctx.fillStyle = '#8a948f'; ctx.fillText(`${12 + i * 3}d`, 470, y);
       if (clickable) { ctx.fillStyle = '#3ddc84'; ctx.fillText('›', w - 50, y); }
     });
@@ -333,7 +331,7 @@ export function phoneApp(avatar) {
     const colors = { Email: '#ffffff', WhatsApp: '#25d366', GitHub: '#111111' };
     contact.forEach((c, i) => {
       const y = 400 + i * 100;
-      ctx.fillStyle = colors[c.label]; rr(ctx, 40, y, w - 80, 76, 38); ctx.fill();
+      ctx.fillStyle = colors[c.label]; ctx.beginPath(); ctx.roundRect(40, y, w - 80, 76, 38); ctx.fill();
       ctx.fillStyle = c.label === 'Email' ? '#2b3a8f' : '#fff';
       ctx.font = `bold 24px ${SANS}`; ctx.fillText(c.label, w / 2, y + 34);
       ctx.font = `16px ${MONO}`; ctx.fillText(c.value, w / 2, y + 60);
@@ -354,7 +352,7 @@ export function printerApp() {
     ctx.fillStyle = '#9aa'; ctx.font = `16px ${MONO}`; ctx.fillText(T.queue, 18, 28);
     ids.forEach((id, i) => {
       const y = 44 + i * 58, sel = i === app.sel;
-      ctx.fillStyle = sel ? '#2a3a2e' : '#1f232c'; rr(ctx, 14, y, 196, 50, 8); ctx.fill();
+      ctx.fillStyle = sel ? '#2a3a2e' : '#1f232c'; ctx.beginPath(); ctx.roundRect(14, y, 196, 50, 8); ctx.fill();
       ctx.fillStyle = sel ? '#2ecc71' : '#ccc'; ctx.font = `15px ${MONO}`; ctx.fillText(`${P(id).dir}.gcode`, 26, y + 31);
       u.btn(14, y, 196, 50, () => { app.sel = i; });
     });
@@ -376,14 +374,14 @@ export function pageCanvas(w, h, draw, getLang) {
   const ctx = canvas.getContext('2d');
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 8;
+  tex.anisotropy = 4;
   const page = { tex, redraw() { const L = getLang(); ctx.setTransform(PAGE_DPR, 0, 0, PAGE_DPR, 0, 0); ctx.clearRect(0, 0, w, h); draw(ctx, w, h, L, screenText[L]); tex.needsUpdate = true; } };
   page.redraw();
   return page;
 }
 
 const cardBack = (bgA, bgB, ink) => (ctx, w, h) => {
-  rr(ctx, 0, 0, w, h, 28); ctx.save(); ctx.clip();
+  ctx.beginPath(); ctx.roundRect(0, 0, w, h, 28); ctx.save(); ctx.clip();
   const g = ctx.createLinearGradient(0, 0, w, h); g.addColorStop(0, bgA); g.addColorStop(1, bgB);
   ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(0, 34, w, 50); // magnetic stripe
@@ -430,7 +428,7 @@ export function stickerBack(ctx, w, h, L, T) {
 
 const tagShape = (ctx, w, h) => {
   ctx.fillStyle = '#f2c230';
-  rr(ctx, 0, 30, w, h - 30, 40); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(0, 30, w, h - 30, 40); ctx.fill();
   ctx.beginPath(); ctx.arc(w / 2, 40, 34, 0, 7); ctx.fill();
   ctx.fillStyle = '#c9a020'; ctx.beginPath(); ctx.arc(w / 2, 40, 14, 0, 7); ctx.fill();
 };
@@ -510,5 +508,3 @@ export function notebookPages() {
   }
   return pages;
 }
-
-export { cards };
