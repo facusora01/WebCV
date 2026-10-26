@@ -174,6 +174,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   // the desk view is from the chair, at seated eye height; you can look down to the controller and up to the TV
   zone('desk', [-1.45, 1.15, -1.3], [0.75, 2.2, 1.2], { pos: [-0.86, 1.2, -1.27], look: [-1.7, 1.1, -1.3], yaw: 0.75, pitch: [-0.8, 0.6] });
   zone('table', [-1.5, 1.0, 0.1], [0.7, 0.7, 1.7], { pos: [-0.5, 1.5, 0.15], look: [-1.6, 0.85, 0.05], yaw: 0.6, pitch: [-0.5, 0.4] });
+  zone('nightstand', [0.62, 0.42, R.z0 + 0.2], [0.48, 0.84, 0.4], { pos: [0.62, 1.12, R.z0 + 0.92], look: [0.62, 0.62, R.z0 + 0.18], yaw: 0.5, pitch: [-1.0, 0.2] });
 
   // ---------- black desk: left wall, far corner. Its front faces +x. ----------
   // Local axes once rotated: local +x → world -z (towards the far wall), local +z → world +x.
@@ -477,7 +478,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     hotspots.server = { kind: 'screen', group: s, anchor: [0, 0.3, 0], mesh, size: [0.32, 0.2], app };
   }
 
-  // red nightstand: cabinet with a door, an open shelf above it, a curved back
+  // red nightstand: cabinet with a door, an open shelf above it, a half-moon back on top
   {
     const g = group(root, [0.62, 0, R.z0 + 0.2]);
     const red = M(C.red, { roughness: 0.7 }), darkRed = M('#a81f1b', { roughness: 0.8 });
@@ -487,8 +488,14 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     box(g, [0.42, 0.18, 0.02], [0, 0.51, -0.16], darkRed);
     for (const x of [-0.2, 0.2]) box(g, [0.02, 0.18, 0.34], [x, 0.51, 0], red);
     box(g, [0.44, 0.025, 0.36], [0, 0.612, 0], red);
-    const back = put(g, new THREE.CylinderGeometry(0.22, 0.22, 0.025, 16, 1, false, -Math.PI / 2, Math.PI), red, [0, 0.625, -0.165], [Math.PI / 2, 0, 0]);
-    back.scale.set(1, 1, 0.55);
+    // the half-moon: a slice of a circle standing on the back edge of the top
+    const MW = 0.2, MH = 0.15, MR = (MW * MW + MH * MH) / (2 * MH);
+    const moon = new THREE.Shape();
+    const rise = MR - MH; // the circle's centre sits below the top's surface
+    moon.moveTo(-MW, 0);
+    moon.absarc(0, -rise, MR, Math.atan2(rise, -MW), Math.atan2(rise, MW), true); // over the top, left to right
+    moon.lineTo(-MW, 0);
+    put(g, new THREE.ExtrudeGeometry(moon, { depth: 0.02, bevelEnabled: false, curveSegments: 24 }), red, [0, 0.624, -0.178]);
     for (const x of [-0.21, 0.21]) box(g, [0.025, 0.1, 0.34], [x, 0.67, 0], red);
 
     // the Appointa name tag lying on top
@@ -592,11 +599,20 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     const light = new THREE.PointLight(C.lamp, 7, 7, 1.4); // no shadow: a point-light shadow renders the room six times
     light.position.set(0, -0.66, 0);
     g.add(light);
+    // the room light: the bulb and the switch by the door both turn it on and off
+    const sw = group(root, [0.38, 1.1, R.z1 - 0.004], 'lightSwitch', Math.PI); // on the wall right of the door, seen from inside
+    box(sw, [0.075, 0.115, 0.008], [0, 0, 0], M('#f4f2ee', { roughness: 0.4 }));
+    const rocker = box(sw, [0.032, 0.056, 0.012], [0, 0, 0.006], M('#e9e6e0', { roughness: 0.4 }));
     let on = true;
-    hotspots.pendant = {
-      kind: 'toggle', group: g, anchor: [0, -0.75, 0],
-      toggle() { on = !on; light.intensity = on ? 7 : 0; bulb.material.emissiveIntensity = on ? 3 : 0.1; }
+    const toggle = () => {
+      on = !on;
+      light.intensity = on ? 7 : 0;
+      bulb.material.emissiveIntensity = on ? 3 : 0.1;
+      rocker.rotation.x = on ? -0.18 : 0.18; // top pressed in when on
     };
+    rocker.rotation.x = -0.18;
+    hotspots.pendant = { kind: 'toggle', group: g, anchor: [0, -0.75, 0], toggle };
+    hotspots.lightSwitch = { kind: 'toggle', group: sw, anchor: [0, 0.1, 0], toggle };
   }
 
   if (!lowPower) buildDust(root, anim);
