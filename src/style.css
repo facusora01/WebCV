@@ -82,7 +82,9 @@ body.loaded .topbar { opacity: 1; transform: none; }
 #btn-sound .eq i:nth-child(3) { animation-delay: -0.6s; }
 @keyframes eq { to { height: 12px; } }
 
-/* ---------- markers ---------- */
+/* ---------- markers ----------
+   No visible circles: visitors find what is interactive by exploring. The markers
+   stay in the page for keyboard users and show up only when focused. */
 #markers { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
 .marker {
   position: absolute; left: 0; top: 0;
@@ -97,11 +99,14 @@ body.loaded .marker:not(.hidden) { opacity: 1; }
   position: relative; width: 18px; height: 18px; border-radius: 50%;
   background: rgba(255, 207, 138, 0.25); border: 2px solid var(--lamp);
   box-shadow: 0 0 14px rgba(255, 207, 138, 0.6);
+  opacity: 0;
 }
+.marker:focus-visible i { opacity: 1; }
 .marker i::after {
   content: ''; position: absolute; inset: -8px; border-radius: 50%;
-  border: 1px solid var(--lamp); animation: ping 2.4s var(--ease) infinite; opacity: 0;
+  border: 1px solid var(--lamp); opacity: 0;
 }
+.marker:focus-visible i::after { animation: ping 2.4s var(--ease) infinite; }
 @keyframes ping { 0% { transform: scale(0.4); opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
 .marker span {
   padding: 5px 10px; border-radius: 8px;
@@ -112,7 +117,7 @@ body.loaded .marker:not(.hidden) { opacity: 1; }
 }
 .marker.hot span, .marker:focus-visible span { opacity: 1; transform: none; }
 .marker.hot i { background: var(--lamp); }
-@media (pointer: coarse) { .marker span { opacity: 0.9; transform: none; font-size: 11px; } }
+@media (pointer: coarse) { .marker span { font-size: 11px; } }
 
 .hint {
   position: fixed; bottom: 22px; left: 50%; z-index: 10; margin: 0;
