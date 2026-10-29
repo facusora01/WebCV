@@ -571,7 +571,7 @@ export const screenText = {
     serverHint: 'hacé click en un proceso para ver qué es',
     contactLead: 'Abierto a pasantías, trabajos freelance y problemas interesantes.',
     aboutTitle: 'Sobre mí',
-    tags: { simon: ['SIMÓN', 'Chief Pawficce Officer (CPO)'], manolo: ['MANOLO', 'Líder de Control de Calidad (QA)'] },
+    tags: { simon: ['SIMÓN', 'Jefe de Perrsonal (JP)'], manolo: ['MANOLO', 'Líder de Control de Calidad (QA)'] },
     tagBack: {
       simon: ['Monitorea el nivel', 'de felicidad del equipo', 'y supervisa que la siesta', 'del mediodía se cumpla', 'a tiempo.'],
       manolo: ['Inspección y testeado', 'intensivo de galletitas,', 'comida de humanos', 'y pelotas picando.']

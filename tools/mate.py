@@ -3,7 +3,7 @@
 # Same method as tools/motibot.py and tools/dogs.py: low-poly bases (rings of a few
 # vertices turned round an axis, extruded along a path) shaped vertex by vertex with
 # bmesh, flat-shaded, coloured per face by materials. No image textures: even the
-# thermos sticker is cut into the surface along its outline.
+# thermos sticker is made of flat polygons, one per colour, wrapped onto the surface.
 #
 #   mate:    an egg-shaped gourd in a wide flared virola (the metal rim), a wire stand
 #            (a belt under the rim, three teardrop loops down the sides to three little
@@ -42,7 +42,7 @@ PAL = {
     'yerba': ('9c9b5c', 1.0, 0), 'yerba_dark': ('7b7f46', 1.0, 0), 'palo': ('c6b16d', 1.0, 0),
     'yerba_low': ('8f9152', 1.0, 0), 'water': ('3b3a1d', 0.05, 0),
     'green': ('33504a', 0.5, 0.15), 'black': ('1c1d20', 0.6, 0), 'spout': ('2f7a45', 0.5, 0),
-    'red': ('cf3b3d', 0.6, 0), 'bull': ('161618', 0.6, 0),
+    'red': ('cf3b3d', 0.6, 0), 'bull': ('161618', 0.6, 0), 'cream': ('efe3cf', 0.6, 0),
 }
 MI = {n: i for i, n in enumerate(PAL)}
 
@@ -142,68 +142,11 @@ def ring(bm, center, normal, R, r, mat, seg=12, sides=4):
     pts = [center + (a * math.cos(2 * math.pi * k / seg) + b * math.sin(2 * math.pi * k / seg)) * R for k in range(seg)]
     tube(bm, pts, [r] * seg, sides, [mat], closed_loop=True)
 
-def cut(bm, f, snap=0.2):
-    """Cuts the surface along the zero contour of f (f < 0 inside the patch)."""
-    bmesh.ops.triangulate(bm, faces=bm.faces[:])
-    val = {v: f(v.co) for v in bm.verts}
-    for v, x in val.items():
-        if x == 0: val[v] = 1e-9
-    def root(a, b):
-        pa, pb, sa = a.co.copy(), b.co.copy(), val[a] > 0
-        lo, hi = 0.0, 1.0
-        for _ in range(22):
-            m = (lo + hi) / 2
-            if (f(pa.lerp(pb, m)) > 0) == sa: lo = m
-            else: hi = m
-        return (lo + hi) / 2
-    def crossing(e):
-        a, b = e.verts
-        return val[a] != 0 and val[b] != 0 and (val[a] > 0) != (val[b] > 0)
-    for e in [e for e in bm.edges if crossing(e)]:
-        if not crossing(e): continue
-        a, b = e.verts
-        t = root(a, b)
-        if t < snap: a.co = a.co.lerp(b.co, t); val[a] = 0
-        elif t > 1 - snap: b.co = a.co.lerp(b.co, t); val[b] = 0
-    for e in [e for e in bm.edges if crossing(e)]:
-        a, b = e.verts
-        t = root(a, b)
-        p = a.co.lerp(b.co, t)
-        _, nv = bmesh.utils.edge_split(e, a, t)
-        nv.co = p
-        val[nv] = 0
-    for face in list(bm.faces):
-        loop = [l.vert for l in face.loops]
-        zs = [i for i, v in enumerate(loop) if val[v] == 0]
-        if len(zs) != 2: continue
-        i, j = zs
-        if (j - i) % len(loop) in (1, len(loop) - 1): continue
-        try: bmesh.ops.connect_verts(bm, verts=[loop[i], loop[j]])
-        except Exception: pass
-    bmesh.ops.triangulate(bm, faces=bm.faces[:])
-
-def paint(bm, f, mat, where):
-    for face in bm.faces:
-        if face.material_index in {MI[w] for w in where} and f(face.calc_center_median()) < 0:
-            face.material_index = MI[mat]
-
-def poly_sdf(poly):
-    """Signed distance to a 2D polygon (negative inside)."""
-    def f(x, y):
-        d, inside = 1e9, False
-        for (ax, ay), (bx, by) in zip(poly, poly[1:] + poly[:1]):
-            ex, ey = bx - ax, by - ay
-            t = max(0, min(1, ((x - ax) * ex + (y - ay) * ey) / (ex * ex + ey * ey)))
-            d = min(d, math.hypot(ax + ex * t - x, ay + ey * t - y))
-            if (ay > y) != (by > y) and x < ax + (y - ay) / (by - ay) * ex: inside = not inside
-        return -d if inside else d
-    return f
-
 def to_obj(name, bm, extras=None):
     # every part's faces point outward (with backface culling, a ring wound the wrong way
     # shows only its far side: the gold band looked like a patch on one side of the straw)
     # (the sticker is an open decal, already facing out: it is left alone)
-    bmesh.ops.recalc_face_normals(bm, faces=[f for f in bm.faces if f.material_index not in (MI['red'], MI['bull'])])
+    bmesh.ops.recalc_face_normals(bm, faces=[f for f in bm.faces if f.material_index not in (MI['red'], MI['bull'], MI['cream'])])
     me = bpy.data.meshes.new(name)
     bm.to_mesh(me); bm.free()
     for m in MATS: me.materials.append(m)
@@ -297,48 +240,80 @@ def build_mate():
     water = to_obj('Water', wb)
     return ob, water, tip
 
-def px(pts, k=0.0169, cx=362, cy=395, zc=19.8):
-    """Points traced on thermoReference.jpeg (pixels) to cm: x along the surface, y up."""
-    return [((x - cx) * k, (cy - y) * k + zc) for x, y in pts]
+def px(pts, k=0.028, cy=218, zc=19.8):
+    """The sticker traced on the ranch's logo (pixels: x from its centre line, y down) to
+    cm: x along the surface, y up."""
+    return [(x * k, (cy - y) * k + zc) for x, y in pts]
 
-# traced from the photo of the thermos
-BULL = px([(150, 255), (250, 328), (300, 338), (424, 338), (478, 328), (580, 240), (545, 318), (515, 372), (505, 430),
-           (470, 452), (466, 560), (452, 586), (348, 586), (334, 560), (330, 452), (262, 436), (240, 380), (205, 322)])
-ARCH = px([(155 + 415 * (0.5 - 0.5 * math.cos(math.pi * k / 12)), 330 - 132 * math.sin(math.pi * k / 12)) for k in range(13)])
-NOSE = px([(375, 528), (400, 498), (426, 528), (414, 532), (400, 516), (386, 532)])
+def mirror(half):
+    """A left half traced from the top down, closed with its mirror image."""
+    return half + [(-x, y) for x, y in reversed(half) if x != 0]
+
+# the Cabañas La Esperanza logo in the thermos sticker's colours. The bull's head, black:
+# horns hooking up and out to a point, a domed brow, the face down the sides, a step in
+# at the cheeks to a square muzzle with rounded corners
+BULL = px(mirror([(0, 193), (-28, 197), (-53, 205), (-67, 212), (-115, 180), (-112, 204), (-104, 225), (-89, 242),
+                  (-73, 252), (-72, 270), (-65, 277), (-38, 281), (-36, 318), (-29, 328), (-15, 333), (0, 334)]))
+# the red outline round it
+OUTLINE = px(mirror([(0, 184), (-31, 188), (-56, 196), (-66, 202), (-110, 173), (-115, 171), (-120, 172), (-123, 176),
+                     (-124, 181), (-121, 205), (-112, 228), (-96, 248), (-82, 257), (-81, 270), (-78, 276), (-71, 283),
+                     (-66, 286), (-47, 289), (-45, 318), (-36, 333), (-32, 336), (-18, 341), (0, 343)]))
+# the chevron on the muzzle, pointing up
+NOSE = px([(-16, 303), (0, 286), (16, 303), (10, 308), (0, 297), (-10, 308)])
+# the red banner over the horns, its lower edge and the ranch's name on it (two lines:
+# text, baseline radius, width) curved round a centre below the sticker, in logo pixels
+NAME_CY = 320
+BANNER = px([(127 * math.cos(math.pi * (0.04 + 0.92 * k / 16)), 162 - 69 * math.sin(math.pi * (0.04 + 0.92 * k / 16))) for k in range(17)] +
+            [(165 * math.sin(a), NAME_CY - 165 * math.cos(a)) for a in (-0.555 + 1.11 * k / 12 for k in range(13))])
+NAME = [('Cabañas La Esperanza', 192, 150), ('de Agropampa S.A.', 175, 100)]
+
+def text_lines():
+    """The ranch's name as flat polygons in logo pixels, each line bent round NAME_CY."""
+    out = []
+    for body, rad, width in NAME:
+        cu = bpy.data.curves.new('name', 'FONT')
+        cu.body, cu.align_x, cu.resolution_u = body, 'CENTER', 2
+        ob = bpy.data.objects.new('name', cu)
+        bpy.context.scene.collection.objects.link(ob)
+        me = bpy.data.meshes.new_from_object(ob.evaluated_get(bpy.context.evaluated_depsgraph_get()))
+        bpy.data.objects.remove(ob); bpy.data.curves.remove(cu)
+        xs = [v.co.x for v in me.vertices]
+        s = width / (max(xs) - min(xs))
+        for v in me.vertices:
+            a, r = v.co.x * s / rad, rad + v.co.y * s
+            v.co = V((r * math.sin(a), NAME_CY - r * math.cos(a), 0))
+        out.append(me)
+    return out
 
 def sticker_patch(bm, R):
-    """A thin decal wrapped round the body: a grid patch just off the surface, cut along the
-    outlines (so the edges are clean, not stair-stepped by the body's own faces), with
-    everything outside the sticker removed."""
-    bull, arch, nose = poly_sdf(BULL), poly_sdf(ARCH), poly_sdf(NOSE)
-    red = lambda x, y: min(arch(x, y), bull(x, y) - 0.22)       # the arch, and the outline round the head
-    xs = [p[0] for p in ARCH + BULL]; ys = [p[1] for p in ARCH + BULL]
-    x0, x1, y0, y1 = min(xs) - 0.5, max(xs) + 0.5, min(ys) - 0.5, max(ys) + 0.5
-    nx, ny = int((x1 - x0) / 0.2) + 1, int((y1 - y0) / 0.2) + 1
-    rr = R + 0.035
-    pb = bmesh.new()
-    def at(x, y):
-        a = x / R
-        return V((rr * math.sin(a), -rr * math.cos(a), y))
-    grid = [[pb.verts.new(at(x0 + (x1 - x0) * i / nx, y0 + (y1 - y0) * j / ny)) for i in range(nx + 1)] for j in range(ny + 1)]
-    for j in range(ny):
-        for i in range(nx):
-            f = pb.faces.new((grid[j][i], grid[j][i + 1], grid[j + 1][i + 1], grid[j + 1][i]))
-            f.material_index = MI['red']
-    flat = lambda p: (math.atan2(p.x, -p.y) * R, p.z)
-    F = lambda f: (lambda p: f(*flat(p)))
-    cut(pb, F(red), snap=0.3)
-    bmesh.ops.delete(pb, geom=[f for f in pb.faces if red(*flat(f.calc_center_median())) > 0], context='FACES')
-    cut(pb, F(bull), snap=0.3); paint(pb, F(bull), 'bull', {'red'})
-    cut(pb, F(nose), snap=0.3); paint(pb, F(nose), 'red', {'bull'})
-    bmesh.ops.delete(pb, geom=[v for v in pb.verts if not v.link_faces], context='VERTS')
-    bmesh.ops.dissolve_limit(pb, angle_limit=math.radians(1.0), verts=pb.verts[:], edges=pb.edges[:], delimit={'MATERIAL'})
-    bmesh.ops.triangulate(pb, faces=pb.faces[:])
-    for f in pb.faces:   # facing out from the body
-        if f.normal.dot(f.calc_center_median() * V((1, 1, 0))) < 0: f.normal_flip()
-    me = bpy.data.meshes.new('sticker'); pb.to_mesh(me); pb.free()
-    bm.from_mesh(me); bpy.data.meshes.remove(me)
+    """A thin decal wrapped round the body: each colour is its own flat polygon (the red,
+    the head over it, the chevron and the name over those, a hair further out each), cut
+    into narrow upright strips so it follows the curve, then wrapped onto the surface.
+    The corners are the traced points themselves, so the horns keep their tips."""
+    layers = [(0, 'red', OUTLINE), (0, 'red', BANNER), (1, 'bull', BULL), (2, 'red', NOSE)]
+    for me in text_lines():
+        lb = bmesh.new(); lb.from_mesh(me); bpy.data.meshes.remove(me)
+        for v in lb.verts: v.co.xy = px([v.co.xy])[0]
+        layers.append((1, 'cream', lb))
+    for lift, mat, poly in layers:
+        if isinstance(poly, list):
+            lb = bmesh.new()
+            lb.faces.new([lb.verts.new((x, y, 0)) for x, y in poly])
+            xs = [x for x, _ in poly]
+            for i in range(int(min(xs) / 0.3), int(max(xs) / 0.3) + 1):
+                bmesh.ops.bisect_plane(lb, geom=lb.verts[:] + lb.edges[:] + lb.faces[:], plane_co=(i * 0.3, 0, 0), plane_no=(1, 0, 0))
+        else: lb = poly
+        bmesh.ops.triangulate(lb, faces=lb.faces[:], ngon_method='EAR_CLIP')
+        rr = R + 0.035 + 0.015 * lift
+        for v in lb.verts:
+            x, y, _ = v.co
+            v.co = V((rr * math.sin(x / R), -rr * math.cos(x / R), y))
+        lb.normal_update()
+        for f in lb.faces:
+            f.material_index = MI[mat]
+            if f.normal.dot(f.calc_center_median() * V((1, 1, 0))) < 0: f.normal_flip()   # facing out from the body
+        me = bpy.data.meshes.new('sticker'); lb.to_mesh(me); lb.free()
+        bm.from_mesh(me); bpy.data.meshes.remove(me)
 
 # ---------------------------------------------------------------- the thermos
 def build_thermos():
@@ -360,10 +335,9 @@ def build_thermos():
         tube(bm, [V((-R + 0.3, 0, z)), V((-R - 0.9, 0, z))], [(0.5, 0.35)] * 2, 4, ['steel'], ref_up=V((0, 0, 1)))
     hp = [V((-R - 0.6, 0, 25.0)), V((-R - 1.6, 0, 24.0)), V((-R - 2.1, 0, 21.0)), V((-R - 2.1, 0, 10.0)), V((-R - 1.6, 0, 7.0)), V((-R - 0.6, 0, 6.0))]
     tube(bm, catmull(hp, 10), [(0.75, 0.38)] * 11, 4, ['black'], phase=math.pi / 4, ref_up=V((1, 0, 0)))
-    # the sticker, facing -y (glTF +z): a black bull's head (ears out to the sides, a
-    # broad brow, the face narrowing to a square muzzle with a red chevron for the
-    # nostrils) inside a red outline, under a red arch where the ranch's name goes.
-    # Traced from the photo in pixels and laid out in cm along the surface.
+    # the sticker, facing -y (glTF +z): the ranch's logo, a black bull's head with a red
+    # chevron for the nostrils inside a red outline, under a red banner with its name.
+    # Traced from the logo in pixels and laid out in cm along the surface.
     sticker_patch(bm, R)
     return to_obj('Thermos', bm, {'spout': gltf_vec(spout)}), spout
 
