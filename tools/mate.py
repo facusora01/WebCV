@@ -200,6 +200,9 @@ def poly_sdf(poly):
     return f
 
 def to_obj(name, bm, extras=None):
+    # every part's faces point outward (with backface culling, a ring wound the wrong way
+    # shows only its far side: the gold band looked like a patch on one side of the straw)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
     me = bpy.data.meshes.new(name)
     bm.to_mesh(me); bm.free()
     for m in MATS: me.materials.append(m)
@@ -283,7 +286,7 @@ def build_mate():
     radii = [0.42, 0.32, 0.32, 0.32, (0.36, 0.24), (0.42, 0.18)]       # a filter at the foot, a flat mouthpiece
     tube(bm, pts, radii, 8, ['steel'], ref_up=V((0, -1, 0)))
     gp = b0 + BOMB_DIR * 10.6
-    tube(bm, [gp - BOMB_DIR * 0.4, gp + BOMB_DIR * 0.4], [0.52, 0.52], 8, ['gold'])
+    tube(bm, [gp - BOMB_DIR * 0.45, gp - BOMB_DIR * 0.3, gp + BOMB_DIR * 0.3, gp + BOMB_DIR * 0.45], [0.4, 0.52, 0.52, 0.4], 10, ['gold'])
     tip = bend
     ob = to_obj('Mate', bm, {'tip': gltf_vec(tip), 'pour': gltf_vec(V((-1.4, -0.9, YERBA_Z + 0.3)))})
     # the water: a disc the room raises as the mate is filled; the montañita stays above it
