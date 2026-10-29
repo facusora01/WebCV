@@ -50,7 +50,7 @@ clickable. Clicking outside, or Esc, always steps back one level.
 | Room | Appointa name tag | Flips over to show Appointa |
 | Room | Simón y Manolo | Their staff badge |
 | Room | Pendant lamp | Turns the light on and off |
-| Desk | Coffee mug | You pick it up, blow on it, take a sip and put it back |
+| Desk | Mate | You pick it up, the thermos from the printer table pours hot water, you sip through the bombilla (now and then you burn your tongue) and put it back |
 | Desk | Claudio | Chirps, shuts his eyes and jumps |
 | Room | MotiBot, on the shelf above the server | Walk up to him; each click is a motivational phrase (a small copy of MotiBot's own library) |
 

@@ -502,10 +502,17 @@ export const hotspots = {
   cheat:    { zone: 'desk', label: L('Cheat sheet', 'Machete') },
   lightSwitch: { label: L('Light switch', 'Interruptor') },
   lamp:     { zone: 'desk', label: L('Desk lamp', 'Velador') },
-  mug:      { zone: 'desk', label: L('Coffee', 'Café') },
+  mate:     { zone: 'desk', label: L('Mate', 'Mate') },
   claudio:  { zone: 'desk', label: L('Claudio', 'Claudio') },
   motibot:  { label: L('MotiBot', 'MotiBot') }
 };
+
+// What you say when the mate water is too hot (it happens now and then).
+export const mateBurns = [
+  { en: 'Ouch! Burnt my tongue.', es: '¡Ay! Me quemé la lengua.' },
+  { en: 'Too hot! That water was boiling.', es: '¡Quema! Esa agua estaba hervida.' },
+  { en: 'Ow, ow… I can’t feel my tongue.', es: 'Uh… no siento la lengua.' }
+];
 
 // MotiBot's phrases, a small copy of the bot's local library (MotiBot/phrases.js).
 // The real bot has no public endpoint to ask, so the raccoon picks from these.

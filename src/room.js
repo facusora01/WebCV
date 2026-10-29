@@ -197,7 +197,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   box(desk, [0.42, 0.025, 0.14], [-0.15, 0.783, 0.14], C.black); // keyboard
   for (let i = 0; i < 4; i++) box(desk, [0.39, 0.003, 0.022], [-0.15, 0.796, 0.09 + i * 0.03], M('#24242c', { emissive: '#3a5cff', emissiveIntensity: 0.12 }));
   buildMouse(desk, [0.16, 0.77, 0.15]);
-  hotspots.mug = buildMug(desk, [-0.48, 0.77, 0.18], anim);
+  hotspots.mate = buildMate(desk, [-0.48, 0.77, 0.18], anim);
   hotspots.claudio = buildClaudio(desk, [-0.36, 0.77, 0.0], anim);
   // PC tower under the far end of the desk, a little proud of the front edge
   box(desk, [0.2, 0.45, 0.42], [0.38, 0.225, 0.1], C.black);
@@ -342,6 +342,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   box(table, [0.4, 0.02, 0.2], [0, 0.45, 0.6], '#efece6');
   cyl(table, [0.08, 0.07, 0.2, 8], [-0.12, 0.87, -0.62], '#f4f4f4'); // white bin with a black bag
   cyl(table, [0.081, 0.081, 0.02, 8], [-0.12, 0.97, -0.62], C.black);
+  const thermos = buildThermos(table, [0.12, 0.77, -0.44]);
   buildCFS(table, [-0.06, 0.77, -0.15]);
   {
     // a framed photo on the table: a sunset with two people, drawn rather than copied
@@ -694,6 +695,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     hall,
     wallet,
     dogs,
+    thermos,
     update: (t, dt, view) => { for (const f of anim) f(t, dt, view); },
     setLang() { for (const r of onLang) r(); }
   };
@@ -857,32 +859,96 @@ function buildMotibot(parent, pos, anim) {
 }
 const MOTI_HANG = 1.0; // how far the legs bend down over the edge, in radians
 
-// ---------- mug with coffee and steam ----------
-// Clicked, it is picked up (main.js moves it): you blow on it, which pushes the steam
-// away (`blow`, 0..1, along the mug's -z), take a sip, and put it back on its coaster.
-function buildMug(parent, [x, y, z], anim) {
-  box(parent, [0.12, 0.006, 0.12], [x, y + 0.003, z], '#e8d8c0'); // coaster: it stays on the desk
-  const g = group(parent, [x, y + 0.006, z], 'mug');
-  put(g, new THREE.CylinderGeometry(0.04, 0.035, 0.12, 12, 1, true), M('#bfe0d6', { side: THREE.DoubleSide }), [0, 0.06, 0]);
-  cyl(g, [0.035, 0.035, 0.004, 12], [0, 0.002, 0], '#bfe0d6');
-  const coffee = cyl(g, [0.038, 0.038, 0.004, 12], [0, 0.104, 0], '#3b2314');
-  put(g, new THREE.TorusGeometry(0.026, 0.007, 6, 10, Math.PI), '#bfe0d6', [-0.04, 0.06, 0], [0, 0, Math.PI / 2]); // handle: a half ring in the plane through the mug's axis
-  const steam = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.25, depthWrite: false });
+// ---------- mate: a gourd in its silver rim and wire stand, yerba and a bombilla ----------
+// Clicked (main.js runs it): the thermos pours hot water where it stands (`wet`, `heat`
+// and `fill`, 0..1), then it is picked up, sipped dry through the bombilla and put back.
+function buildMate(parent, [x, y, z], anim) {
+  box(parent, [0.1, 0.005, 0.1], [x, y + 0.0025, z], '#efe4cf'); // coaster: it stays on the desk
+  const g = group(parent, [x, y + 0.005, z], 'mate');
+  const silver = M('#d3cbb2', { metalness: 0.7, roughness: 0.3 });
+  const lathe = (pts, mat, seg = 14) => put(g, new THREE.LatheGeometry(pts.map(([r, h]) => new THREE.Vector2(r, h)), seg), mat, [0, 0, 0]);
+  lathe([[0, 0.008], [0.022, 0.008], [0.036, 0.022], [0.041, 0.038], [0.037, 0.058], [0.031, 0.072]], M('#5a2418', { roughness: 0.6, side: THREE.DoubleSide }));
+  lathe([[0.03, 0.07], [0.036, 0.08], [0.037, 0.09], [0.032, 0.09], [0.03, 0.07]], M('#d3cbb2', { metalness: 0.7, roughness: 0.3, side: THREE.DoubleSide }));
+  // the wire stand: a belt under the rim, three loops down the sides to three feet
+  put(g, new THREE.TorusGeometry(0.0335, 0.0012, 4, 20), silver, [0, 0.066, 0], [Math.PI / 2, 0, 0]);
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2, c = Math.cos(a), sn = Math.sin(a);
+    const wire = new THREE.CatmullRomCurve3([[0.026, 0.004], [0.044, 0.034], [0.034, 0.066]].map(([r, h]) => new THREE.Vector3(r * c, h, r * sn)));
+    put(g, new THREE.TubeGeometry(wire, 8, 0.0012, 4), silver, [0, 0, 0]);
+    put(g, new THREE.TorusGeometry(0.004, 0.0012, 4, 8), silver, [0.026 * c, 0.004, 0.026 * sn], [0, -a, 0]);
+  }
+  // yerba: low on the left, where the bombilla goes in and the water is poured, and
+  // piled up on the right (the "montañita", it keeps the mate going longer)
+  const yerba = new THREE.MeshStandardMaterial({ color: '#9aa64a', roughness: 1, flatShading: true });
+  const dry = new THREE.Color('#9aa64a'), wetC = new THREE.Color('#76833a');
+  put(g, new THREE.CylinderGeometry(0.031, 0.031, 0.01, 14), yerba, [0, 0.075, 0]);
+  const surface = new THREE.RingGeometry(0, 0.031, 16, 5);
+  const sp = surface.attributes.position;
+  for (let i = 0; i < sp.count; i++) {
+    const vx = sp.getX(i), vy = sp.getY(i); // the ring lies in xy; it is turned flat below (y → -z)
+    const pile = Math.exp(-((vx - 0.011) ** 2 + vy ** 2) / 0.0003);
+    sp.setZ(i, 0.0005 + 0.008 * THREE.MathUtils.smoothstep(vx, -0.012, 0.028) + 0.017 * pile);
+  }
+  surface.computeVertexNormals();
+  put(g, surface, yerba, [0, 0.079, 0], [-Math.PI / 2, 0, 0]);
+  // the water: a level on the left that rises while it is poured (`fill`, 0..1) and drains as you sip
+  const water = put(g, new THREE.CircleGeometry(0.03, 16), new THREE.MeshStandardMaterial({ color: '#3d3a1c', transparent: true, opacity: 0.8, roughness: 0.05 }), [0, 0.078, 0], [-Math.PI / 2, 0, 0]);
+  water.castShadow = false;
+  // bombilla: deep in the low side, leaning towards you (+z), with a gold ring
+  const tip = new THREE.Vector3(-0.022, 0.163, 0.042);
+  const straw = new THREE.CatmullRomCurve3([[-0.014, 0.03, 0.004], [-0.016, 0.1, 0.012], [-0.019, 0.14, 0.02], [-0.021, 0.157, 0.03], tip.toArray()].map((p) => new THREE.Vector3(...p)));
+  put(g, new THREE.TubeGeometry(straw, 16, 0.0025, 6), M(C.steel, { metalness: 0.8, roughness: 0.25 }), [0, 0, 0]);
+  cyl(g, [0.0045, 0.0045, 0.006, 8], [-0.018, 0.125, 0.017], M('#c9a24a', { metalness: 0.6, roughness: 0.35 }), [0.15, 0, 0]);
+
+  const steam = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false });
   const puffs = [0, 1, 2, 3].map((i) => {
-    const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.018, 1), steam.clone());
+    const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.016, 1), steam.clone());
     g.add(m);
     return { m, p: i / 4 };
   });
-  const mug = { kind: 'mug', group: g, anchor: [0, 0.2, 0], coffee, blow: 0 };
-  anim.push((t) => {
+  const mate = { kind: 'mate', group: g, anchor: [0, 0.2, 0], pour: new THREE.Vector3(-0.008, 0.08, 0.002), tip, wet: 0, heat: 0, fill: 0 };
+  anim.push((t, dt) => {
+    mate.heat = Math.max(0, mate.heat - dt / 40); // the water cools down in under a minute
+    yerba.color.lerpColors(dry, wetC, mate.wet);
+    water.visible = mate.fill > 0;
+    water.position.y = 0.0775 + 0.007 * mate.fill;
     for (const s of puffs) {
-      const k = (t * 0.28 + s.p) % 1;
-      s.m.position.set(Math.sin(k * 7 + s.p * 9) * 0.015, coffee.position.y + 0.01 + k * 0.22 * (1 - mug.blow * 0.6), Math.cos(k * 5 + s.p * 4) * 0.01 - mug.blow * k * 0.25);
-      s.m.scale.setScalar(0.6 + k * 1.8);
-      s.m.material.opacity = 0.28 * Math.sin(k * Math.PI) * (1 - mug.blow * 0.5);
+      const k = (t * 0.3 + s.p) % 1;
+      s.m.visible = mate.heat > 0;
+      s.m.position.set(Math.sin(k * 7 + s.p * 9) * 0.01 - 0.012, 0.09 + k * 0.18, Math.cos(k * 5 + s.p * 4) * 0.01 - 0.01);
+      s.m.scale.setScalar(0.6 + k * 1.6);
+      s.m.material.opacity = 0.3 * Math.sin(k * Math.PI) * mate.heat;
     }
   });
-  return mug;
+  return mate;
+}
+
+// ---------- thermos (green, hammered paint, steel ends, a pour spout and a side handle) ----------
+// main.js takes it to pour on the mate: `spout` is where the water comes out, in its space.
+function buildThermos(parent, pos) {
+  const g = group(parent, pos, null, Math.PI / 2); // the sticker faces the room
+  g.userData.dynamic = true;
+  const green = M('#2e4a3f', { roughness: 0.55 }), steel = M(C.steel, { metalness: 0.6, roughness: 0.3 });
+  cyl(g, [0.045, 0.045, 0.04, 16], [0, 0.02, 0], steel);
+  cyl(g, [0.046, 0.046, 0.22, 16], [0, 0.15, 0], green);
+  cyl(g, [0.035, 0.046, 0.025, 16], [0, 0.2725, 0], green);
+  cyl(g, [0.034, 0.034, 0.045, 16], [0, 0.3075, 0], steel);
+  cyl(g, [0.037, 0.037, 0.018, 16], [0, 0.339, 0], C.black);
+  cyl(g, [0.005, 0.007, 0.024, 8], [0.012, 0.358, 0], '#2f7a45', [0, 0, -0.6]); // the spout
+  box(g, [0.012, 0.2, 0.018], [-0.07, 0.155, 0], green); // handle, on two steel links
+  for (const hy of [0.06, 0.25]) box(g, [0.026, 0.004, 0.004], [-0.057, hy, 0], steel);
+  // a sticker: a red badge with a black bull's head, drawn rather than copied
+  const badge = canvasTex(128, 128, (ctx, w, h) => {
+    ctx.fillStyle = '#d8333a'; ctx.beginPath(); ctx.ellipse(w / 2, h * 0.42, w * 0.46, h * 0.34, 0, Math.PI, 0); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(8, h * 0.42); ctx.lineTo(w - 8, h * 0.42); ctx.lineTo(w * 0.7, h * 0.95); ctx.lineTo(w * 0.3, h * 0.95); ctx.fill();
+    ctx.fillStyle = '#16161a'; ctx.beginPath();
+    ctx.moveTo(w * 0.14, h * 0.36); ctx.lineTo(w * 0.36, h * 0.46); ctx.lineTo(w * 0.64, h * 0.46); ctx.lineTo(w * 0.86, h * 0.36);
+    ctx.lineTo(w * 0.7, h * 0.6); ctx.lineTo(w * 0.6, h * 0.88); ctx.lineTo(w * 0.4, h * 0.88); ctx.lineTo(w * 0.3, h * 0.6); ctx.fill();
+  });
+  const sticker = put(g, new THREE.CylinderGeometry(0.0465, 0.0465, 0.07, 16, 1, true, -0.55, 1.1),
+    new THREE.MeshStandardMaterial({ map: badge.tex, transparent: true, alphaTest: 0.5, roughness: 0.6 }), [0, 0.17, 0]);
+  sticker.castShadow = false;
+  return { group: g, spout: new THREE.Vector3(0.02, 0.368, 0) };
 }
 
 // ---------- filament dryer (Creality CFS): four spools side by side under a smoked lid ----------

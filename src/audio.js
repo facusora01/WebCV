@@ -1,6 +1,6 @@
 // A small lofi loop synthesized with Web Audio (no audio files): soft electric
 // piano chords, a round bass, a lazy swung beat and a little vinyl dust.
-// Also the one-shot sounds (door handle click, dogs barking, the desk buddies, coffee).
+// Also the one-shot sounds (door handle click, dogs barking, the desk buddies, the mate).
 const BPM = 72;
 const BEAT = 60 / BPM;
 // Fmaj9 → Em7 → Dm9 → Cmaj9, one bar each (MIDI notes)
@@ -13,7 +13,7 @@ const CHORDS = [
 const hz = (n) => 440 * 2 ** ((n - 69) / 12);
 
 export function createAudio() {
-  let ctx = null, master = null, music = null, bus = null, noise = null;
+  let ctx = null, master = null, music = null, bus = null, noise = null, emptyMate = null;
   let on = false, timer = null, nextBar = 0, bar = 0;
 
   function init() {
@@ -22,6 +22,9 @@ export function createAudio() {
     comp.threshold.value = -18; comp.ratio.value = 3;
     master = ctx.createGain(); master.gain.value = 0.8;
     master.connect(comp).connect(ctx.destination);
+    // the mate running dry, recorded; until it arrives (or where Ogg Opus can't be
+    // decoded) slurp() synthesizes one
+    fetch(`${import.meta.env.BASE_URL}sounds/empty-mate.ogg`).then((r) => r.arrayBuffer()).then((b) => ctx.decodeAudioData(b)).then((b) => { emptyMate = b; }).catch(() => {});
     music = ctx.createGain(); music.gain.value = 0;
     // the "lofi" part: everything goes through a warm low-pass
     const warm = ctx.createBiquadFilter();
@@ -205,33 +208,60 @@ export function createAudio() {
     s.start(t); s.stop(t + points.at(-1)[0] + 0.05);
     return f;
   }
-  // blowing on the coffee: a soft "fffuu", swelling and fading like a breath
-  function blow() {
+  // hot water into the mate ("cebar"): barely there, a soft trickle into wet yerba
+  function pour() {
     const t = ensure();
-    const f = breath(t, [[0.15, 0.35], [0.55, 0.3], [0.9, 0]], 'bandpass', 1400, 0.7);
-    f.frequency.linearRampToValueAtTime(900, t + 0.9);
-  }
-  // a sip: a bubbly slurp, then a gulp
-  function sip() {
-    const t = ensure();
-    const f = breath(t, [[0.05, 0.5], [0.35, 0.4], [0.45, 0]], 'bandpass', 1100, 3);
-    const lfo = ctx.createOscillator(), depth = ctx.createGain(); // the bubbling
-    lfo.frequency.value = 22; depth.gain.value = 450;
+    const f = breath(t, [[0.15, 0.06], [1.2, 0.05], [1.4, 0]], 'bandpass', 900, 1.5);
+    f.frequency.linearRampToValueAtTime(1400, t + 1.4);
+    const lfo = ctx.createOscillator(), depth = ctx.createGain();
+    lfo.frequency.value = 9; depth.gain.value = 180;
     lfo.connect(depth).connect(f.frequency);
-    lfo.start(t); lfo.stop(t + 0.5);
-    f.frequency.setValueAtTime(900, t);
-    f.frequency.linearRampToValueAtTime(1700, t + 0.4);
-    const at = t + 0.65, o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = 'sine';
-    o.frequency.setValueAtTime(240, at);
-    o.frequency.exponentialRampToValueAtTime(80, at + 0.13);
-    g.gain.setValueAtTime(0.0001, at);
-    g.gain.exponentialRampToValueAtTime(0.45, at + 0.015);
-    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.16);
-    o.connect(g).connect(master);
-    o.start(at); o.stop(at + 0.2);
+    lfo.start(t); lfo.stop(t + 1.45);
   }
-  // the mug touching down on its coaster
+  // sipping through the bombilla: a quiet, steady draw with a little bubbling
+  function sip(dur = 1.5) {
+    const t = ensure();
+    const f = breath(t, [[0.1, 0.12], [dur - 0.15, 0.1], [dur, 0]], 'bandpass', 700, 2);
+    const lfo = ctx.createOscillator(), depth = ctx.createGain();
+    lfo.frequency.value = 6; depth.gain.value = 120;
+    lfo.connect(depth).connect(f.frequency);
+    lfo.start(t); lfo.stop(t + dur + 0.05);
+  }
+  // the mate running dry: air and the last drops sucked up the bombilla together, a
+  // crackling gurgle of short bursts that gets brighter as it empties. Returns its length.
+  function slurp() {
+    const t = ensure();
+    if (emptyMate) {
+      const src = ctx.createBufferSource();
+      src.buffer = emptyMate;
+      src.connect(master);
+      src.start(t);
+      return emptyMate.duration;
+    }
+    let at = t;
+    for (let i = 0; i < 26; i++) {
+      const k = i / 26;
+      const dur = 0.012 + Math.random() * 0.02;
+      hiss(at, dur, 1200 + k * 1800 + Math.random() * 900, 'bandpass', (0.18 + Math.random() * 0.14) * (1 - k * 0.4), master);
+      at += dur + Math.random() * 0.018;
+    }
+    return at - t;
+  }
+  // burnt tongue: a sharp "sss" through the teeth, then a short "ay"
+  function burn() {
+    const t = ensure();
+    breath(t, [[0.03, 0.4], [0.3, 0.25], [0.4, 0]], 'highpass', 3500, 0.7);
+    const at = t + 0.35, o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    o.type = 'sawtooth'; f.type = 'lowpass'; f.frequency.value = 1300;
+    o.frequency.setValueAtTime(520, at);
+    o.frequency.exponentialRampToValueAtTime(320, at + 0.25);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.12, at + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.28);
+    o.connect(f).connect(g).connect(master);
+    o.start(at); o.stop(at + 0.3);
+  }
+  // the mate touching down on its coaster
   function clink() {
     const t = ensure();
     for (const [f, v] of [[1900, 0.06], [3100, 0.03]]) {
@@ -245,5 +275,5 @@ export function createAudio() {
     hiss(t, 0.04, 400, 'lowpass', 0.3, master);
   }
 
-  return { set, toggle: () => set(!on), on: () => on, click, bark, happy, trill, blow, sip, clink };
+  return { set, toggle: () => set(!on), on: () => on, click, bark, happy, trill, pour, sip, slurp, burn, clink };
 }

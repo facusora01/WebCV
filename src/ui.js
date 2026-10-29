@@ -123,6 +123,15 @@ export function createUI({ audio, onFocus, onLang, onTermKey, onTermInput, termL
   // ---------- sound ----------
   function syncSound() { $('#btn-sound').setAttribute('aria-pressed', String(audio.on())); }
   $('#btn-sound').addEventListener('click', () => { audio.toggle(); syncSound(); });
+  // the music starts on its own with the visitor's first click or key (browsers don't
+  // let a page play sound before that); a first click on the sound button decides itself
+  const autoplay = (e) => {
+    removeEventListener('pointerdown', autoplay, true);
+    removeEventListener('keydown', autoplay, true);
+    if (!audio.on() && !e.target.closest?.('#btn-sound')) { audio.set(true); syncSound(); }
+  };
+  addEventListener('pointerdown', autoplay, true);
+  addEventListener('keydown', autoplay, true);
 
   // the handle marker is a real button, so the door also opens from the keyboard
   $('#handle-btn').addEventListener('click', () => $('#scene').dispatchEvent(new CustomEvent('open-door')));
@@ -188,10 +197,11 @@ export function createUI({ audio, onFocus, onLang, onTermKey, onTermInput, termL
     },
     placeMarker(id, x, y, visible) { place(markers[id], x, y, visible); },
     placeHandle(x, y, visible) { place(handleBtn, x, y, visible); },
-    // MotiBot's speech bubble: say() sets the phrase, placeBubble() keeps it over his head
+    // MotiBot's speech bubble (and yours, burnt by the mate): say() sets the phrase, placeBubble() keeps it in place
     say(p) {
       const b = $('#bubble');
       b.textContent = tr(p);
+      if (!p.by) return;
       const by = document.createElement('small');
       by.textContent = `— ${p.by}`;
       b.append(by);
