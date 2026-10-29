@@ -8,6 +8,11 @@ export const ui = {
     hint: 'Drag to look around · click around to explore',
     hintTouch: 'Drag to look around · tap around to explore',
     termHint: 'Type help · Tab completes · Esc to leave',
+    termHintTouch: 'Type help · tap outside the screen to leave',
+    keyboard: 'Keyboard',
+    rotateTitle: 'Turn your phone sideways',
+    rotateText: 'The room fits much better in landscape.',
+    rotateOk: 'Continue anyway',
     zoneHint: 'Drag to look around · click an object · click outside to step back',
     screenHint: 'Use the screen · click outside to step back',
     inspectHint: 'Click to flip it · click outside to put it back',
@@ -44,6 +49,11 @@ export const ui = {
     hint: 'Arrastrá para mirar · hacé click para explorar',
     hintTouch: 'Arrastrá para mirar · tocá para explorar',
     termHint: 'Escribí help · Tab autocompleta · Esc para salir',
+    termHintTouch: 'Escribí help · tocá afuera de la pantalla para salir',
+    keyboard: 'Teclado',
+    rotateTitle: 'Girá el teléfono',
+    rotateText: 'La habitación entra mucho mejor en horizontal.',
+    rotateOk: 'Seguir igual',
     zoneHint: 'Arrastrá para mirar · click en un objeto · click afuera para volver',
     screenHint: 'Usá la pantalla · click afuera para volver',
     inspectHint: 'Click para darla vuelta · click afuera para devolverla',
@@ -475,6 +485,7 @@ export const hotspots = {
   simon:    { label: L('Simón', 'Simón') },
   manolo:   { label: L('Manolo', 'Manolo') },
   pendant:  { label: L('Light', 'Luz') },
+  cheat:    { zone: 'desk', label: L('Cheat sheet', 'Machete') },
   lightSwitch: { label: L('Light switch', 'Interruptor') },
   lamp:     { zone: 'desk', label: L('Desk lamp', 'Velador') }
 };
@@ -496,7 +507,7 @@ export const screenText = {
     },
     notebookHint: 'click to turn the page',
     experienceTitle: 'Experience',
-    cheat: ['CHEAT SHEET', 'ls', 'cd <project>', 'cat README.md', 'cd ..', 'Tab = autocomplete', 'help · clear']
+    cheat: ['CHEAT SHEET', ['ls', 'list'], ['cd <project>', 'go in'], ['cat README.md', 'read it'], ['cd ..', 'go back'], ['Tab', 'autocomplete'], ['help', 'every command']]
   },
   es: {
     tvTitle: 'Farmacias de turno', tvCount: 'de turno', tvNearest: 'La más cercana de turno',
@@ -513,7 +524,7 @@ export const screenText = {
     },
     notebookHint: 'click para pasar de página',
     experienceTitle: 'Experiencia',
-    cheat: ['MACHETE', 'ls', 'cd <proyecto>', 'cat README.md', 'cd ..', 'Tab = autocompletar', 'help · clear']
+    cheat: ['MACHETE', ['ls', 'listar'], ['cd <proyecto>', 'entrar'], ['cat README.md', 'leerlo'], ['cd ..', 'volver'], ['Tab', 'autocompletar'], ['help', 'todos los comandos']]
   }
 };
 

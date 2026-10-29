@@ -11,7 +11,7 @@ function storedLang() {
   return navigator.language.toLowerCase().startsWith('es') ? 'es' : 'en';
 }
 
-export function createUI({ audio, onFocus, onLang, onTermKey }) {
+export function createUI({ audio, onFocus, onLang, onTermKey, onTermInput, termLine }) {
   let lang = storedLang();
   let mode = 'door';
   const markers = {};
@@ -68,19 +68,21 @@ export function createUI({ audio, onFocus, onLang, onTermKey }) {
   $('#cv-close').addEventListener('click', closeCV);
 
   // ---------- terminal input ----------
-  // Printable characters come from the input event (works with phone keyboards);
-  // Enter, Tab, arrows and shortcuts come from keydown.
-  termInput.addEventListener('input', () => {
-    for (const ch of termInput.value) onTermKey({ key: ch });
-    termInput.value = '';
-  });
+  // The line being typed lives in the text field, so phone keyboards (with their
+  // predictions and backspace) edit it like any other field; every change is mirrored
+  // into the terminal. Enter, Tab, history and shortcuts come from keydown, after which
+  // the field is set back to the terminal's line.
+  const syncTerm = () => { termInput.value = termLine(); };
+  const termKey = (e) => { const used = onTermKey(e); syncTerm(); return used; };
+  termInput.addEventListener('input', () => onTermInput(termInput.value));
+  // phone keyboards that don't send an Enter keydown still submit the form
+  $('#term-form').addEventListener('submit', (e) => { e.preventDefault(); termKey({ key: 'Enter' }); });
+  const EDIT = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
   addEventListener('keydown', (e) => {
     if (mode === 'terminal') {
-      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
-        if (document.activeElement !== termInput) termInput.focus({ preventScroll: true });
-        return; // the input event will deliver it
-      }
-      if (onTermKey(e)) e.preventDefault();
+      if (document.activeElement !== termInput) termInput.focus({ preventScroll: true });
+      if ((e.key.length === 1 || EDIT.includes(e.key)) && !e.ctrlKey && !e.metaKey) return; // the field handles it
+      if (termKey(e)) e.preventDefault();
       return;
     }
     if (e.key === 'Escape') {
@@ -95,7 +97,7 @@ export function createUI({ audio, onFocus, onLang, onTermKey }) {
     room: () => (coarse ? s().hintTouch : s().hint),
     zone: () => s().zoneHint,
     screen: () => s().screenHint,
-    terminal: () => s().termHint,
+    terminal: () => (coarse ? s().termHintTouch : s().termHint),
     inspect: () => s().inspectHint,
     look: () => s().lookHint,
     wallet: () => (coarse ? s().walletHintTouch : s().walletHint),
@@ -125,12 +127,29 @@ export function createUI({ audio, onFocus, onLang, onTermKey }) {
   // the handle marker is a real button, so the door also opens from the keyboard
   $('#handle-btn').addEventListener('click', () => $('#scene').dispatchEvent(new CustomEvent('open-door')));
 
+  // phone buttons for the keys a phone keyboard lacks; they keep the keyboard open
+  for (const b of document.querySelectorAll('.term-keys button')) {
+    b.addEventListener('pointerdown', (e) => e.preventDefault());
+    b.addEventListener('click', () => {
+      if (b.dataset.k !== 'kbd') termKey({ key: b.dataset.k });
+      termInput.focus({ preventScroll: true });
+    });
+  }
+
+  // ---------- phones held upright ----------
+  // The room is wide: suggest turning the phone, once, when the visitor arrives upright.
+  const portrait = matchMedia('(orientation: portrait)');
+  let rotateDone = false;
+  const syncRotate = () => { $('#rotate').hidden = rotateDone || !coarse || !portrait.matches || !cv.hidden; };
+  portrait.addEventListener('change', () => { if (!portrait.matches) rotateDone = true; syncRotate(); });
+  $('#rotate-ok').addEventListener('click', () => { rotateDone = true; syncRotate(); });
+
   applyLang();
 
   return {
     lang: () => lang,
     ready: () => cv.hidden,
-    focusTerminal: () => termInput.focus({ preventScroll: true }),
+    focusTerminal: () => { syncTerm(); termInput.focus({ preventScroll: true }); },
     setMode(m) {
       mode = m;
       document.body.dataset.mode = m;
@@ -156,7 +175,7 @@ export function createUI({ audio, onFocus, onLang, onTermKey }) {
       for (const [k, m] of Object.entries(markers)) m.classList.toggle('hot', k === id);
       handleBtn.classList.toggle('hot', id === 'handle');
     },
-    loaded() { document.body.classList.add('loaded'); },
+    loaded() { document.body.classList.add('loaded'); syncRotate(); },
     noWebgl() {
       document.body.classList.add('no-webgl', 'loaded');
       openCV();

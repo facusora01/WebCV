@@ -16,7 +16,9 @@ const ui = createUI({
   audio,
   onFocus: (id) => api.activate?.(id),
   onLang: () => api.setLang?.(),
-  onTermKey: (e) => api.key?.(e) ?? false
+  onTermKey: (e) => api.key?.(e) ?? false,
+  onTermInput: (v) => terminal.setLine(v),
+  termLine: () => terminal.input
 });
 const terminal = createTerminal({ getLang: ui.lang, onExit: () => api.back?.() });
 
