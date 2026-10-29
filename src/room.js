@@ -197,7 +197,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   box(desk, [0.42, 0.025, 0.14], [-0.15, 0.783, 0.14], C.black); // keyboard
   for (let i = 0; i < 4; i++) box(desk, [0.39, 0.003, 0.022], [-0.15, 0.796, 0.09 + i * 0.03], M('#24242c', { emissive: '#3a5cff', emissiveIntensity: 0.12 }));
   buildMouse(desk, [0.16, 0.77, 0.15]);
-  hotspots.mate = buildMate(desk, [-0.48, 0.77, 0.18], Math.PI / 4, anim); // its front (+z) faces the chair
+  hotspots.mate = buildMate(desk, [-0.48, 0.77, 0.18], 3 * Math.PI / 4, anim); // low side and bombilla (+z) toward the chair, on your right
   hotspots.claudio = buildClaudio(desk, [-0.36, 0.77, 0.0], anim);
   // PC tower under the far end of the desk, a little proud of the front edge
   box(desk, [0.2, 0.45, 0.42], [0.38, 0.225, 0.1], C.black);

@@ -219,8 +219,8 @@ def gltf_vec(p):
 
 # ---------------------------------------------------------------- the mate
 YERBA_Z = 8.1            # the low side of the yerba, where the water goes
-BOMB_BASE = V((-0.3, -1.1, 4.2))
-BOMB_DIR = V((0.05, -0.46, 1)).normalized()     # leaning out toward you (-y), barely to the side
+BOMB_BASE = V((0.0, 0.3, 4.2))       # so it comes out of the middle of the low side
+BOMB_DIR = V((0.0, -0.46, 1)).normalized()      # leaning straight out toward you (-y)
 BOMB_LEN = 14.5
 
 def yerba_height(x, y, rnd):
@@ -288,7 +288,7 @@ def build_mate():
     gp = b0 + BOMB_DIR * 10.6
     tube(bm, [gp - BOMB_DIR * 0.45, gp - BOMB_DIR * 0.3, gp + BOMB_DIR * 0.3, gp + BOMB_DIR * 0.45], [0.4, 0.52, 0.52, 0.4], 10, ['gold'])
     tip = bend
-    ob = to_obj('Mate', bm, {'tip': gltf_vec(tip), 'pour': gltf_vec(V((-1.4, -0.9, YERBA_Z + 0.3)))})
+    ob = to_obj('Mate', bm, {'tip': gltf_vec(tip), 'pour': gltf_vec(V((-1.3, -1.3, YERBA_Z + 0.3)))})
     # the water: a disc the room raises as the mate is filled; the montañita stays above it
     wb = bmesh.new()
     vs = [wb.verts.new((3.2 * math.cos(2 * math.pi * k / 16), 3.2 * math.sin(2 * math.pi * k / 16), YERBA_Z)) for k in range(16)]
