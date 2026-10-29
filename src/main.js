@@ -154,6 +154,7 @@ function start() {
   const closeMax = Math.min(devicePixelRatio, 2);
   const capScale = () => (CLOSE.includes(mode) ? Math.max(maxScale, closeMax) : maxScale);
   const setMode = (m) => {
+    cancelMate(); // leaving the view mid-drink: the mate goes back to the desk, not after you
     mode = m;
     terminal.active = m === 'terminal';
     ui.setMode(m);
@@ -257,16 +258,34 @@ function start() {
   stream.visible = false;
   scene.add(stream);
   const burnBubble = { anchorWorld: new THREE.Vector3(), burn: true };
+  const putBack = (o) => { const h = o.userData.home; h.parent.attach(o); o.position.copy(h.pos); o.quaternion.copy(h.quat); };
+  // Every pose of the drink is worked out from where the camera is, so it can't outlive
+  // the view: its tweens stop moving things, the next step throws CANCEL, and both are
+  // put back where they stand.
+  const CANCEL = Symbol('cancel');
+  function cancelMate() {
+    const s = byId.mate;
+    if (!s?.busy) return;
+    s.run.cancelled = true;
+    s.busy = false;
+    stream.visible = false;
+    putBack(s.group); putBack(room.thermos.group);
+    shadowsDirty();
+  }
   async function drinkMate(s) {
     if (s.busy) return;
     s.busy = true;
+    const run = s.run = { cancelled: false };
+    const step = (dur, fn) => tween(dur, (e) => { if (!run.cancelled) fn(e); }).then(() => { if (run.cancelled) throw CANCEL; });
+    try { await drink(s, step); } catch (err) { if (err !== CANCEL) throw err; }
+  }
+  async function drink(s, tween) {
     const g = s.group, th = room.thermos.group;
     for (const o of [g, th]) o.userData.home ??= { parent: o.parent, pos: o.position.clone(), quat: o.quaternion.clone() };
     const homeOf = (o) => {
       const h = o.userData.home;
       return { pos: h.parent.localToWorld(h.pos.clone()), quat: h.parent.getWorldQuaternion(new THREE.Quaternion()).multiply(h.quat) };
     };
-    const putBack = (o) => { const h = o.userData.home; h.parent.attach(o); o.position.copy(h.pos); o.quaternion.copy(h.quat); };
     scene.attach(th);
     const cq = camera.quaternion.clone();
     const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cq);
@@ -303,7 +322,7 @@ function start() {
     });
     stream.visible = false;
     await move(th, near, 0.4);
-    move(th, homeOf(th), 0.9, 0.1).then(() => putBack(th));
+    move(th, homeOf(th), 0.9, 0.1).then(() => putBack(th), () => {});
 
     // picked up, the bombilla leaning towards you, and a sip: its tip comes up to your mouth
     scene.attach(g);
