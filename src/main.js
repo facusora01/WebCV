@@ -141,7 +141,7 @@ function start() {
   // Each entry remembers where the camera was, so stepping back returns there.
   let mode = 'door';
   let zone = null;
-  let zoneLook = null; // at a zone you can look around a little: offsets from its base direction
+  let zoneLook = null; // at a zone you can look all the way around: offsets from its base direction
   const stack = [];
   // Reading something up close (a screen, a card, a poster) may use up to the display's
   // full resolution, but only as far as the dynamic resolution below finds frames to
@@ -203,7 +203,7 @@ function start() {
       const p = new THREE.Vector3(...s.view.pos);
       const q = lookQuat(p, new THREE.Vector3(...s.view.look));
       const e = new THREE.Euler().setFromQuaternion(q, 'YXZ');
-      zoneLook = { yaw0: e.y, pitch0: e.x, yaw: 0, pitch: 0, maxYaw: s.view.yaw, minPitch: s.view.pitch[0] - e.x, maxPitch: s.view.pitch[1] - e.x };
+      zoneLook = { yaw0: e.y, pitch0: e.x, yaw: 0, pitch: 0, minPitch: -1.1 - e.x, maxPitch: 0.7 - e.x }; // same tilt limits as the room
       flyTo(p, q);
     } else if (s.kind === 'screen' || s.kind === 'tvmode' || s.kind === 'terminal') {
       const target = s.kind === 'tvmode' ? byId.tv : s;
@@ -431,7 +431,7 @@ function start() {
         vel.x = dx * k; vel.y = dy * k;
         yaw += vel.x; pitch += vel.y;
       } else if (mode === 'zone' && drag.moved > 4 && !tweens.length) {
-        zoneLook.yaw = THREE.MathUtils.clamp(zoneLook.yaw + dx * k, -zoneLook.maxYaw, zoneLook.maxYaw);
+        zoneLook.yaw += dx * k;
         zoneLook.pitch = THREE.MathUtils.clamp(zoneLook.pitch + dy * k, zoneLook.minPitch, zoneLook.maxPitch);
       }
       return;
@@ -506,6 +506,7 @@ function start() {
     room.dogs.lookAt.copy(camera.position);
     frustum.setFromProjectionMatrix(projView.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
     room.update(t, dt, view);
+    if (mode === 'terminal') ui.termView(terminal);
     if (room.night !== night) applyNight(room.night);
 
     tweens = tweens.filter((tw) => {

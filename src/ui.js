@@ -97,7 +97,7 @@ export function createUI({ audio, onFocus, onLang, onTermKey, onTermInput, termL
     room: () => (coarse ? s().hintTouch : s().hint),
     zone: () => s().zoneHint,
     screen: () => s().screenHint,
-    terminal: () => (coarse ? s().termHintTouch : s().termHint),
+    terminal: () => s().termHint,
     inspect: () => s().inspectHint,
     look: () => s().lookHint,
     wallet: () => (coarse ? s().walletHintTouch : s().walletHint),
@@ -127,22 +127,38 @@ export function createUI({ audio, onFocus, onLang, onTermKey, onTermInput, termL
   // the handle marker is a real button, so the door also opens from the keyboard
   $('#handle-btn').addEventListener('click', () => $('#scene').dispatchEvent(new CustomEvent('open-door')));
 
-  // phone buttons for the keys a phone keyboard lacks; they keep the keyboard open
+  // ---------- the terminal panel on phones ----------
+  // Buttons for the keys a phone keyboard lacks; they keep the keyboard open (except Exit).
   for (const b of document.querySelectorAll('.term-keys button')) {
     b.addEventListener('pointerdown', (e) => e.preventDefault());
     b.addEventListener('click', () => {
       if (b.dataset.k !== 'kbd') termKey({ key: b.dataset.k });
-      termInput.focus({ preventScroll: true });
+      if (b.dataset.k !== 'Escape') termInput.focus({ preventScroll: true });
     });
   }
-
-  // ---------- phones held upright ----------
-  // The room is wide: suggest turning the phone, once, when the visitor arrives upright.
-  const portrait = matchMedia('(orientation: portrait)');
-  let rotateDone = false;
-  const syncRotate = () => { $('#rotate').hidden = rotateDone || !coarse || !portrait.matches || !cv.hidden; };
-  portrait.addEventListener('change', () => { if (!portrait.matches) rotateDone = true; syncRotate(); });
-  $('#rotate-ok').addEventListener('click', () => { rotateDone = true; syncRotate(); });
+  const panel = $('.term-panel'), termOut = $('#term-out');
+  termOut.addEventListener('click', () => termInput.focus({ preventScroll: true })); // brings the keyboard back
+  // keep the panel over what the keyboard leaves visible
+  const vv = window.visualViewport;
+  const fitPanel = () => { if (vv) { panel.style.top = `${vv.offsetTop}px`; panel.style.height = `${vv.height}px`; } };
+  vv?.addEventListener('resize', fitPanel);
+  vv?.addEventListener('scroll', fitPanel);
+  let termShown = '';
+  const line = (t, c) => { const el = document.createElement('span'); el.className = c; el.textContent = t; return el; };
+  // what the terminal shows, as text: called every frame while it is open; redraws only on change
+  function termView(term) {
+    const key = `${term.lines.length}|${term.lines.at(-1)?.t}|${term.prompt()}|${term.input}`;
+    if (key === termShown) return;
+    termShown = key;
+    const out = [];
+    for (const l of term.lines) {
+      if (l.c === 'cmd') { const p = l.t.indexOf('$') + 1; out.push(line(l.t.slice(0, p), 'prompt'), line(`${l.t.slice(p)}\n`, 'cmd')); }
+      else out.push(line(`${l.t}\n`, l.c));
+    }
+    out.push(line(term.prompt(), 'prompt'), line(` ${term.input}`, 'cmd'), line('▌', 'cursor'));
+    termOut.replaceChildren(...out);
+    termOut.scrollTop = termOut.scrollHeight;
+  }
 
   applyLang();
 
@@ -150,6 +166,7 @@ export function createUI({ audio, onFocus, onLang, onTermKey, onTermInput, termL
     lang: () => lang,
     ready: () => cv.hidden,
     focusTerminal: () => { syncTerm(); termInput.focus({ preventScroll: true }); },
+    termView: (term) => { if (coarse) termView(term); },
     setMode(m) {
       mode = m;
       document.body.dataset.mode = m;
@@ -175,7 +192,7 @@ export function createUI({ audio, onFocus, onLang, onTermKey, onTermInput, termL
       for (const [k, m] of Object.entries(markers)) m.classList.toggle('hot', k === id);
       handleBtn.classList.toggle('hot', id === 'handle');
     },
-    loaded() { document.body.classList.add('loaded'); syncRotate(); },
+    loaded() { document.body.classList.add('loaded'); },
     noWebgl() {
       document.body.classList.add('no-webgl', 'loaded');
       openCV();

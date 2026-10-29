@@ -224,37 +224,37 @@ body.cv-open .topbar, body.cv-open #markers, body.cv-open .hint { visibility: hi
   position: fixed; left: 0; bottom: 0; width: 1px; height: 1px; padding: 0; border: 0;
   opacity: 0; font-size: 16px; pointer-events: none;
 }
-/* on phones there is no Tab or arrow key: a few buttons stand in, plus one to bring the keyboard back */
-.term-keys { display: none; }
+/* On phones the keyboard leaves too little of the screen for the 3D terminal, so the
+   terminal is shown as a panel over the space the keyboard leaves free (its top and
+   height follow the visual viewport). Buttons stand in for the keys a phone lacks. */
+.term-panel { display: none; }
 @media (pointer: coarse) {
-  body[data-mode='terminal'] .term-keys {
-    position: fixed; top: 64px; right: 16px; z-index: 12; /* right: the terminal's text runs on the left */
-    display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+  body[data-mode='terminal'] .term-panel {
+    position: fixed; top: 0; left: 0; right: 0; height: 100%; z-index: 12;
+    display: flex; flex-direction: column;
+    background: rgba(18, 16, 31, 0.96);
   }
+  body[data-mode='terminal'] .topbar, body[data-mode='terminal'] .hint { visibility: hidden; }
 }
+.term-keys {
+  display: flex; gap: 8px; padding: 8px 12px; overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+}
+.term-out {
+  flex: 1; margin: 0; padding: 10px 12px; overflow-y: auto;
+  color: #e9e4f5; font: 13px/1.45 var(--mono); white-space: pre-wrap; word-break: break-word;
+}
+.term-out .prompt { color: #ffb38a; }
+.term-out .accent { color: #8fd6b8; }
+.term-out .dim { color: #8f88b0; }
+.term-out .err { color: #f38ba0; }
+.term-out .cursor { color: #8fd6b8; }
 .term-keys button {
+  flex: none;
   padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line);
   background: rgba(34, 31, 61, 0.85); color: var(--cream); font: 500 13px/1 var(--mono);
 }
 
-/* ---------- phones held upright: suggest turning them ---------- */
-.rotate {
-  position: fixed; inset: 0; z-index: 30;
-  display: grid; place-items: center; padding: 16px;
-  background: rgba(21, 19, 42, 0.72);
-}
-.rotate[hidden] { display: none; }
-.rotate-card {
-  max-width: 300px; padding: 24px 22px; border-radius: 18px; text-align: center;
-  background: rgba(34, 31, 61, 0.95); border: 1px solid var(--line);
-}
-.rotate-phone {
-  width: 34px; height: 56px; margin: 4px auto 16px; border: 3px solid var(--cream); border-radius: 8px;
-  animation: turn 2.4s var(--ease) infinite;
-}
-@keyframes turn { 0%, 25% { transform: rotate(0); } 55%, 85% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
-.rotate-title { margin: 0 0 6px; font: 600 18px/1.3 var(--serif); }
-.rotate-text { margin: 0 0 18px; font: 14px/1.4 var(--sans); color: var(--muted); }
 .term {
   margin: 0; padding: 14px; height: calc(100% - 40px); min-height: 220px; overflow-y: auto;
   background: #12101f; border: 1px solid var(--line); border-radius: 10px;
