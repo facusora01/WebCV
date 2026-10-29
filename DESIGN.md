@@ -73,12 +73,13 @@ fal.ai: a reference image from a text prompt (flux/dev), then image-to-3D
 (Trellis), then `gltf-transform optimize` (simplify, WebP textures, meshopt).
 Each is about 50 KB.
 
-MotiBot follows his avatar (`images/Reference/MotiBot.jpg`): flux-pro Kontext put him
-on white, Meshy 6 turned that into a textured 3D model, and `tools/motibot.py` rigs it
-in Blender: decimated to half, a skeleton (Body, Head, LegL, LegR, Tail) with soft
-weights so the joints bend instead of tearing, scaled to metres with the origin on the
-front edge of his seat. The steps to rebuild it are at the top of the script. Keep the
-bone names: `room.js` animates them by name. Everything else is built from primitives in `room.js`.
+MotiBot is modelled from scratch in Blender by `tools/motibot.py`, after his avatar
+(`images/Reference/MotiBot.jpg`): low-poly geometry shaped with bmesh, colours as
+materials per face (no image textures), one closed mesh with a skeleton (Body, Head,
+LegL, LegR, Tail) and smoothed weights, so his legs bend over the shelf's edge without
+tearing. The command to rebuild it is at the top of the script; the comparison sheets
+against the reference are in `tools/motibot-sheets/`. Keep the bone names: `room.js`
+animates them by name. Everything else is built from primitives in `room.js`.
 
 ## Performance
 
