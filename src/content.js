@@ -554,10 +554,10 @@ export const screenText = {
     serverHint: 'click a process to see what it is',
     contactLead: 'Open to internships, freelance work and interesting problems.',
     aboutTitle: 'About me',
-    tags: { simon: ['SIMÓN', 'Head of Security'], manolo: ['MANOLO', 'Chief Happiness Officer'] },
+    tags: { simon: ['SIMÓN', 'Chief Pawficce Officer (CPO)'], manolo: ['MANOLO', 'Head of Quality Assurance (QA)'] },
     tagBack: {
-      simon: ['On guard 24/7', 'Alarm system: one bark', 'Status: power-saving mode'],
-      manolo: ['Shift: all day long', 'Measures happiness', 'in tail wags per minute']
+      simon: ['Monitors the team\'s', 'happiness level and makes', 'sure the midday nap', 'happens on time.'],
+      manolo: ['Intensive inspection', 'and testing of cookies,', 'human food and', 'bouncing balls.']
     },
     notebookHint: 'click to turn the page',
     experienceTitle: 'Experience', uniTitle: 'University', uniUses: 'What I use there',
@@ -571,10 +571,10 @@ export const screenText = {
     serverHint: 'hacé click en un proceso para ver qué es',
     contactLead: 'Abierto a pasantías, trabajos freelance y problemas interesantes.',
     aboutTitle: 'Sobre mí',
-    tags: { simon: ['SIMÓN', 'Jefe de Seguridad'], manolo: ['MANOLO', 'Director de Bienestar'] },
+    tags: { simon: ['SIMÓN', 'Chief Pawficce Officer (CPO)'], manolo: ['MANOLO', 'Líder de Control de Calidad (QA)'] },
     tagBack: {
-      simon: ['De guardia 24/7', 'Sistema de alarma: un ladrido', 'Estado: ahorro de energía'],
-      manolo: ['Turno: todo el día', 'Mide la felicidad', 'en colas por minuto']
+      simon: ['Monitorea el nivel', 'de felicidad del equipo', 'y supervisa que la siesta', 'del mediodía se cumpla', 'a tiempo.'],
+      manolo: ['Inspección y testeado', 'intensivo de galletitas,', 'comida de humanos', 'y pelotas picando.']
     },
     notebookHint: 'click para pasar de página',
     experienceTitle: 'Experiencia', uniTitle: 'Facultad', uniUses: 'Lo que uso en la cursada',

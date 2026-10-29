@@ -202,7 +202,8 @@ def poly_sdf(poly):
 def to_obj(name, bm, extras=None):
     # every part's faces point outward (with backface culling, a ring wound the wrong way
     # shows only its far side: the gold band looked like a patch on one side of the straw)
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    # (the sticker is an open decal, already facing out: it is left alone)
+    bmesh.ops.recalc_face_normals(bm, faces=[f for f in bm.faces if f.material_index not in (MI['red'], MI['bull'])])
     me = bpy.data.meshes.new(name)
     bm.to_mesh(me); bm.free()
     for m in MATS: me.materials.append(m)
@@ -296,6 +297,49 @@ def build_mate():
     water = to_obj('Water', wb)
     return ob, water, tip
 
+def px(pts, k=0.0169, cx=362, cy=395, zc=19.8):
+    """Points traced on thermoReference.jpeg (pixels) to cm: x along the surface, y up."""
+    return [((x - cx) * k, (cy - y) * k + zc) for x, y in pts]
+
+# traced from the photo of the thermos
+BULL = px([(150, 255), (250, 328), (300, 338), (424, 338), (478, 328), (580, 240), (545, 318), (515, 372), (505, 430),
+           (470, 452), (466, 560), (452, 586), (348, 586), (334, 560), (330, 452), (262, 436), (240, 380), (205, 322)])
+ARCH = px([(155 + 415 * (0.5 - 0.5 * math.cos(math.pi * k / 12)), 330 - 132 * math.sin(math.pi * k / 12)) for k in range(13)])
+NOSE = px([(375, 528), (400, 498), (426, 528), (414, 532), (400, 516), (386, 532)])
+
+def sticker_patch(bm, R):
+    """A thin decal wrapped round the body: a grid patch just off the surface, cut along the
+    outlines (so the edges are clean, not stair-stepped by the body's own faces), with
+    everything outside the sticker removed."""
+    bull, arch, nose = poly_sdf(BULL), poly_sdf(ARCH), poly_sdf(NOSE)
+    red = lambda x, y: min(arch(x, y), bull(x, y) - 0.22)       # the arch, and the outline round the head
+    xs = [p[0] for p in ARCH + BULL]; ys = [p[1] for p in ARCH + BULL]
+    x0, x1, y0, y1 = min(xs) - 0.5, max(xs) + 0.5, min(ys) - 0.5, max(ys) + 0.5
+    nx, ny = int((x1 - x0) / 0.2) + 1, int((y1 - y0) / 0.2) + 1
+    rr = R + 0.035
+    pb = bmesh.new()
+    def at(x, y):
+        a = x / R
+        return V((rr * math.sin(a), -rr * math.cos(a), y))
+    grid = [[pb.verts.new(at(x0 + (x1 - x0) * i / nx, y0 + (y1 - y0) * j / ny)) for i in range(nx + 1)] for j in range(ny + 1)]
+    for j in range(ny):
+        for i in range(nx):
+            f = pb.faces.new((grid[j][i], grid[j][i + 1], grid[j + 1][i + 1], grid[j + 1][i]))
+            f.material_index = MI['red']
+    flat = lambda p: (math.atan2(p.x, -p.y) * R, p.z)
+    F = lambda f: (lambda p: f(*flat(p)))
+    cut(pb, F(red), snap=0.3)
+    bmesh.ops.delete(pb, geom=[f for f in pb.faces if red(*flat(f.calc_center_median())) > 0], context='FACES')
+    cut(pb, F(bull), snap=0.3); paint(pb, F(bull), 'bull', {'red'})
+    cut(pb, F(nose), snap=0.3); paint(pb, F(nose), 'red', {'bull'})
+    bmesh.ops.delete(pb, geom=[v for v in pb.verts if not v.link_faces], context='VERTS')
+    bmesh.ops.dissolve_limit(pb, angle_limit=math.radians(1.0), verts=pb.verts[:], edges=pb.edges[:], delimit={'MATERIAL'})
+    bmesh.ops.triangulate(pb, faces=pb.faces[:])
+    for f in pb.faces:   # facing out from the body
+        if f.normal.dot(f.calc_center_median() * V((1, 1, 0))) < 0: f.normal_flip()
+    me = bpy.data.meshes.new('sticker'); pb.to_mesh(me); pb.free()
+    bm.from_mesh(me); bpy.data.meshes.remove(me)
+
 # ---------------------------------------------------------------- the thermos
 def build_thermos():
     bm = bmesh.new()
@@ -316,18 +360,11 @@ def build_thermos():
         tube(bm, [V((-R + 0.3, 0, z)), V((-R - 0.9, 0, z))], [(0.5, 0.35)] * 2, 4, ['steel'], ref_up=V((0, 0, 1)))
     hp = [V((-R - 0.6, 0, 25.0)), V((-R - 1.6, 0, 24.0)), V((-R - 2.1, 0, 21.0)), V((-R - 2.1, 0, 10.0)), V((-R - 1.6, 0, 7.0)), V((-R - 0.6, 0, 6.0))]
     tube(bm, catmull(hp, 10), [(0.75, 0.38)] * 11, 4, ['black'], phase=math.pi / 4, ref_up=V((1, 0, 0)))
-    # the sticker: a red badge with a black bull's head, cut into the body facing -y (glTF +z)
-    def uv(p):  # around the body (cm along the surface) and height
-        return math.atan2(p.x, -p.y) * R, p.z
-    badge = poly_sdf([(-3.3, 20.0), (-2.9, 21.6), (-1.7, 22.7), (0.0, 23.1), (1.7, 22.7), (2.9, 21.6), (3.3, 20.0),
-                      (2.2, 18.4), (1.0, 17.2), (0.0, 16.6), (-1.0, 17.2), (-2.2, 18.4)])
-    bull = poly_sdf([(-2.7, 21.4), (-1.5, 20.5), (-0.8, 20.7), (0.8, 20.7), (1.5, 20.5), (2.7, 21.4), (1.9, 20.0), (1.15, 19.8),
-                     (0.9, 18.3), (0.55, 17.5), (-0.55, 17.5), (-0.9, 18.3), (-1.15, 19.8), (-1.9, 20.0)])
-    front = lambda p: -p.y > 1.0
-    fb = lambda p: badge(*uv(p)) if front(p) else 1.0
-    fh = lambda p: bull(*uv(p)) if front(p) else 1.0
-    cut(bm, fb); paint(bm, fb, 'red', {'green'})
-    cut(bm, fh); paint(bm, fh, 'bull', {'red'})
+    # the sticker, facing -y (glTF +z): a black bull's head (ears out to the sides, a
+    # broad brow, the face narrowing to a square muzzle with a red chevron for the
+    # nostrils) inside a red outline, under a red arch where the ranch's name goes.
+    # Traced from the photo in pixels and laid out in cm along the surface.
+    sticker_patch(bm, R)
     return to_obj('Thermos', bm, {'spout': gltf_vec(spout)}), spout
 
 # ---------------------------------------------------------------- export and sheets
@@ -415,5 +452,10 @@ if SHEETS:
     thermos.hide_render = False; mate.hide_render = True; water.hide_render = True
     shoot(cam, tt, 0, 8, 1.2, J(SHEETS, 't_front.png'))
     shoot(cam, tt, 35, 15, 1.2, J(SHEETS, 't_34.png'))
+    shoot(cam, V((0.16, 0, 0.198)), 0, 3, 0.3, J(SHEETS, 't_badge.png'))
+    shoot(cam, V((0.16, 0, 0.198)), 40, 3, 0.3, J(SHEETS, 't_badge34.png'))
+    from PIL import Image
+    Image.open(J(REFS, 'thermoReference.jpeg')).crop((230, 500, 700, 900)).save(J(SHEETS, 'badge_ref.png'))
+    sheet(J(SHEETS, 'sheet_badge.png'), [J(SHEETS, 't_badge.png'), J(SHEETS, 'badge_ref.png'), J(SHEETS, 't_badge34.png')], ['sticker', 'referencia', 'sticker 3/4'])
     sheet(J(SHEETS, 'sheet_thermos.png'), [J(SHEETS, 't_front.png'), J(REFS, 'thermoReference.jpeg'), J(SHEETS, 't_34.png'), J(REFS, 'thermoPerspective.jpeg')],
           ['termo de frente', 'referencia', 'termo 3/4', 'referencia'])
