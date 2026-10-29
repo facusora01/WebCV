@@ -155,10 +155,10 @@ export function createAudio() {
     }
   }
 
-  // a quick rising "bip-bup-biii": Claudio being happy, MotiBot about to talk
-  function happy(notes = [76, 81, 88]) {
+  // Claudio: a quick rising robotic "bip-bup-biii"
+  function happy() {
     const t = ensure();
-    notes.forEach((n, i) => {
+    [76, 81, 88].forEach((n, i) => {
       const at = t + i * 0.09;
       const o = ctx.createOscillator();
       o.type = 'square';
@@ -167,30 +167,83 @@ export function createAudio() {
       const g = ctx.createGain();
       g.gain.setValueAtTime(0.0001, at);
       g.gain.exponentialRampToValueAtTime(0.05, at + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, at + (i === notes.length - 1 ? 0.25 : 0.08));
+      g.gain.exponentialRampToValueAtTime(0.0001, at + (i === 2 ? 0.25 : 0.08));
       o.connect(g).connect(master);
       o.start(at); o.stop(at + 0.3);
     });
   }
-  // blowing on the coffee: soft breathy noise; a sip: a short slurp that rises
+  // MotiBot: a soft little animal trill, a warbling chirp that rises and falls
+  function trill() {
+    const t = ensure();
+    for (const [at, f0, f1, dur] of [[0, 900, 1500, 0.16], [0.17, 1200, 1900, 0.22]]) {
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f0, t + at);
+      o.frequency.exponentialRampToValueAtTime(f1, t + at + dur * 0.6);
+      o.frequency.exponentialRampToValueAtTime(f0 * 1.1, t + at + dur);
+      const lfo = ctx.createOscillator(), depth = ctx.createGain(); // the warble
+      lfo.frequency.value = 28; depth.gain.value = 60;
+      lfo.connect(depth).connect(o.frequency);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t + at);
+      g.gain.exponentialRampToValueAtTime(0.12, t + at + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + at + dur);
+      o.connect(g).connect(master);
+      o.start(t + at); o.stop(t + at + dur + 0.02);
+      lfo.start(t + at); lfo.stop(t + at + dur + 0.02);
+    }
+  }
+  // filtered noise with a shaped envelope: [[time, gain], ...], linear between points
+  function breath(t, points, type, freq, q = 1) {
+    const s = ctx.createBufferSource();
+    s.buffer = noise; s.loop = true;
+    const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    for (const [at, v] of points) g.gain.linearRampToValueAtTime(v, t + at);
+    s.connect(f).connect(g).connect(master);
+    s.start(t); s.stop(t + points.at(-1)[0] + 0.05);
+    return f;
+  }
+  // blowing on the coffee: a soft "fffuu", swelling and fading like a breath
   function blow() {
     const t = ensure();
-    hiss(t, 0.9, 700, 'lowpass', 0.22, master);
+    const f = breath(t, [[0.15, 0.35], [0.55, 0.3], [0.9, 0]], 'bandpass', 1400, 0.7);
+    f.frequency.linearRampToValueAtTime(900, t + 0.9);
   }
+  // a sip: a bubbly slurp, then a gulp
   function sip() {
     const t = ensure();
-    const s = ctx.createBufferSource();
-    s.buffer = noise;
-    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 6;
-    f.frequency.setValueAtTime(500, t);
-    f.frequency.exponentialRampToValueAtTime(1600, t + 0.35);
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.35, t + 0.05);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
-    s.connect(f).connect(g).connect(master);
-    s.start(t); s.stop(t + 0.45);
+    const f = breath(t, [[0.05, 0.5], [0.35, 0.4], [0.45, 0]], 'bandpass', 1100, 3);
+    const lfo = ctx.createOscillator(), depth = ctx.createGain(); // the bubbling
+    lfo.frequency.value = 22; depth.gain.value = 450;
+    lfo.connect(depth).connect(f.frequency);
+    lfo.start(t); lfo.stop(t + 0.5);
+    f.frequency.setValueAtTime(900, t);
+    f.frequency.linearRampToValueAtTime(1700, t + 0.4);
+    const at = t + 0.65, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(240, at);
+    o.frequency.exponentialRampToValueAtTime(80, at + 0.13);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.45, at + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.16);
+    o.connect(g).connect(master);
+    o.start(at); o.stop(at + 0.2);
+  }
+  // the mug touching down on its coaster
+  function clink() {
+    const t = ensure();
+    for (const [f, v] of [[1900, 0.06], [3100, 0.03]]) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = f;
+      g.gain.setValueAtTime(v, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      o.connect(g).connect(master);
+      o.start(t); o.stop(t + 0.2);
+    }
+    hiss(t, 0.04, 400, 'lowpass', 0.3, master);
   }
 
-  return { set, toggle: () => set(!on), on: () => on, click, bark, happy, blow, sip };
+  return { set, toggle: () => set(!on), on: () => on, click, bark, happy, trill, blow, sip, clink };
 }

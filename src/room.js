@@ -475,7 +475,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     box(g, [0.25, 0.04, 0.12], [0.0, 0.25, 0.14], '#2b2b2b');
     box(g, [0.14, 0.01, 0.03], [-0.13, 0.93, 0.03], C.yellow);
     box(g, [0.06, 0.02, 0.06], [0.16, 0.93, 0.03], C.red);
-    hotspots.motibot = buildMotibot(g, [0, 0.96, 0.112], anim); // on the free shelf above the server
+    hotspots.motibot = buildMotibot(g, [0, 0.96, 0.125], anim); // on the free shelf above the server
 
     const s = group(g, [0, 0.565, 0.08], 'server');
     box(s, [0.3, 0.02, 0.2], [0, 0.01, 0], C.graphite);
@@ -836,74 +836,47 @@ function buildClaudio(parent, pos, anim) {
   return { kind: 'action', group: g, anchor: [0, 0.09, 0], sound: 'happy', react: () => { joy = now; } };
 }
 
-// ---------- MotiBot: a raccoon with a call-centre headset ----------
-// Sits on the front edge of a shelf (origin: where he sits, +z towards the room),
-// swinging his feet and bobbing his head. Clicked, he hops and says a phrase (main.js).
+// ---------- MotiBot: a low-poly plush raccoon with a call-centre headset ----------
+// Modelled polygon by polygon and rigged in Blender (tools/motibot.py): flat-shaded
+// facets coloured by material, no textures. The model's origin is the front edge of
+// his seat, which goes on the shelf's edge (+z towards the room). His skeleton bends
+// smoothly at every joint: the legs hang over the edge and swing like on a swing, the
+// head bobs, the tail sways. Clicked, he trills and tilts his head while he says a
+// phrase (main.js).
 function buildMotibot(parent, pos, anim) {
   const g = group(parent, pos, 'motibot');
-  g.scale.setScalar(1.25);
-  const grey = M('#8d919a', { roughness: 0.8 }), white = M('#f2f1ee', { roughness: 0.8 }), dark = M('#3a3d45', { roughness: 0.8 });
-  const teal = M('#2b6f78', { roughness: 0.5 }), band = M('#24474f', { roughness: 0.5 });
-  const blob = (p, [sx, sy, sz], at, mat, rot) => { const m = ball(p, 1, at, mat, 2); m.scale.set(sx, sy, sz); if (rot) m.rotation.set(...rot); return m; };
-  // a thin rod from a to b
-  const rod = (p, a, b, r, mat) => {
-    const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), d = B.clone().sub(A);
-    const m = cyl(p, [r, r, d.length(), 6], A.clone().add(B).multiplyScalar(0.5).toArray(), mat);
-    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
-    return m;
-  };
-  const body = group(g, [0, 0, 0]);
-  blob(body, [0.042, 0.05, 0.036], [0, 0.045, -0.005], grey);
-  blob(body, [0.028, 0.036, 0.012], [0, 0.04, 0.026], white); // belly
-  for (const s of [-1, 1]) {
-    blob(body, [0.012, 0.026, 0.012], [s * 0.04, 0.032, 0.018], grey, [0.3, 0, s * 0.35]); // arms, hands on the edge
-    blob(body, [0.013, 0.011, 0.02], [s * 0.018, 0.01, 0.018], grey); // thighs
-  }
-  // shins and feet hang over the edge from the knees, and swing
-  const legs = [-1, 1].map((s) => {
-    const knee = group(body, [s * 0.018, 0.008, 0.034]);
-    blob(knee, [0.011, 0.022, 0.012], [0, -0.018, 0], grey);
-    blob(knee, [0.013, 0.008, 0.016], [0, -0.04, 0.006], dark);
-    return knee;
+  const bones = {};
+  loader.load(`${import.meta.env.BASE_URL}models/motibot.glb`, (gltf) => {
+    gltf.scene.traverse((o) => {
+      if (o.isMesh) {
+        o.castShadow = o.receiveShadow = true;
+        o.frustumCulled = false; // the skinned legs move outside the rest-pose bounds
+        // a little light of his own, in his own colours, so the room's warm light doesn't
+        // turn his greys beige (the headset ring already glows: it keeps its emission)
+        const m = o.material;
+        if (m.emissive.getHex() === 0) m.emissive.copy(m.color).multiplyScalar(0.3);
+      }
+      if (o.isBone) bones[o.name] = { bone: o, rest: o.quaternion.clone() };
+    });
+    g.add(gltf.scene);
   });
-  const tail = group(body, [0.03, 0.02, -0.035]);
-  tail.rotation.set(-0.7, 0, -1.0);
-  for (let i = 0; i < 5; i++) blob(tail, [0.017 - i * 0.002, 0.012, 0.017 - i * 0.002], [0, i * 0.018, 0], i % 2 ? dark : grey);
-
-  const head = group(body, [0, 0.105, 0]);
-  blob(head, [0.05, 0.043, 0.044], [0, 0, 0], grey);
-  blob(head, [0.044, 0.026, 0.03], [0, -0.012, 0.02], white); // face
-  for (const s of [-1, 1]) {
-    blob(head, [0.019, 0.013, 0.008], [s * 0.02, 0, 0.038], dark, [0, 0, -s * 0.35]); // mask
-    blob(head, [0.008, 0.009, 0.005], [s * 0.019, 0.001, 0.044], C.black); // eyes
-    ball(head, 0.0028, [s * 0.016, 0.005, 0.0485], white, 1);
-    put(head, new THREE.ConeGeometry(0.017, 0.028, 8), grey, [s * 0.034, 0.038, -0.004], [0, 0, -s * 0.45]); // ears
-    put(head, new THREE.ConeGeometry(0.009, 0.016, 8), dark, [s * 0.033, 0.036, 0.004], [0, 0, -s * 0.45]);
-    cyl(head, [0.017, 0.017, 0.014, 12], [s * 0.052, 0, -0.002], teal, [0, 0, Math.PI / 2]); // headset cups
-    cyl(head, [0.009, 0.009, 0.004, 12], [s * 0.06, 0, -0.002], glow('#4ff3ff', 2), [0, 0, Math.PI / 2]);
-  }
-  blob(head, [0.008, 0.006, 0.006], [0, -0.014, 0.05], C.black); // nose
-  put(head, new THREE.TorusGeometry(0.006, 0.0012, 4, 8, Math.PI), C.black, [0, -0.023, 0.047], [0, 0, Math.PI]); // smile
-  put(head, new THREE.TorusGeometry(0.052, 0.005, 6, 16, Math.PI), band, [0, 0.002, -0.004]); // headband
-  rod(head, [-0.056, -0.006, 0.004], [-0.02, -0.026, 0.046], 0.0022, band); // mic boom
-  ball(head, 0.005, [-0.02, -0.026, 0.046], C.black, 1);
-  rod(head, [-0.06, 0.008, -0.002], [-0.068, 0.034, -0.002], 0.0018, band); // antenna
-  ball(head, 0.004, [-0.068, 0.034, -0.002], teal, 1);
   // a bigger invisible box, so he is easy to click from across the room
-  hitBox(g, [0.15, 0.2, 0.12], [0, 0.08, 0.01]);
+  hitBox(g, [0.2, 0.26, 0.18], [0, 0.1, -0.03]);
 
+  const q = new THREE.Quaternion(), e = new THREE.Euler();
+  const turn = (name, x, y, z) => { const b = bones[name]; if (b) b.bone.quaternion.copy(b.rest).multiply(q.setFromEuler(e.set(x, y, z))); };
   let now = 0, joy = -9;
   anim.push((t) => {
     now = t;
-    const k = t - joy, excited = k < 1.2;
-    legs.forEach((l, i) => { l.rotation.x = Math.sin(t * (excited ? 5 : 2.6) + i * Math.PI) * 0.55; }); // like on a swing
-    head.rotation.z = Math.sin(t * 1.6) * (excited ? 0.25 : 0.12);
-    head.rotation.x = Math.sin(t * 3.2) * 0.05;
-    tail.rotation.z = -1.0 + Math.sin(t * 1.3) * 0.15;
-    body.position.y = excited ? Math.abs(Math.sin((k / 1.2) * Math.PI * 2)) * 0.03 : 0;
+    const talking = t - joy < 1.5;
+    turn('LegL', MOTI_HANG + Math.sin(t * 2.6) * 0.35, 0, 0);
+    turn('LegR', MOTI_HANG + Math.sin(t * 2.6 + Math.PI) * 0.35, 0, 0);
+    turn('Head', Math.sin(t * 3.2) * 0.03, 0, Math.sin(t * 1.6) * (talking ? 0.16 : 0.07));
+    turn('Tail', 0, 0, Math.sin(t * 1.3) * 0.2);
   });
-  return { kind: 'talk', group: g, anchor: [0, 0.2, 0], sound: 'happy', react: () => { joy = now; } };
+  return { kind: 'talk', group: g, anchor: [0, 0.24, 0], sound: 'trill', react: () => { joy = now; } };
 }
+const MOTI_HANG = 1.0; // how far the legs bend down over the edge, in radians
 
 // ---------- mug with coffee and steam ----------
 // Clicked, it is picked up (main.js moves it): you blow on it, which pushes the steam
