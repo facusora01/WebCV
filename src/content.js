@@ -226,6 +226,26 @@ export const projects = [
     links: []
   },
   {
+    id: 'showcase3d',
+    dir: 'showcase-3d',
+    title: 'Showcase 3D',
+    tag: L('3D printing · Open source', 'Impresión 3D · Open source'),
+    stack: ['three.js', 'WebCodecs', 'Neutralinojs'],
+    summary: L(
+      'Opens a 3MF or STL with its real filament colors and records a spinning MP4 to send to the client. Windows app and web version.',
+      'Abre un 3MF o STL con los colores reales de los filamentos y graba un MP4 girando para mandarle al cliente. App de Windows y versión web.'
+    ),
+    features: L(
+      ['Reads OrcaSlicer projects: filament colors, hand painting and plates',
+        'MP4 (H.264) encoded in the browser with WebCodecs, ready for WhatsApp',
+        'Works offline: the .exe is a single 4 MB file'],
+      ['Lee proyectos de OrcaSlicer: colores de filamento, pintura a mano y placas',
+        'MP4 (H.264) codificado en el navegador con WebCodecs, listo para WhatsApp',
+        'Funciona sin internet: el .exe es un solo archivo de 4 MB']
+    ),
+    links: [{ kind: 'live', url: 'https://showcase3d.facundosorasio.com/' }, { kind: 'repo', url: 'https://github.com/facusora01/showcase-3d' }]
+  },
+  {
     id: 'amankay',
     dir: 'amankay',
     title: 'Amankay Web',

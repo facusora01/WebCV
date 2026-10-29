@@ -357,7 +357,7 @@ export function phoneApp(avatar) {
 // ---------- the printer's touch screen: the print queue ----------
 export function printerApp() {
   const app = { sel: 0 };
-  const ids = ['shapeshifter', 'letitride'];
+  const ids = ['shapeshifter', 'letitride', 'showcase3d'];
   app.draw = (u) => {
     const { ctx, w, h, L, T } = u;
     ctx.fillStyle = '#151820'; ctx.fillRect(0, 0, w, h);
@@ -375,6 +375,12 @@ export function printerApp() {
     ctx.fillStyle = '#ccd'; ctx.font = `15px ${SANS}`;
     const y = wrap(ctx, p.summary[L], x0, 88, w0, 20, 8);
     ctx.fillStyle = '#9aa'; ctx.font = `13px ${MONO}`; wrap(ctx, p.stack.join(' · '), x0, y + 8, w0, 17, 2);
+    if (p.links[0]) {
+      ctx.fillStyle = '#2ecc71'; ctx.beginPath(); ctx.roundRect(14, h - 58, 196, 44, 22); ctx.fill();
+      ctx.fillStyle = '#151820'; ctx.font = `bold 16px ${SANS}`; ctx.textAlign = 'center';
+      ctx.fillText(`▶ ${p.links[0].kind === 'repo' ? T.repo : T.visit}`, 112, h - 30); ctx.textAlign = 'left';
+      u.btn(14, h - 58, 196, 44, () => openUrl(p.links[0].url));
+    }
   };
   return app;
 }
