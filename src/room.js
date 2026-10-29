@@ -197,7 +197,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   box(desk, [0.42, 0.025, 0.14], [-0.15, 0.783, 0.14], C.black); // keyboard
   for (let i = 0; i < 4; i++) box(desk, [0.39, 0.003, 0.022], [-0.15, 0.796, 0.09 + i * 0.03], M('#24242c', { emissive: '#3a5cff', emissiveIntensity: 0.12 }));
   buildMouse(desk, [0.16, 0.77, 0.15]);
-  hotspots.mate = buildMate(desk, [-0.48, 0.77, 0.18], anim);
+  hotspots.mate = buildMate(desk, [-0.48, 0.77, 0.18], Math.PI / 4, anim); // its front (+z) faces the chair
   hotspots.claudio = buildClaudio(desk, [-0.36, 0.77, 0.0], anim);
   // PC tower under the far end of the desk, a little proud of the front edge
   box(desk, [0.2, 0.45, 0.42], [0.38, 0.225, 0.1], C.black);
@@ -342,11 +342,11 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   box(table, [0.4, 0.02, 0.2], [0, 0.45, 0.6], '#efece6');
   cyl(table, [0.08, 0.07, 0.2, 8], [-0.12, 0.87, -0.62], '#f4f4f4'); // white bin with a black bag
   cyl(table, [0.081, 0.081, 0.02, 8], [-0.12, 0.97, -0.62], C.black);
-  const thermos = buildThermos(table, [0.12, 0.77, -0.44]);
+  const thermos = buildThermos(table, [0.18, 0.77, -0.62]);
   buildCFS(table, [-0.06, 0.77, -0.15]);
   {
     // a framed photo on the table: a sunset with two people, drawn rather than copied
-    const f = group(table, [0.16, 0.77, -0.6], null, Math.PI / 2 - 0.3);
+    const f = group(table, [0.17, 0.77, -0.45], null, Math.PI / 2 - 0.3);
     box(f, [0.1, 0.13, 0.012], [0, 0.064, 0], C.black, [-0.15, 0, 0]);
     const pic = canvasTex(200, 260, (ctx, w, h) => {
       const g2 = ctx.createLinearGradient(0, 0, 0, h); g2.addColorStop(0, '#f6b38a'); g2.addColorStop(0.6, '#f4d6a8'); g2.addColorStop(1, '#6f8fbf');
@@ -862,9 +862,9 @@ const MOTI_HANG = 1.0; // how far the legs bend down over the edge, in radians
 // ---------- mate: a gourd in its silver rim and wire stand, yerba and a bombilla ----------
 // Clicked (main.js runs it): the thermos pours hot water where it stands (`wet`, `heat`
 // and `fill`, 0..1), then it is picked up, sipped dry through the bombilla and put back.
-function buildMate(parent, [x, y, z], anim) {
+function buildMate(parent, [x, y, z], rotY, anim) {
   box(parent, [0.1, 0.005, 0.1], [x, y + 0.0025, z], '#efe4cf'); // coaster: it stays on the desk
-  const g = group(parent, [x, y + 0.005, z], 'mate');
+  const g = group(parent, [x, y + 0.005, z], 'mate', rotY);
   const silver = M('#d3cbb2', { metalness: 0.7, roughness: 0.3 });
   const lathe = (pts, mat, seg = 14) => put(g, new THREE.LatheGeometry(pts.map(([r, h]) => new THREE.Vector2(r, h)), seg), mat, [0, 0, 0]);
   lathe([[0, 0.008], [0.022, 0.008], [0.036, 0.022], [0.041, 0.038], [0.037, 0.058], [0.031, 0.072]], M('#5a2418', { roughness: 0.6, side: THREE.DoubleSide }));
@@ -894,11 +894,15 @@ function buildMate(parent, [x, y, z], anim) {
   // the water: a level on the left that rises while it is poured (`fill`, 0..1) and drains as you sip
   const water = put(g, new THREE.CircleGeometry(0.03, 16), new THREE.MeshStandardMaterial({ color: '#3d3a1c', transparent: true, opacity: 0.8, roughness: 0.05 }), [0, 0.078, 0], [-Math.PI / 2, 0, 0]);
   water.castShadow = false;
-  // bombilla: deep in the low side, leaning towards you (+z), with a gold ring
-  const tip = new THREE.Vector3(-0.022, 0.163, 0.042);
-  const straw = new THREE.CatmullRomCurve3([[-0.014, 0.03, 0.004], [-0.016, 0.1, 0.012], [-0.019, 0.14, 0.02], [-0.021, 0.157, 0.03], tip.toArray()].map((p) => new THREE.Vector3(...p)));
+  // bombilla: deep in the low side, on your side of the mate, leaning out over the rim
+  // towards you and bending further out at the mouthpiece; a gold ring near the top
+  const out = new THREE.Vector3(-0.25, 0, 1).normalize(), base = new THREE.Vector3(-0.008, 0, 0);
+  const along = ([h, r]) => base.clone().addScaledVector(out, r).setY(h);
+  const straw = new THREE.CatmullRomCurve3([[0.03, 0.004], [0.1, 0.014], [0.14, 0.022], [0.157, 0.034], [0.165, 0.052]].map(along));
+  const tip = along([0.165, 0.052]);
   put(g, new THREE.TubeGeometry(straw, 16, 0.0025, 6), M(C.steel, { metalness: 0.8, roughness: 0.25 }), [0, 0, 0]);
-  cyl(g, [0.0045, 0.0045, 0.006, 8], [-0.018, 0.125, 0.017], M('#c9a24a', { metalness: 0.6, roughness: 0.35 }), [0.15, 0, 0]);
+  const ring = cyl(g, [0.0045, 0.0045, 0.006, 8], along([0.125, 0.019]).toArray(), M('#c9a24a', { metalness: 0.6, roughness: 0.35 }));
+  ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0.1, 0).addScaledVector(out, 0.012).normalize());
 
   const steam = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false });
   const puffs = [0, 1, 2, 3].map((i) => {
@@ -906,7 +910,7 @@ function buildMate(parent, [x, y, z], anim) {
     g.add(m);
     return { m, p: i / 4 };
   });
-  const mate = { kind: 'mate', group: g, anchor: [0, 0.2, 0], pour: new THREE.Vector3(-0.008, 0.08, 0.002), tip, wet: 0, heat: 0, fill: 0 };
+  const mate = { kind: 'mate', group: g, anchor: [0, 0.2, 0], pour: new THREE.Vector3(-0.012, 0.08, -0.004), tip, wet: 0, heat: 0, fill: 0 };
   anim.push((t, dt) => {
     mate.heat = Math.max(0, mate.heat - dt / 40); // the water cools down in under a minute
     yerba.color.lerpColors(dry, wetC, mate.wet);
