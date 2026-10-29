@@ -366,7 +366,16 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     const ui = screen(512, 358, printerApp(), 1.5);
     const mesh = buildPrinter(g, ui, anim);
     hotspots.printer = { kind: 'screen', group: g, anchor: [0, 0.75, 0], mesh, size: [0.12, 0.085] };
+    // filament buffer on the upright facing the CFS
+    box(g, [0.03, 0.09, 0.05], [0.255, 0.3, -0.15], C.black);
+    box(g, [0.002, 0.02, 0.025], [0.271, 0.32, -0.15], '#3fbf6a');
   }
+  // behind the CFS (table coordinates): its data cable along the table to the printer's
+  // back, and a PTFE tube up to the buffer's bottom
+  const lay = (pts, r, mat) => put(table, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p))), 32, r, 6), mat, [0, 0, 0]);
+  lay([[-0.262, 0.8, -0.05], [-0.285, 0.772, 0], [-0.28, 0.772, 0.2], [-0.24, 0.78, 0.32], [-0.222, 0.8, 0.33]], 0.004, C.black);
+  lay([[-0.265, 0.84, 0.04], [-0.28, 0.93, 0.12], [-0.2, 0.95, 0.19], [-0.17, 1.025, 0.195]], 0.0045,
+    M('#ffffff', { transparent: true, opacity: 0.45, roughness: 0.3 }));
 
   // blue 3D-printed cow: AgroScanner, with its ear tag
   {
@@ -910,19 +919,20 @@ function buildMug(parent, [x, y, z], anim) {
 function buildCFS(table, pos) {
   const g = group(table, pos);
   // long side along the table (z), front (display) facing the room (+x)
-  box(g, [0.36, 0.14, 0.44], [0, 0.07, 0], C.graphite);
-  box(g, [0.365, 0.024, 0.445], [0, 0.13, 0], C.red);
-  const spools = ['#2f6fdc', '#d83a7a', '#f2f2f2', '#1c1c22'];
-  spools.forEach((c, i) => {
-    const z = -0.165 + i * 0.11;
-    cyl(g, [0.095, 0.095, 0.06, 18], [0, 0.13, z], c, [Math.PI / 2, 0, 0]);
-    cyl(g, [0.035, 0.035, 0.062, 10], [0, 0.13, z], '#2a2a2a', [Math.PI / 2, 0, 0]);
-  });
+  box(g, [0.4, 0.11, 0.44], [0, 0.055, 0], C.black);
+  // the spools rest on the base, inside the dome
+  ['#2f6fdc', '#1c1c22', '#3a3a40', '#8a3bb8'].forEach((c, i) => spool(g, [0, 0.21, -0.165 + i * 0.11], c, [Math.PI / 2, 0, 0]));
   // smoked dome, flat side down, its axis along the long side
-  const dome = put(g, new THREE.CylinderGeometry(0.175, 0.175, 0.44, 18, 1, false, Math.PI / 2, Math.PI),
-    M('#4a4f5a', { transparent: true, opacity: 0.55, roughness: 0.15, side: THREE.DoubleSide }), [0, 0.142, 0], [Math.PI / 2, 0, 0]);
+  const dome = put(g, new THREE.CylinderGeometry(0.2, 0.2, 0.44, 18, 1, false, Math.PI / 2, Math.PI),
+    M('#4a4f5a', { transparent: true, opacity: 0.55, roughness: 0.15, side: THREE.DoubleSide }), [0, 0.11, 0], [Math.PI / 2, 0, 0]);
   dome.castShadow = false;
-  box(g, [0.004, 0.03, 0.09], [0.182, 0.07, 0.1], glow('#5ad1ff', 1.2)); // the little display
+  box(g, [0.004, 0.03, 0.09], [0.202, 0.055, 0.1], glow('#5ad1ff', 1.2)); // the little display
+}
+
+// a filament spool: a thick ring around its hole, axis along y
+function spool(p, pos, color, rot) {
+  const profile = [[0.028, -0.03], [0.09, -0.03], [0.09, 0.03], [0.028, 0.03], [0.028, -0.03]].map(([x, y]) => new THREE.Vector2(x, y));
+  return put(p, new THREE.LatheGeometry(profile, 18), M(color, { side: THREE.DoubleSide }), pos, rot);
 }
 
 // ---------- 3D printer: prints a ring layer by layer; nozzle, bed and gantry follow the path ----------
@@ -945,9 +955,16 @@ function buildPrinter(g, ui, anim) {
   box(head, [0.07, 0.09, 0.06], [0, 0.03, -0.02], M('#b9bcc4', { roughness: 0.35, metalness: 0.4 }));
   cyl(head, [0.014, 0.014, 0.005, 12], [0, 0.035, 0.011], C.black, [Math.PI / 2, 0, 0]);
   put(head, new THREE.ConeGeometry(0.008, 0.02, 6), C.steel, [0, -0.025, 0], [Math.PI, 0, 0]);
-  const spool = group(g, [0.1, 0.6, -0.15]);
-  cyl(spool, [0.09, 0.09, 0.06, 18], [0, 0, 0], C.blue, [Math.PI / 2, 0, 0]);
-  cyl(spool, [0.03, 0.03, 0.065, 10], [0, 0, 0], C.black, [Math.PI / 2, 0, 0]);
+  // spool holder clamped to the top bar: an arm up and back, the spool hanging from its
+  // axle by the hole, facing the side; a short peg low on the arm takes the bowden tube
+  box(g, [0.05, 0.05, 0.055], [0, 0.48, -0.15], C.black);
+  box(g, [0.025, 0.17, 0.025], [0, 0.565, -0.215], C.black, [-0.7, 0, 0]);
+  cyl(g, [0.022, 0.022, 0.11, 12], [0.045, 0.63, -0.27], C.black, [0, 0, Math.PI / 2]);
+  cyl(g, [0.027, 0.027, 0.008, 12], [0.1, 0.63, -0.27], C.black, [0, 0, Math.PI / 2]);
+  cyl(g, [0.008, 0.008, 0.05, 8], [0.025, 0.53, -0.185], C.black, [0, 0, Math.PI / 2]);
+  cyl(g, [0.0016, 0.0016, 0.086, 4], [0.05, 0.535, -0.2275], C.blue, [Math.PI / 2, 0, 0]); // filament from the spool to the peg
+  const reel = group(g, [0.05, 0.63, -0.27]);
+  spool(reel, [0, 0, 0], C.blue, [0, 0, Math.PI / 2]);
   // the touch screen with the print queue
   box(g, [0.13, 0.095, 0.012], [0.16, 0.1, 0.25], C.black, [-0.35, 0, 0]);
   const mesh = screenPlane(g, 0.12, 0.084, ui, [0.16, 0.104, 0.257]);
@@ -975,12 +992,12 @@ function buildPrinter(g, ui, anim) {
     print.scale.y = Math.max(0.001, layer / LAYERS);
     // the nozzle tip rides on top of the current layer
     gantry.position.y = 0.091 + (layer + 1) * LH + 0.035; // bed top + print height + nozzle length
-    spool.rotation.z = -t * 0.4;
+    reel.rotation.x = -t * 0.4;
     if (t - lastTube > 1 / 10 && view.sees(mesh)) {
       lastTube = t;
-      a.set(0.1, 0.66, -0.15);
+      a.set(0.05, 0.53, -0.185); // the peg on the holder
       d.set(head.position.x, gantry.position.y + 0.075, -0.02); // top of the toolhead
-      b.set(0.12, 0.8, -0.1); c.set((d.x + 0.1) / 2, d.y + 0.14, -0.03);
+      b.set(0.1, 0.66, -0.12); c.set((d.x + 0.05) / 2, d.y + 0.14, -0.03);
       curve.needsUpdate = true; // its points moved: re-measure its arc length
       if (tube.geometry.type !== 'TubeGeometry') {
         tube.geometry = new THREE.TubeGeometry(curve, 24, 0.0045, 6);
@@ -990,7 +1007,7 @@ function buildPrinter(g, ui, anim) {
     const u = Math.floor(t);
     if (u !== lastUi && view.sees(mesh)) { lastUi = u; ui.redraw(t); }
   });
-  for (const o of [bed, gantry, spool, tube, fil]) o.userData.dynamic = true; // they move
+  for (const o of [bed, gantry, reel, tube, fil]) o.userData.dynamic = true; // they move
   return mesh;
 }
 
