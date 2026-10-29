@@ -413,16 +413,11 @@ export const CARD_THEMES = {
   mobile: ['#ff8a5c', '#e2508a', '#fff'], uni: ['#f3ead8', '#d9c7a6', '#3b2a1a']
 };
 
-// a card's skills in two columns; one too wide for its column gets the whole line
+// a card's skills in two columns, in order; if one is too wide for its column, the
+// card lists them one per line instead
 export function skillList(ctx, items, x, y, colW, lineH, maxRows) {
-  let col = 0, row = 0;
-  for (const it of items) {
-    const wide = ctx.measureText(it).width > colW - 12;
-    if (wide && col) { col = 0; row++; }
-    if (row >= maxRows) return;
-    ctx.fillText(it, x + col * colW, y + row * lineH);
-    if (wide || col) { col = 0; row++; } else col = 1;
-  }
+  const cols = items.some((it) => ctx.measureText(it).width > colW - 12) ? 1 : 2;
+  items.slice(0, cols * maxRows).forEach((it, i) => ctx.fillText(it, x + (i % cols) * colW, y + Math.floor(i / cols) * lineH));
 }
 
 // back of a skill card: what is on it, in big type
