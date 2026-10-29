@@ -859,50 +859,30 @@ function buildMotibot(parent, pos, anim) {
 }
 const MOTI_HANG = 1.0; // how far the legs bend down over the edge, in radians
 
-// ---------- mate: a gourd in its silver rim and wire stand, yerba and a bombilla ----------
-// Clicked (main.js runs it): the thermos pours hot water where it stands (`wet`, `heat`
-// and `fill`, 0..1), then it is picked up, sipped dry through the bombilla and put back.
+// ---------- mate: a gourd in its virola and wire stand, yerba and a bombilla ----------
+// Modelled polygon by polygon in Blender (tools/mate.py). The yerba is a "montañita":
+// piled up at the back, low at the front (+z, toward you), where the water is poured and
+// the bombilla goes in, leaning out toward you. Clicked (main.js runs it): the thermos
+// pours hot water where it stands (`wet`, `heat` and `fill`, 0..1), then it is picked
+// up, sipped dry through the bombilla and put back. `tip` and `pour` come with the model.
 function buildMate(parent, [x, y, z], rotY, anim) {
   box(parent, [0.1, 0.005, 0.1], [x, y + 0.0025, z], '#efe4cf'); // coaster: it stays on the desk
   const g = group(parent, [x, y + 0.005, z], 'mate', rotY);
-  const silver = M('#d3cbb2', { metalness: 0.7, roughness: 0.3 });
-  const lathe = (pts, mat, seg = 14) => put(g, new THREE.LatheGeometry(pts.map(([r, h]) => new THREE.Vector2(r, h)), seg), mat, [0, 0, 0]);
-  lathe([[0, 0.008], [0.022, 0.008], [0.036, 0.022], [0.041, 0.038], [0.037, 0.058], [0.031, 0.072]], M('#5a2418', { roughness: 0.6, side: THREE.DoubleSide }));
-  lathe([[0.03, 0.07], [0.036, 0.08], [0.037, 0.09], [0.032, 0.09], [0.03, 0.07]], M('#d3cbb2', { metalness: 0.7, roughness: 0.3, side: THREE.DoubleSide }));
-  // the wire stand: a belt under the rim, three loops down the sides to three feet
-  put(g, new THREE.TorusGeometry(0.0335, 0.0012, 4, 20), silver, [0, 0.066, 0], [Math.PI / 2, 0, 0]);
-  for (let i = 0; i < 3; i++) {
-    const a = (i / 3) * Math.PI * 2, c = Math.cos(a), sn = Math.sin(a);
-    const wire = new THREE.CatmullRomCurve3([[0.026, 0.004], [0.044, 0.034], [0.034, 0.066]].map(([r, h]) => new THREE.Vector3(r * c, h, r * sn)));
-    put(g, new THREE.TubeGeometry(wire, 8, 0.0012, 4), silver, [0, 0, 0]);
-    put(g, new THREE.TorusGeometry(0.004, 0.0012, 4, 8), silver, [0.026 * c, 0.004, 0.026 * sn], [0, -a, 0]);
-  }
-  // yerba: low on the left, where the bombilla goes in and the water is poured, and
-  // piled up on the right (the "montañita", it keeps the mate going longer)
-  const yerba = new THREE.MeshStandardMaterial({ color: '#9aa64a', roughness: 1, flatShading: true });
-  const dry = new THREE.Color('#9aa64a'), wetC = new THREE.Color('#76833a');
-  put(g, new THREE.CylinderGeometry(0.031, 0.031, 0.01, 14), yerba, [0, 0.075, 0]);
-  const surface = new THREE.RingGeometry(0, 0.031, 16, 5);
-  const sp = surface.attributes.position;
-  for (let i = 0; i < sp.count; i++) {
-    const vx = sp.getX(i), vy = sp.getY(i); // the ring lies in xy; it is turned flat below (y → -z)
-    const pile = Math.exp(-((vx - 0.011) ** 2 + vy ** 2) / 0.0003);
-    sp.setZ(i, 0.0005 + 0.008 * THREE.MathUtils.smoothstep(vx, -0.012, 0.028) + 0.017 * pile);
-  }
-  surface.computeVertexNormals();
-  put(g, surface, yerba, [0, 0.079, 0], [-Math.PI / 2, 0, 0]);
-  // the water: a level on the left that rises while it is poured (`fill`, 0..1) and drains as you sip
-  const water = put(g, new THREE.CircleGeometry(0.03, 16), new THREE.MeshStandardMaterial({ color: '#3d3a1c', transparent: true, opacity: 0.8, roughness: 0.05 }), [0, 0.078, 0], [-Math.PI / 2, 0, 0]);
-  water.castShadow = false;
-  // bombilla: deep in the low side, on your side of the mate, leaning out over the rim
-  // towards you and bending further out at the mouthpiece; a gold ring near the top
-  const out = new THREE.Vector3(-0.25, 0, 1).normalize(), base = new THREE.Vector3(-0.008, 0, 0);
-  const along = ([h, r]) => base.clone().addScaledVector(out, r).setY(h);
-  const straw = new THREE.CatmullRomCurve3([[0.03, 0.004], [0.1, 0.014], [0.14, 0.022], [0.157, 0.034], [0.165, 0.052]].map(along));
-  const tip = along([0.165, 0.052]);
-  put(g, new THREE.TubeGeometry(straw, 16, 0.0025, 6), M(C.steel, { metalness: 0.8, roughness: 0.25 }), [0, 0, 0]);
-  const ring = cyl(g, [0.0045, 0.0045, 0.006, 8], along([0.125, 0.019]).toArray(), M('#c9a24a', { metalness: 0.6, roughness: 0.35 }));
-  ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0.1, 0).addScaledVector(out, 0.012).normalize());
+  const mate = { kind: 'mate', group: g, anchor: [0, 0.2, 0], pour: new THREE.Vector3(-0.014, 0.084, 0.009), tip: new THREE.Vector3(0.004, 0.184, 0.081), wet: 0, heat: 0, fill: 0 };
+  // the low side of the yerba darkens as it gets wet; the water rises over it as it is poured
+  const dry = new THREE.Color(), wetC = new THREE.Color();
+  let low = null, water = null;
+  loader.load(`${import.meta.env.BASE_URL}models/mate.glb`, (gltf) => {
+    gltf.scene.traverse((o) => {
+      if (o.userData.tip) mate.tip.fromArray(o.userData.tip); // glTF extras, on the mate's node
+      if (o.userData.pour) mate.pour.fromArray(o.userData.pour);
+      if (!o.isMesh) return;
+      o.castShadow = o.receiveShadow = true;
+      if (o.name === 'Water') { water = o; o.castShadow = false; o.visible = false; Object.assign(o.material, { transparent: true, opacity: 0.8 }); }
+      for (const m of [o.material].flat()) if (m.name === 'yerba_low') { low = m; dry.copy(m.color); wetC.copy(m.color).multiplyScalar(0.72); }
+    });
+    g.add(gltf.scene);
+  });
 
   const steam = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false });
   const puffs = [0, 1, 2, 3].map((i) => {
@@ -910,16 +890,17 @@ function buildMate(parent, [x, y, z], rotY, anim) {
     g.add(m);
     return { m, p: i / 4 };
   });
-  const mate = { kind: 'mate', group: g, anchor: [0, 0.2, 0], pour: new THREE.Vector3(-0.012, 0.08, -0.004), tip, wet: 0, heat: 0, fill: 0 };
   anim.push((t, dt) => {
     mate.heat = Math.max(0, mate.heat - dt / 40); // the water cools down in under a minute
-    yerba.color.lerpColors(dry, wetC, mate.wet);
-    water.visible = mate.fill > 0;
-    water.position.y = 0.0775 + 0.007 * mate.fill;
+    if (low) low.color.lerpColors(dry, wetC, mate.wet);
+    if (water) {
+      water.visible = mate.fill > 0;
+      water.position.y = -0.003 + 0.008 * mate.fill; // from under the low side up over it
+    }
     for (const s of puffs) {
       const k = (t * 0.3 + s.p) % 1;
       s.m.visible = mate.heat > 0;
-      s.m.position.set(Math.sin(k * 7 + s.p * 9) * 0.01 - 0.012, 0.09 + k * 0.18, Math.cos(k * 5 + s.p * 4) * 0.01 - 0.01);
+      s.m.position.set(mate.pour.x + Math.sin(k * 7 + s.p * 9) * 0.01, 0.09 + k * 0.18, mate.pour.z + Math.cos(k * 5 + s.p * 4) * 0.01);
       s.m.scale.setScalar(0.6 + k * 1.6);
       s.m.material.opacity = 0.3 * Math.sin(k * Math.PI) * mate.heat;
     }
@@ -927,32 +908,22 @@ function buildMate(parent, [x, y, z], rotY, anim) {
   return mate;
 }
 
-// ---------- thermos (green, hammered paint, steel ends, a pour spout and a side handle) ----------
-// main.js takes it to pour on the mate: `spout` is where the water comes out, in its space.
+// ---------- thermos: a hammered-green flask, steel base and neck, black cap, green spout ----------
+// Modelled in Blender (tools/mate.py): pour spout toward +x, folding handle at -x, the red
+// badge with the bull's head toward +z. main.js takes it to pour on the mate: `spout` is
+// where the water comes out, in its space (it comes with the model).
 function buildThermos(parent, pos) {
-  const g = group(parent, pos, null, Math.PI / 2); // the sticker faces the room
+  const g = group(parent, pos, null, Math.PI / 2); // the badge faces the room
   g.userData.dynamic = true;
-  const green = M('#2e4a3f', { roughness: 0.55 }), steel = M(C.steel, { metalness: 0.6, roughness: 0.3 });
-  cyl(g, [0.045, 0.045, 0.04, 16], [0, 0.02, 0], steel);
-  cyl(g, [0.046, 0.046, 0.22, 16], [0, 0.15, 0], green);
-  cyl(g, [0.035, 0.046, 0.025, 16], [0, 0.2725, 0], green);
-  cyl(g, [0.034, 0.034, 0.045, 16], [0, 0.3075, 0], steel);
-  cyl(g, [0.037, 0.037, 0.018, 16], [0, 0.339, 0], C.black);
-  cyl(g, [0.005, 0.007, 0.024, 8], [0.012, 0.358, 0], '#2f7a45', [0, 0, -0.6]); // the spout
-  box(g, [0.012, 0.2, 0.018], [-0.07, 0.155, 0], green); // handle, on two steel links
-  for (const hy of [0.06, 0.25]) box(g, [0.026, 0.004, 0.004], [-0.057, hy, 0], steel);
-  // a sticker: a red badge with a black bull's head, drawn rather than copied
-  const badge = canvasTex(128, 128, (ctx, w, h) => {
-    ctx.fillStyle = '#d8333a'; ctx.beginPath(); ctx.ellipse(w / 2, h * 0.42, w * 0.46, h * 0.34, 0, Math.PI, 0); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(8, h * 0.42); ctx.lineTo(w - 8, h * 0.42); ctx.lineTo(w * 0.7, h * 0.95); ctx.lineTo(w * 0.3, h * 0.95); ctx.fill();
-    ctx.fillStyle = '#16161a'; ctx.beginPath();
-    ctx.moveTo(w * 0.14, h * 0.36); ctx.lineTo(w * 0.36, h * 0.46); ctx.lineTo(w * 0.64, h * 0.46); ctx.lineTo(w * 0.86, h * 0.36);
-    ctx.lineTo(w * 0.7, h * 0.6); ctx.lineTo(w * 0.6, h * 0.88); ctx.lineTo(w * 0.4, h * 0.88); ctx.lineTo(w * 0.3, h * 0.6); ctx.fill();
+  const thermos = { group: g, spout: new THREE.Vector3(0.035, 0.37, 0) };
+  loader.load(`${import.meta.env.BASE_URL}models/thermos.glb`, (gltf) => {
+    gltf.scene.traverse((o) => {
+      if (o.userData.spout) thermos.spout.fromArray(o.userData.spout);
+      if (o.isMesh) o.castShadow = o.receiveShadow = true;
+    });
+    g.add(gltf.scene);
   });
-  const sticker = put(g, new THREE.CylinderGeometry(0.0465, 0.0465, 0.07, 16, 1, true, -0.55, 1.1),
-    new THREE.MeshStandardMaterial({ map: badge.tex, transparent: true, alphaTest: 0.5, roughness: 0.6 }), [0, 0.17, 0]);
-  sticker.castShadow = false;
-  return { group: g, spout: new THREE.Vector3(0.02, 0.368, 0) };
+  return thermos;
 }
 
 // ---------- filament dryer (Creality CFS): four spools side by side under a smoked lid ----------
