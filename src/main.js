@@ -121,7 +121,9 @@ function start() {
   camera.position.copy(DOOR_VIEW.pos);
   camera.quaternion.copy(lookQuat(DOOR_VIEW.pos, DOOR_VIEW.look));
 
-  const spots = Object.entries(room.hotspots).map(([id, h]) => ({ id, zone: HOTSPOTS[id]?.zone || null, ...h }));
+  // the hotspot objects themselves, not copies: the room reads back what main.js writes on
+  // them (the mate's water level, how wet the yerba is, the steam)
+  const spots = Object.entries(room.hotspots).map(([id, h]) => Object.assign(h, { id, zone: h.zone ?? HOTSPOTS[id]?.zone ?? null }));
   const byId = Object.fromEntries(spots.map((s) => [s.id, s]));
   scene.updateMatrixWorld(true);
   for (const s of spots) s.anchorWorld = s.group.localToWorld(new THREE.Vector3(...s.anchor));
@@ -251,7 +253,7 @@ function start() {
   // ---------- the mate: filled from the thermos where it stands, picked up, sipped, put back ----------
   const BURN = 0.25; // how often the water is too hot: one sip in four
   const stream = new THREE.Mesh(new THREE.CylinderGeometry(0.0025, 0.0025, 1, 6),
-    new THREE.MeshStandardMaterial({ color: '#e4f2ff', transparent: true, opacity: 0.6, roughness: 0.1 }));
+    new THREE.MeshStandardMaterial({ color: '#eef0e2', transparent: true, opacity: 0.5, roughness: 0.1 }));
   stream.visible = false;
   scene.add(stream);
   const burnBubble = { anchorWorld: new THREE.Vector3(), burn: true };
@@ -285,7 +287,7 @@ function start() {
     const tilt = (z) => yawQ.clone().multiply(swing).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, z)));
     const over = g.localToWorld(s.pour.clone()).add(new THREE.Vector3(0, 0.06, 0));
     const near = { quat: tilt(-0.5), pos: spoutAt(tilt(-0.5), over.clone().addScaledVector(right, -0.08).add(new THREE.Vector3(0, 0.06, 0))) };
-    const pour = { quat: tilt(-2.25), pos: spoutAt(tilt(-2.25), over) }; // past level: its base stays up, clear of the tables
+    const pour = { quat: tilt(-1.75), pos: spoutAt(tilt(-1.75), over) }; // a little past level, its base swung toward you
     await move(th, near, 0.9, 0.1);
     await move(th, pour, 0.5);
     audio.pour();

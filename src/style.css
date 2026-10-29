@@ -146,6 +146,8 @@ body.loaded .marker:not(.hidden) { opacity: 1; }
 }
 body.loaded .hint { opacity: 1; }
 body.focused .hint, body[data-mode='entering'] .hint { opacity: 0; transition-delay: 0s; }
+body[data-mode='room'] .hint { transition-delay: 0s; }
+body.hint-off .hint { opacity: 0; transition-delay: 0s; }
 
 @media (max-width: 820px) {
   .topbar { padding: 14px 16px; }

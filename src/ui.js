@@ -91,6 +91,8 @@ export function createUI({ audio, onFocus, onLang, onTermKey, onTermInput, termL
     }
   });
 
+  let hintShown = false;
+
   // ---------- i18n ----------
   const hints = {
     door: () => (coarse ? s().knockTouch : s().knock),
@@ -180,6 +182,12 @@ export function createUI({ audio, onFocus, onLang, onTermKey, onTermInput, termL
       mode = m;
       document.body.dataset.mode = m;
       $('#hint').textContent = hints[m]();
+      // the hint line shows at the door and for 4 s once you are in the room; then it is gone
+      if (m === 'room' && !hintShown) {
+        hintShown = true;
+        document.body.classList.remove('hint-off');
+        setTimeout(() => document.body.classList.add('hint-off'), 4000);
+      } else if (m !== 'door' && m !== 'room') document.body.classList.add('hint-off');
       if (m !== 'terminal') termInput.blur();
     },
     buildMarkers(ids) {
