@@ -276,13 +276,16 @@ function start() {
       return tween(dur, (e) => { o.position.lerpVectors(p0, to.pos, e); o.position.y += Math.sin(e * Math.PI) * lift; o.quaternion.slerpQuaternions(q0, to.quat, e); shadowsDirty(); });
     };
 
-    // the left hand brings the thermos over from the table and tips its spout over the
-    // low side of the yerba, next to the bombilla
+    // your right hand brings the thermos over from the table and pours from the mate's
+    // left, like in the photo: the spout over the low side of the yerba, next to the
+    // bombilla. Its body is swung toward you and tipped steeply, so it rises up and back
+    // over the desk instead of lying across the printer table next to the mate.
     const spoutAt = (q, at) => at.clone().sub(room.thermos.spout.clone().applyQuaternion(q));
-    const tilt = (z) => yawQ.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, z)));
-    const over = g.localToWorld(s.pour.clone()).add(new THREE.Vector3(0, 0.05, 0));
+    const swing = new THREE.Quaternion().setFromAxisAngle(UP, 0.7); // its base toward you
+    const tilt = (z) => yawQ.clone().multiply(swing).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, z)));
+    const over = g.localToWorld(s.pour.clone()).add(new THREE.Vector3(0, 0.06, 0));
     const near = { quat: tilt(-0.5), pos: spoutAt(tilt(-0.5), over.clone().addScaledVector(right, -0.08).add(new THREE.Vector3(0, 0.06, 0))) };
-    const pour = { quat: tilt(-1.9), pos: spoutAt(tilt(-1.9), over) };
+    const pour = { quat: tilt(-2.25), pos: spoutAt(tilt(-2.25), over) }; // past level: its base stays up, clear of the tables
     await move(th, near, 0.9, 0.1);
     await move(th, pour, 0.5);
     audio.pour();
@@ -305,7 +308,9 @@ function start() {
     const held = { pos: camera.position.clone().addScaledVector(fwd, 0.42).addScaledVector(down, 0.15), quat: yawQ.clone() };
     await move(g, held, 0.7, 0.05);
     const mouth = camera.position.clone().addScaledVector(fwd, 0.07).addScaledVector(down, 0.035);
-    const sip = { pos: mouth.clone().sub(s.tip.clone().applyQuaternion(yawQ)), quat: yawQ.clone() };
+    // held upright: only the top of the mate peeks in at the bottom of the view
+    const sipQ = yawQ.clone();
+    const sip = { pos: mouth.clone().sub(s.tip.clone().applyQuaternion(sipQ)), quat: sipQ };
     await move(g, sip, 0.7);
     if (s.heat > 0.8 && Math.random() < BURN) {
       // too hot: a first sip, you pull it away, and say so
@@ -319,7 +324,7 @@ function start() {
       burnBubble.anchorWorld.copy(mouth).addScaledVector(down, -0.06).addScaledVector(fwd, 0.25);
       talk.spot = burnBubble; talk.until = clock.elapsedTime + 2.6;
       const p0 = sip.pos.clone().addScaledVector(fwd, 0.08).addScaledVector(down, 0.04);
-      await move(g, { pos: p0, quat: yawQ.clone() }, 0.15);
+      await move(g, { pos: p0, quat: sipQ.clone() }, 0.15);
       await tween(0.6, (e) => { g.position.copy(p0).addScaledVector(right, Math.sin(e * 30) * 0.006 * (1 - e)); });
       // then, carefully, the rest
       await move(g, sip, 0.5);

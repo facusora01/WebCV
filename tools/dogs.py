@@ -315,11 +315,9 @@ def build_manolo():
     tube(band, [cc - nd * 0.035, cc + nd * 0.035], [0.30, 0.30], 12, ['blue'])
     parts.append(band)
     parts.append(blob(1, (0.05, 0.015, 0.05), 'gold', M=Matrix.Translation(cc + V((0, -0.30, -0.08)))))
-    # head: broad, with fluffy tan cheeks and a short muzzle
+    # head: broad, with a short muzzle
     HM = frame(V((0, -0.33, 1.66)), V((0, -1, -0.05)), V((0, 0, 1)))
     parts += head(HM, (0.37, 0.33, 0.31), (0.27, 0.17, 0.14, 0.05), 'erect', mat='tan')
-    for s in (1, -1):
-        parts.append(blob(1, (0.16, 0.18, 0.17), 'tan', M=HM @ Matrix.Translation(V((s * 0.28, 0.02, -0.13)))))
     # tail, fluffy, lying on the floor and curling round his side
     TAIL = catmull([V((0.04, 0.40, 0.16)), V((0.24, 0.58, 0.12)), V((0.50, 0.52, 0.10)), V((0.66, 0.28, 0.10)), V((0.66, 0.06, 0.10))], 8)
     parts.append(limb(TAIL, TAIL_R, 7, ['black'] * 4 + ['white'] * 4))
