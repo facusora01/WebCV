@@ -333,48 +333,54 @@ def build_manolo():
 
 # ---------------------------------------------------------------- Simón
 def build_simon():
-    # asleep on the bed, lying on his belly in a loose C: hips, a tucked waist, a deep
-    # ribcage, the neck turning back so his head rests on his front paws, hind legs
-    # folded forward, the tail wrapped round toward his nose. Each part is its own
-    # shaped base (an icosphere pushed into an ellipsoid, rings extruded along a path).
-    P = V((-0.32, 0.10, 0.20))                     # pelvis
-    C = V((0.22, 0.24, 0.24))                      # ribcage
+    # asleep on the bed, lying on his belly in a loose C. Like Manolo, the body is one
+    # piece extruded ring by ring along a curved spine, from the rump through the
+    # flank and the deep chest into the neck, which turns back so his head rests on his
+    # front paws; the rings swell and narrow gently, so the outline flows instead of
+    # being a chain of balls. Hind legs fold forward, the tail wraps toward his nose.
+    P = V((-0.32, 0.10, 0.20))                     # hips
+    C = V((0.22, 0.24, 0.24))                      # chest
     d = (C - P); d.z = 0; d.normalize()            # along the body
     side = V((-d.y, d.x, 0))                       # to his left (away from the curl)
     rot = Matrix.Rotation(math.atan2(d.y, d.x), 4, 'Z')
-    parts = []
-    parts.append(blob(2, (0.31, 0.24, 0.22), 'white', M=Matrix.Translation(C) @ rot))                  # ribcage
-    parts.append(blob(2, (0.22, 0.21, 0.19), 'white', M=Matrix.Translation(P) @ rot))                  # hips
-    parts.append(limb([P + d * 0.12, (P + C) / 2 + V((0, 0, -0.035)), C - d * 0.15],
-                      [(0.17, 0.155), (0.15, 0.14), (0.20, 0.19)], 8, ['white'], cap=None, ref_up=V((0, 0, 1))))  # waist
-    # shoulders and front legs stretched forward under the chin
-    for k, off in ((0, -0.10), (1, 0.08)):
-        sh = C + d * 0.12 + side * off + V((0, 0, -0.06))
-        parts.append(blob(1, (0.11, 0.09, 0.12), 'white', M=Matrix.Translation(sh)))
-        a = sh + V((0, 0, -0.08))
-        e = V((-0.08 + 0.10 * k, -0.40 - 0.04 * k, 0.055))
-        parts.append(limb([a, a.lerp(e, 0.5) + V((0, 0, -0.03)), e], [0.075, 0.068, 0.065], 7, ['white']))
-    # hind legs: big thighs on both sides, hocks and paws folded forward toward the curl
-    for off, sz, lift in ((-0.12, (0.21, 0.10, 0.14), 0.0), (0.13, (0.20, 0.09, 0.13), -0.02)):
-        th = P + side * off + d * 0.03 + V((0, 0, lift))
-        parts.append(blob(2, sz, 'white', M=Matrix.Translation(th) @ rot @ Matrix.Rotation(math.radians(-20), 4, 'Y')))
-    for off, e in ((-0.16, V((-0.06, -0.24, 0.055))), (0.12, V((-0.20, -0.20, 0.055)))):
-        a = P + side * off + d * 0.10 + V((0, 0, -0.08))
-        parts.append(limb([a, a.lerp(e, 0.5), e], [0.075, 0.068, 0.062], 7, ['white']))
-    # neck turning back, and the head on the paws
-    n0 = C + d * 0.22 + V((0, 0, 0.03))
     H = V((0.33, -0.20, 0.17))
     fwd = V((-0.85, -0.35, -0.08))
-    parts.append(limb([n0, n0.lerp(H, 0.5) + V((0.04, 0, 0.01)), H + fwd.normalized() * -0.05], [(0.16, 0.15), (0.14, 0.13), (0.12, 0.12)], 8, ['white'], cap=None))
+    ctrl = [(P - d * 0.20 + V((0, 0, -0.03)), (0.15, 0.13)),   # rump
+            (P, (0.215, 0.185)),                               # hips
+            ((P + C) / 2 + V((0, 0, -0.01)), (0.20, 0.175)),   # flank, a little narrower
+            (C, (0.235, 0.205)),                               # deep chest
+            (C + d * 0.17 + V((0, -0.02, 0)), (0.20, 0.185)),  # shoulders
+            (V((0.42, 0.05, 0.22)), (0.15, 0.145)),            # neck, turning back
+            (H - fwd.normalized() * 0.06, (0.125, 0.12))]      # into the head
+    N = 14
+    spine = catmull([c for c, _ in ctrl], N)
+    def sec(i):
+        t = i / N * (len(ctrl) - 1); k = min(int(t), len(ctrl) - 2); u = smooth(0, 1, t - k)
+        (a, b), (c, e) = ctrl[k][1], ctrl[k + 1][1]
+        return (a + (c - a) * u, b + (e - b) * u)
+    torso = limb(spine, [sec(i) for i in range(N + 1)], 10, ['white'], cap=None, ref_up=V((0, 0, 1)))
+    parts = [torso]
+    # front legs stretched forward under the chin
+    for k, off in ((0, -0.09), (1, 0.08)):
+        a = C + d * 0.12 + side * off + V((0, 0, -0.12))
+        e = V((-0.08 + 0.10 * k, -0.40 - 0.04 * k, 0.055))
+        parts.append(limb([a, a.lerp(e, 0.5) + V((0, 0, -0.02)), e], [0.08, 0.07, 0.065], 7, ['white']))
+    # hind legs: thighs folded flat against both flanks, hocks and paws forward
+    for off, sz in ((-0.13, (0.20, 0.08, 0.12)), (0.14, (0.19, 0.07, 0.11))):
+        th = P + side * off + d * 0.05 + V((0, 0, -0.04))
+        parts.append(blob(2, sz, 'white', M=Matrix.Translation(th) @ rot @ Matrix.Rotation(math.radians(-15), 4, 'Y')))
+    for off, e in ((-0.16, V((-0.06, -0.24, 0.055))), (0.12, V((-0.20, -0.20, 0.055)))):
+        a = P + side * off + d * 0.14 + V((0, 0, -0.10))
+        parts.append(limb([a, a.lerp(e, 0.5), e], [0.075, 0.068, 0.062], 7, ['white']))
     HM = frame(H, fwd, V((0.15, 0.25, 1)))
     parts += head(HM, (0.20, 0.21, 0.175), (0.22, 0.10, 0.085, 0.03), 'folded', eyes_open=False)
     # collar
-    nd = (H - n0).normalized()
-    nc = n0.lerp(H, 0.35)
+    nd = (spine[N - 1] - spine[N - 3]).normalized()
+    nc = spine[N - 2]
     band = bmesh.new()
-    tube(band, [nc - nd * 0.022, nc + nd * 0.022], [(0.15, 0.14), (0.15, 0.14)], 12, ['blue'], ref_up=V((0, 0, 1)))
+    tube(band, [nc - nd * 0.022, nc + nd * 0.022], [(sec(N - 2)[0] + 0.012, sec(N - 2)[1] + 0.012)] * 2, 12, ['blue'], ref_up=V((0, 0, 1)))
     parts.append(band)
-    parts.append(blob(1, (0.03, 0.03, 0.01), 'gold', M=Matrix.Translation(nc + V((0, 0, -0.13)) + side * 0.06)))
+    parts.append(blob(1, (0.03, 0.03, 0.01), 'gold', M=Matrix.Translation(nc + V((0, 0, -0.12)) + side * 0.05)))
     # the tail wraps round toward his nose
     tail = catmull([P - d * 0.17 + V((0, 0, 0.06)), V((-0.55, -0.02, 0.14)), V((-0.48, -0.24, 0.08)), V((-0.30, -0.36, 0.06))], 6)
     parts.append(limb(tail, [0.06, 0.058, 0.055, 0.05, 0.045, 0.04, 0.03], 6, ['white']))
