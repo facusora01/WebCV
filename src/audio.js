@@ -208,15 +208,24 @@ export function createAudio() {
     s.start(t); s.stop(t + points.at(-1)[0] + 0.05);
     return f;
   }
-  // hot water into the mate ("cebar"): barely there, a soft trickle into wet yerba
-  function pour() {
+  // hot water into the mate ("cebar"): barely audible. A thin stream into wet yerba is
+  // a soft hiss, a hollow tone that rises as the gourd fills, and tiny bubbles popping
+  function pour(dur = 1.4) {
     const t = ensure();
-    const f = breath(t, [[0.15, 0.06], [1.2, 0.05], [1.4, 0]], 'bandpass', 900, 1.5);
-    f.frequency.linearRampToValueAtTime(1400, t + 1.4);
-    const lfo = ctx.createOscillator(), depth = ctx.createGain();
-    lfo.frequency.value = 9; depth.gain.value = 180;
-    lfo.connect(depth).connect(f.frequency);
-    lfo.start(t); lfo.stop(t + 1.45);
+    breath(t, [[0.12, 0.025], [dur - 0.2, 0.02], [dur, 0]], 'lowpass', 2200, 0.5);
+    const fill = breath(t, [[0.15, 0.05], [dur - 0.2, 0.04], [dur, 0]], 'bandpass', 480, 9);
+    fill.frequency.exponentialRampToValueAtTime(1150, t + dur);
+    for (let i = 0; i < 28; i++) {
+      const at = t + 0.1 + Math.random() * (dur - 0.2), f0 = 700 + Math.random() * 900 + (at - t) * 300;
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.setValueAtTime(f0, at);
+      o.frequency.exponentialRampToValueAtTime(f0 * 1.7, at + 0.02);
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(0.015 + Math.random() * 0.03, at + 0.003);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + 0.025);
+      o.connect(g).connect(master);
+      o.start(at); o.stop(at + 0.03);
+    }
   }
   // sipping through the bombilla: a quiet, steady draw with a little bubbling
   function sip(dur = 1.5) {
