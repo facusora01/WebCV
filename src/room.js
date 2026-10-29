@@ -556,21 +556,31 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     box(g, [0.6, 0.1, 0.32], [0, 0.47, -0.78], paperMat(stripes.tex), [0.1, 0, 0]);
   }
 
-  // the dogs (low-poly models generated from references): Simón asleep, curled up on
-  // the bed; Manolo sitting on the floor, wagging, now and then turning to look at you.
-  // Clicking either shows the tag on its collar.
+  // the dogs, modelled polygon by polygon in Blender (tools/dogs.py): Simón asleep,
+  // curled up on the bed; Manolo sitting on the floor, wagging, now and then turning to
+  // look at you. Manolo is one skinned mesh: his Head and Tail bones bend it smoothly, so
+  // the chin turns with the head and the tail stays on. Clicking either shows the tag on
+  // its collar.
   const dogs = { lookAt: new THREE.Vector3(), attention: 0 };
   {
-    const simon = group(root, [1.32, 0.42, -0.35], 'simon', -2.4);
+    const simon = group(root, [1.32, 0.42, -0.35], 'simon', 0.74);
     const manolo = group(root, [0.5, 0, 0.05], 'manolo', -0.9);
-    loadModel('simon', simon, { size: 0.42, axis: 'x' });
-    // his own head and tail are cut out of the model so they can move
-    let head = null, tail = null;
-    loadModel('manolo', manolo, { size: 0.5, axis: 'y', trim: 0.03, split: (m) => {
-      const H = (b) => b.max.y - b.min.y, D = (b) => b.max.z - b.min.z;
-      head = splitPart(m, (c, b) => c.y > b.min.y + H(b) * 0.62, (pb, b) => new THREE.Vector3((pb.min.x + pb.max.x) / 2, b.min.y + H(b) * 0.62, (pb.min.z + pb.max.z) / 2));
-      tail = splitPart(m, (c, b) => c.z < b.min.z + D(b) * 0.24 && c.y < b.min.y + H(b) * 0.62, (pb) => new THREE.Vector3((pb.min.x + pb.max.x) / 2, (pb.min.y + pb.max.y) / 2, pb.max.z));
-    } });
+    // both come in metres, origin on the floor under them; a little light of their own,
+    // in their own colours, keeps the whites white under the room's warm light
+    const ownLight = (o) => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; o.material.emissive.copy(o.material.color).multiplyScalar(0.2); } };
+    loader.load(`${import.meta.env.BASE_URL}models/simon.glb`, (gltf) => { gltf.scene.traverse(ownLight); simon.add(gltf.scene); });
+    const bones = {};
+    loader.load(`${import.meta.env.BASE_URL}models/manolo.glb`, (gltf) => {
+      gltf.scene.traverse((o) => {
+        ownLight(o);
+        if (o.isMesh) o.frustumCulled = false; // the skinned head turns outside the rest-pose bounds
+        if (o.isBone) bones[o.name] = { bone: o, rest: o.quaternion.clone() };
+      });
+      manolo.add(gltf.scene);
+    });
+    const q = new THREE.Quaternion(), e = new THREE.Euler();
+    const turn = (name, x, y, z) => { const b = bones[name]; if (b) b.bone.quaternion.copy(b.rest).multiply(q.setFromEuler(e.set(x, y, z))); };
+    let headYaw = 0;
     // "z z z" floating over Simón when someone wakes him
     const zz = canvasTex(128, 64, (ctx) => { ctx.clearRect(0, 0, 128, 64); ctx.fillStyle = '#ffffff'; ctx.font = `bold 34px ${HAND}`; ctx.fillText('z z z', 10, 44); });
     const zzz = new THREE.Sprite(new THREE.SpriteMaterial({ map: zz.tex, transparent: true, opacity: 0, depthWrite: false }));
@@ -581,20 +591,18 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
       simon.scale.y = 1 + Math.sin(t * 1.2) * 0.02; // slow sleepy breathing
       const curious = Math.max(dogs.attention, Math.sin(t * 0.55) > 0.6 ? 1 : 0);
       dogs.attention = Math.max(0, dogs.attention - dt * 0.4);
-      if (head) {
-        local.copy(dogs.lookAt);
-        manolo.worldToLocal(local);
-        const yaw = THREE.MathUtils.clamp(Math.atan2(local.x, local.z), -0.9, 0.9);
-        head.rotation.y += ((curious ? yaw : Math.sin(t * 0.4) * 0.15) - head.rotation.y) * Math.min(1, dt * 3);
-        head.rotation.z = Math.sin(t * 0.9) * 0.04;
-      }
-      if (tail) tail.rotation.y = Math.sin(t * (6 + 8 * curious)) * (0.3 + 0.3 * curious);
+      local.copy(dogs.lookAt);
+      manolo.worldToLocal(local);
+      const yaw = THREE.MathUtils.clamp(Math.atan2(local.x, local.z), -0.9, 0.9);
+      headYaw += ((curious ? yaw : Math.sin(t * 0.4) * 0.15) - headYaw) * Math.min(1, dt * 3);
+      turn('Head', 0, headYaw, Math.sin(t * 0.9) * 0.04);               // local y is up: he turns his head
+      turn('Tail', 0, 0, Math.sin(t * (6 + 8 * curious)) * (0.3 + 0.3 * curious)); // local z is up: a wag
       zzz.material.opacity = Math.max(0, zzz.material.opacity - dt * 0.4);
       zzz.position.set(1.32, 0.75 + (1 - zzz.material.opacity) * 0.25, -0.35);
     });
     // where each collar tag starts its flight from
     const simonTag = group(simon, [-0.08, 0.1, 0.05]);
-    const manoloTag = group(manolo, [0, 0.3, 0.1]);
+    const manoloTag = group(manolo, [0, 0.27, 0.13]);
     hotspots.simon = { kind: 'inspect', group: simon, anchor: [0, 0.3, 0], from: simonTag, aspect: 1, pages: [page(400, 400, dogTag('simon')), page(400, 400, dogTagBack('simon'))], react: () => { zzz.material.opacity = 1; } };
     hotspots.manolo = { kind: 'inspect', group: manolo, anchor: [0, 0.6, 0], from: manoloTag, aspect: 1, pages: [page(400, 400, dogTag('manolo')), page(400, 400, dogTagBack('manolo'))], sound: 'bark', react: () => { dogs.attention = 1; } };
   }
@@ -698,12 +706,10 @@ function mergeStatic(root, inside = false) {
 const loader = new GLTFLoader();
 loader.setMeshoptDecoder(MeshoptDecoder);
 // Scales the model so its extent along `axis` is `size`, sits it on y = 0 and centres it.
-function loadModel(name, parent, { size, axis = 'y', trim = 0, rotX = 0, split, tint, onLoad }) {
+function loadModel(name, parent, { size, axis = 'y', rotX = 0, tint, onLoad }) {
   loader.load(`${import.meta.env.BASE_URL}models/${name}.glb`, (gltf) => {
     const m = gltf.scene;
     m.rotation.x = rotX;
-    if (trim) trimGround(m, trim);
-    if (split) split(m);
     const wrap = new THREE.Group();
     wrap.add(m);
     const bb = new THREE.Box3().setFromObject(wrap);
@@ -735,70 +741,6 @@ function topOf(model, frame, points, fallback = 0.38) {
     if (hit) { sum += frame.worldToLocal(hit.point).y; n++; }
   }
   return n ? sum / n : fallback;
-}
-
-// Cuts the triangles picked by select(centroid, bounds) out of the model into their
-// own mesh, hung on a hinge placed by hingeAt(partBounds, bounds), so that part can
-// move on its own (a head that turns, a tail that wags). Returns the hinge.
-function splitPart(model, select, hingeAt) {
-  model.updateMatrixWorld(true);
-  let mesh = null;
-  model.traverse((o) => { if (o.isMesh && !mesh) mesh = o; });
-  const geo = (mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry).clone().applyMatrix4(mesh.matrixWorld);
-  mesh.removeFromParent();
-  mesh.position.set(0, 0, 0); mesh.rotation.set(0, 0, 0); mesh.scale.set(1, 1, 1);
-  model.add(mesh);
-  geo.computeBoundingBox();
-  const bounds = geo.boundingBox, p = geo.attributes.position, c = new THREE.Vector3();
-  const partTris = [], restTris = [];
-  for (let i = 0; i < p.count; i += 3) {
-    c.set(0, 0, 0);
-    for (let k = 0; k < 3; k++) c.x += p.getX(i + k) / 3, c.y += p.getY(i + k) / 3, c.z += p.getZ(i + k) / 3;
-    (select(c, bounds) ? partTris : restTris).push(i);
-  }
-  const pick = (tris) => {
-    const out = new THREE.BufferGeometry();
-    for (const [name, attr] of Object.entries(geo.attributes)) {
-      const arr = new attr.array.constructor(tris.length * 3 * attr.itemSize);
-      tris.forEach((t, k) => arr.set(attr.array.subarray(t * attr.itemSize, (t + 3) * attr.itemSize), k * 3 * attr.itemSize));
-      out.setAttribute(name, new THREE.BufferAttribute(arr, attr.itemSize, attr.normalized));
-    }
-    return out;
-  };
-  const partGeo = pick(partTris);
-  partGeo.computeBoundingBox();
-  const at = hingeAt(partGeo.boundingBox, bounds);
-  partGeo.translate(-at.x, -at.y, -at.z);
-  mesh.geometry = pick(restTris);
-  const hinge = new THREE.Group();
-  hinge.position.copy(at);
-  hinge.add(new THREE.Mesh(partGeo, mesh.material));
-  model.add(hinge);
-  return hinge;
-}
-
-// Image-to-3D models sometimes come with a flat ground slab under them: drop every
-// triangle that lies entirely in the bottom `fraction` of the model's height.
-function trimGround(model, fraction) {
-  model.updateMatrixWorld(true);
-  const v = new THREE.Vector3();
-  let min = Infinity, max = -Infinity;
-  model.traverse((o) => {
-    if (!o.isMesh) return;
-    const p = o.geometry.attributes.position;
-    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); min = Math.min(min, v.y); max = Math.max(max, v.y); }
-  });
-  const cut = min + (max - min) * fraction;
-  model.traverse((o) => {
-    if (!o.isMesh || !o.geometry.index) return;
-    const p = o.geometry.attributes.position, idx = o.geometry.index.array, keep = [];
-    const y = (i) => v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld).y;
-    for (let i = 0; i < idx.length; i += 3) {
-      if (y(idx[i]) > cut || y(idx[i + 1]) > cut || y(idx[i + 2]) > cut) keep.push(idx[i], idx[i + 1], idx[i + 2]);
-    }
-    o.geometry.setIndex(keep);
-    o.geometry = o.geometry.toNonIndexed(); // drops the unused vertices, so the bounds shrink too
-  });
 }
 
 // ---------- the mouse: a white ergonomic gaming mouse (Redragon) ----------
