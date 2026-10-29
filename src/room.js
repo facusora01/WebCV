@@ -557,10 +557,11 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   }
 
   // the dogs, modelled polygon by polygon in Blender (tools/dogs.py): Simón asleep,
-  // curled up on the bed; Manolo sitting on the floor, wagging, now and then turning to
-  // look at you. Manolo is one skinned mesh: his Head and Tail bones bend it smoothly, so
-  // the chin turns with the head and the tail stays on. Clicking either shows the tag on
-  // its collar.
+  // curled up on the bed, breathing slowly, "z z z" rising from him now and then; Manolo
+  // sitting on the floor, thumping his tail, now and then turning to look up at you.
+  // Both are skinned meshes: Manolo's Head and Tail bones bend him smoothly (the chin
+  // turns with the head, the tail lifts from where it leaves the body), Simón's Chest
+  // bone swells as he breathes. Clicking either shows the tag on its collar.
   const dogs = { lookAt: new THREE.Vector3(), attention: 0 };
   {
     const simon = group(root, [1.32, 0.42, -0.35], 'simon', -0.68); // his face toward where you stand
@@ -568,7 +569,15 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     // both come in metres, origin on the floor under them; a little light of their own,
     // in their own colours, keeps the whites white under the room's warm light
     const ownLight = (o) => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; o.material.emissive.copy(o.material.color).multiplyScalar(0.2); } };
-    loader.load(`${import.meta.env.BASE_URL}models/simon.glb`, (gltf) => { gltf.scene.traverse(ownLight); simon.add(gltf.scene); });
+    const simonBones = {};
+    loader.load(`${import.meta.env.BASE_URL}models/simon.glb`, (gltf) => {
+      gltf.scene.traverse((o) => {
+        ownLight(o);
+        if (o.isMesh) o.frustumCulled = false;
+        if (o.isBone) simonBones[o.name] = o;
+      });
+      simon.add(gltf.scene);
+    });
     const bones = {};
     loader.load(`${import.meta.env.BASE_URL}models/manolo.glb`, (gltf) => {
       gltf.scene.traverse((o) => {
@@ -579,31 +588,50 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
       manolo.add(gltf.scene);
     });
     const q = new THREE.Quaternion(), e = new THREE.Euler();
-    const turn = (name, x, y, z) => { const b = bones[name]; if (b) b.bone.quaternion.copy(b.rest).multiply(q.setFromEuler(e.set(x, y, z))); };
-    let headYaw = 0;
-    // "z z z" floating over Simón when someone wakes him
-    const zz = canvasTex(128, 64, (ctx) => { ctx.clearRect(0, 0, 128, 64); ctx.fillStyle = '#ffffff'; ctx.font = `bold 34px ${HAND}`; ctx.fillText('z z z', 10, 44); });
+    // YXZ: turn the head round, then nod it up or down
+    const turn = (name, x, y, z) => { const b = bones[name]; if (b) b.bone.quaternion.copy(b.rest).multiply(q.setFromEuler(e.set(x, y, z, 'YXZ'))); };
+    let headYaw = 0, headUp = 0, wake = 0;
+    const zzzAt = new THREE.Vector3(1.32, 0.5, -0.35);
+    // "z z z" rising from Simón's head while he sleeps (and a big one if you wake him)
+    // white letters with a dark outline, so they read on the light bedspread and wall
+    const zz = canvasTex(128, 64, (ctx) => {
+      ctx.clearRect(0, 0, 128, 64);
+      ctx.font = `bold 34px ${HAND}`; ctx.lineJoin = 'round';
+      ctx.lineWidth = 7; ctx.strokeStyle = 'rgba(38, 44, 70, 0.85)'; ctx.strokeText('z z z', 10, 44);
+      ctx.fillStyle = '#ffffff'; ctx.fillText('z z z', 10, 44);
+    });
     const zzz = new THREE.Sprite(new THREE.SpriteMaterial({ map: zz.tex, transparent: true, opacity: 0, depthWrite: false }));
-    zzz.scale.set(0.16, 0.08, 1);
+    zzz.scale.set(0.2, 0.1, 1);
     root.add(zzz);
     const local = new THREE.Vector3();
     anim.push((t, dt) => {
-      simon.scale.y = 1 + Math.sin(t * 1.2) * 0.02; // slow sleepy breathing
+      // Simón: slow sleepy breathing, a breath every ~4.5 s
+      simonBones.Chest?.scale.setScalar(1 + (0.5 - 0.5 * Math.cos(t * 1.4)) * 0.1);
       const curious = Math.max(dogs.attention, Math.sin(t * 0.55) > 0.6 ? 1 : 0);
       dogs.attention = Math.max(0, dogs.attention - dt * 0.4);
       local.copy(dogs.lookAt);
       manolo.worldToLocal(local);
       const yaw = THREE.MathUtils.clamp(Math.atan2(local.x, local.z), -0.9, 0.9);
-      headYaw += ((curious ? yaw : Math.sin(t * 0.4) * 0.15) - headYaw) * Math.min(1, dt * 3);
-      turn('Head', 0, headYaw, Math.sin(t * 0.9) * 0.04);               // local y is up: he turns his head
-      turn('Tail', 0, 0, Math.sin(t * (6 + 8 * curious)) * (0.3 + 0.3 * curious)); // local z is up: a wag
-      zzz.material.opacity = Math.max(0, zzz.material.opacity - dt * 0.4);
-      zzz.position.set(1.32, 0.75 + (1 - zzz.material.opacity) * 0.25, -0.35);
+      // and up, at your eyes: his own are ~0.4 m off the floor
+      const up = THREE.MathUtils.clamp(Math.atan2(local.y - 0.4, Math.hypot(local.x, local.z)), -0.2, 0.55);
+      const k = Math.min(1, dt * 3);
+      headYaw += ((curious ? yaw : Math.sin(t * 0.4) * 0.15) - headYaw) * k;
+      headUp += ((curious ? up : 0) - headUp) * k;
+      turn('Head', -headUp, headYaw, Math.sin(t * 0.9) * 0.04); // local y is up; -x looks up
+      // his tail lies on the floor: it lifts and drops back (local x lifts it), faster when he is curious
+      turn('Tail', (0.5 - 0.5 * Math.cos(t * (5 + 7 * curious))) * (0.25 + 0.3 * curious), 0, 0);
+      simonBones.Head?.getWorldPosition(zzzAt);
+      root.worldToLocal(zzzAt);
+      wake = Math.max(0, wake - dt * 0.4);
+      const ph = (t % 4.5) / 4.5, doze = Math.sin(Math.PI * ph) * 0.75;
+      zzz.material.opacity = Math.max(doze, wake);
+      const rise = wake > doze ? 1 - wake : ph;
+      zzz.position.set(zzzAt.x + 0.06 + rise * 0.05, zzzAt.y + 0.06 + rise * 0.12, zzzAt.z);
     });
     // where each collar tag starts its flight from
     const simonTag = group(simon, [-0.08, 0.1, 0.05]);
     const manoloTag = group(manolo, [0, 0.27, 0.13]);
-    hotspots.simon = { kind: 'inspect', group: simon, anchor: [0, 0.3, 0], from: simonTag, aspect: 1, pages: [page(400, 400, dogTag('simon')), page(400, 400, dogTagBack('simon'))], react: () => { zzz.material.opacity = 1; } };
+    hotspots.simon = { kind: 'inspect', group: simon, anchor: [0, 0.3, 0], from: simonTag, aspect: 1, pages: [page(400, 400, dogTag('simon')), page(400, 400, dogTagBack('simon'))], react: () => { wake = 1; } };
     hotspots.manolo = { kind: 'inspect', group: manolo, anchor: [0, 0.6, 0], from: manoloTag, aspect: 1, pages: [page(400, 400, dogTag('manolo')), page(400, 400, dogTagBack('manolo'))], sound: 'bark', react: () => { dogs.attention = 1; } };
   }
 
