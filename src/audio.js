@@ -134,6 +134,20 @@ export function createAudio() {
     music.gain.setTargetAtTime(on ? 0.9 : 0, ctx.currentTime, 0.5);
   }
 
+  // in the background (screen off, another app, the tab hidden or minimized; on a phone
+  // also when the page loses focus, like under the notification shade) everything goes
+  // quiet, and the music picks up again when you're back. Phones may only let it resume
+  // on a touch, hence the pointerdown.
+  const phone = matchMedia('(pointer: coarse)').matches;
+  const away = () => document.hidden || (phone && !document.hasFocus());
+  function sync(e) {
+    if (!ctx) return;
+    if (e?.type === 'pagehide' || away()) ctx.suspend();
+    else if (on) ctx.resume();
+  }
+  for (const e of ['visibilitychange', 'pagehide', 'pageshow', 'blur', 'focus']) addEventListener(e, sync);
+  addEventListener('pointerdown', sync, true);
+
   // one-shots work even with the music off
   function ensure() { if (!ctx) init(); ctx.resume(); return ctx.currentTime; }
   function click() {
