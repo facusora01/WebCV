@@ -285,7 +285,7 @@ export const projects = [
       'App web para parejas: cada uno desliza productos y la app muestra coincidencias en tiempo real y una lista de deseos compartida.'
     ),
     features: L([], []),
-    links: [{ kind: 'live', url: 'https://wantit-e3418.web.app/' }]
+    links: []
   },
   {
     id: 'appointa',
