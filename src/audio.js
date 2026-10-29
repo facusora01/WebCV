@@ -1,6 +1,6 @@
 // A small lofi loop synthesized with Web Audio (no audio files): soft electric
 // piano chords, a round bass, a lazy swung beat and a little vinyl dust.
-// Also the one-shot sounds (door handle click, dogs barking).
+// Also the one-shot sounds (door handle click, dogs barking, the desk buddies, coffee).
 const BPM = 72;
 const BEAT = 60 / BPM;
 // Fmaj9 → Em7 → Dm9 → Cmaj9, one bar each (MIDI notes)
@@ -155,5 +155,42 @@ export function createAudio() {
     }
   }
 
-  return { set, toggle: () => set(!on), on: () => on, click, bark };
+  // a quick rising "bip-bup-biii": Claudio being happy, MotiBot about to talk
+  function happy(notes = [76, 81, 88]) {
+    const t = ensure();
+    notes.forEach((n, i) => {
+      const at = t + i * 0.09;
+      const o = ctx.createOscillator();
+      o.type = 'square';
+      o.frequency.setValueAtTime(hz(n), at);
+      o.frequency.exponentialRampToValueAtTime(hz(n + 2), at + 0.08);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(0.05, at + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + (i === notes.length - 1 ? 0.25 : 0.08));
+      o.connect(g).connect(master);
+      o.start(at); o.stop(at + 0.3);
+    });
+  }
+  // blowing on the coffee: soft breathy noise; a sip: a short slurp that rises
+  function blow() {
+    const t = ensure();
+    hiss(t, 0.9, 700, 'lowpass', 0.22, master);
+  }
+  function sip() {
+    const t = ensure();
+    const s = ctx.createBufferSource();
+    s.buffer = noise;
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 6;
+    f.frequency.setValueAtTime(500, t);
+    f.frequency.exponentialRampToValueAtTime(1600, t + 0.35);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.35, t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+    s.connect(f).connect(g).connect(master);
+    s.start(t); s.stop(t + 0.45);
+  }
+
+  return { set, toggle: () => set(!on), on: () => on, click, bark, happy, blow, sip };
 }

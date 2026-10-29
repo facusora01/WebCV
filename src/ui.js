@@ -188,6 +188,15 @@ export function createUI({ audio, onFocus, onLang, onTermKey, onTermInput, termL
     },
     placeMarker(id, x, y, visible) { place(markers[id], x, y, visible); },
     placeHandle(x, y, visible) { place(handleBtn, x, y, visible); },
+    // MotiBot's speech bubble: say() sets the phrase, placeBubble() keeps it over his head
+    say(p) {
+      const b = $('#bubble');
+      b.textContent = tr(p);
+      const by = document.createElement('small');
+      by.textContent = `— ${p.by}`;
+      b.append(by);
+    },
+    placeBubble(x, y, visible) { place($('#bubble'), x, y, visible); },
     hover(id) {
       for (const [k, m] of Object.entries(markers)) m.classList.toggle('hot', k === id);
       handleBtn.classList.toggle('hot', id === 'handle');

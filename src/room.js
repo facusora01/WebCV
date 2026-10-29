@@ -57,6 +57,9 @@ function group(parent, [x, y, z], hotspot, rotY = 0) {
   return g;
 }
 
+// an invisible box that only catches clicks, for things too small to point at easily
+const hitBox = (parent, size, pos) => put(parent, new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({ visible: false }), pos);
+
 // Canvas-backed texture. draw(ctx, w, h, t) runs again on every redraw(t).
 function canvasTex(w, h, draw, repeat) {
   const canvas = document.createElement('canvas');
@@ -162,7 +165,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   buildWindow(root, anim, sky);
   const hall = dynamic(group(root, [0, 0, 0]));
   buildHallway(hall, anim);
-  const door = buildDoor(root, anim);
+  const door = buildDoor(root, anim, sky);
 
   // ---------- zones: walk up to the desk or the printer table first ----------
   const zone = (id, center, size, view) => {
@@ -194,8 +197,8 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   box(desk, [0.42, 0.025, 0.14], [-0.15, 0.783, 0.14], C.black); // keyboard
   for (let i = 0; i < 4; i++) box(desk, [0.39, 0.003, 0.022], [-0.15, 0.796, 0.09 + i * 0.03], M('#24242c', { emissive: '#3a5cff', emissiveIntensity: 0.12 }));
   buildMouse(desk, [0.16, 0.77, 0.15]);
-  buildMug(desk, [-0.48, 0.77, 0.18], anim);
-  buildClaudio(desk, [-0.36, 0.77, 0.0], anim);
+  hotspots.mug = buildMug(desk, [-0.48, 0.77, 0.18], anim);
+  hotspots.claudio = buildClaudio(desk, [-0.36, 0.77, 0.0], anim);
   // PC tower under the far end of the desk, a little proud of the front edge
   box(desk, [0.2, 0.45, 0.42], [0.38, 0.225, 0.1], C.black);
   box(desk, [0.005, 0.38, 0.005], [0.38, 0.225, 0.311], glow('#3a5cff', 2));
@@ -470,8 +473,9 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     cyl(g, [0.025, 0.025, 0.15, 8], [-0.15, 1.31, 0.0], '#f06a25');
     cyl(g, [0.025, 0.025, 0.17, 8], [0.13, 1.32, 0.0], '#e9edf2');
     box(g, [0.25, 0.04, 0.12], [0.0, 0.25, 0.14], '#2b2b2b');
-    box(g, [0.14, 0.01, 0.03], [-0.08, 0.93, 0.06], C.yellow);
-    box(g, [0.06, 0.02, 0.06], [0.1, 0.93, 0.06], C.red);
+    box(g, [0.14, 0.01, 0.03], [-0.13, 0.93, 0.03], C.yellow);
+    box(g, [0.06, 0.02, 0.06], [0.16, 0.93, 0.03], C.red);
+    hotspots.motibot = buildMotibot(g, [0, 0.96, 0.112], anim); // on the free shelf above the server
 
     const s = group(g, [0, 0.565, 0.08], 'server');
     box(s, [0.3, 0.02, 0.2], [0, 0.01, 0], C.graphite);
@@ -800,39 +804,133 @@ function buildMouse(parent, [x, y, z]) {
 }
 
 // ---------- Claudio: a small red 3D-printed buddy that lives on the desk ----------
+// Clicked, he chirps, shuts his eyes happily and does two little jumps.
 function buildClaudio(parent, pos, anim) {
-  const g = group(parent, pos, null, 0.15);
+  const g = group(parent, pos, 'claudio', 0.15);
   const red = M('#e8352a', { roughness: 0.6 });
-  box(g, [0.05, 0.034, 0.03], [0, 0.027, 0], red);                    // body
-  for (const s of [-1, 1]) box(g, [0.01, 0.014, 0.014], [s * 0.03, 0.026, 0], red); // arms
-  for (const x of [-0.018, -0.008, 0.008, 0.018]) box(g, [0.006, 0.012, 0.012], [x, 0.006, 0], red); // legs
-  for (const s of [-1, 1]) box(g, [0.004, 0.008, 0.002], [s * 0.011, 0.032, 0.0155], C.black); // eyes
-  anim.push((t) => { g.position.y = pos[1] + Math.max(0, Math.sin(t * 2.2)) ** 8 * 0.008; }); // a little hop now and then
-  g.userData.dynamic = true;
+  const body = group(g, [0, 0, 0]);
+  box(body, [0.05, 0.034, 0.03], [0, 0.027, 0], red);                    // body
+  const arms = [-1, 1].map((s) => box(body, [0.01, 0.014, 0.014], [s * 0.03, 0.026, 0], red));
+  for (const x of [-0.018, -0.008, 0.008, 0.018]) box(body, [0.006, 0.012, 0.012], [x, 0.006, 0], red); // legs
+  const eyes = [-1, 1].map((s) => box(body, [0.004, 0.008, 0.002], [s * 0.011, 0.032, 0.0155], C.black));
+  // a bigger invisible box, so something this small is easy to click
+  hitBox(g, [0.08, 0.07, 0.06], [0, 0.03, 0]);
+  let now = 0, joy = -9; // time of the last click
+  anim.push((t) => {
+    now = t;
+    const k = t - joy;
+    if (k > 1.4) { // idle: a little hop now and then
+      body.position.y = Math.max(0, Math.sin(t * 2.2)) ** 8 * 0.008;
+      body.scale.set(1, 1, 1);
+      for (const e of eyes) e.scale.y = 1;
+      for (const a of arms) a.rotation.z = 0;
+      return;
+    }
+    const hop = k < 1.1 ? Math.abs(Math.sin((k / 1.1) * Math.PI * 2)) : 0; // two jumps
+    body.position.y = hop * 0.035;
+    const squash = k < 1.1 && hop < 0.15 ? 0.85 : 1; // squashes as he lands and takes off
+    body.scale.set(2 - squash, squash, 2 - squash);
+    for (const e of eyes) e.scale.y = 0.2; // eyes shut, happy
+    arms.forEach((a, i) => { a.rotation.z = (i ? 1 : -1) * hop * 0.9; }); // arms up
+  });
+  return { kind: 'action', group: g, anchor: [0, 0.09, 0], sound: 'happy', react: () => { joy = now; } };
+}
+
+// ---------- MotiBot: a raccoon with a call-centre headset ----------
+// Sits on the front edge of a shelf (origin: where he sits, +z towards the room),
+// swinging his feet and bobbing his head. Clicked, he hops and says a phrase (main.js).
+function buildMotibot(parent, pos, anim) {
+  const g = group(parent, pos, 'motibot');
+  g.scale.setScalar(1.25);
+  const grey = M('#8d919a', { roughness: 0.8 }), white = M('#f2f1ee', { roughness: 0.8 }), dark = M('#3a3d45', { roughness: 0.8 });
+  const teal = M('#2b6f78', { roughness: 0.5 }), band = M('#24474f', { roughness: 0.5 });
+  const blob = (p, [sx, sy, sz], at, mat, rot) => { const m = ball(p, 1, at, mat, 2); m.scale.set(sx, sy, sz); if (rot) m.rotation.set(...rot); return m; };
+  // a thin rod from a to b
+  const rod = (p, a, b, r, mat) => {
+    const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), d = B.clone().sub(A);
+    const m = cyl(p, [r, r, d.length(), 6], A.clone().add(B).multiplyScalar(0.5).toArray(), mat);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
+    return m;
+  };
+  const body = group(g, [0, 0, 0]);
+  blob(body, [0.042, 0.05, 0.036], [0, 0.045, -0.005], grey);
+  blob(body, [0.028, 0.036, 0.012], [0, 0.04, 0.026], white); // belly
+  for (const s of [-1, 1]) {
+    blob(body, [0.012, 0.026, 0.012], [s * 0.04, 0.032, 0.018], grey, [0.3, 0, s * 0.35]); // arms, hands on the edge
+    blob(body, [0.013, 0.011, 0.02], [s * 0.018, 0.01, 0.018], grey); // thighs
+  }
+  // shins and feet hang over the edge from the knees, and swing
+  const legs = [-1, 1].map((s) => {
+    const knee = group(body, [s * 0.018, 0.008, 0.034]);
+    blob(knee, [0.011, 0.022, 0.012], [0, -0.018, 0], grey);
+    blob(knee, [0.013, 0.008, 0.016], [0, -0.04, 0.006], dark);
+    return knee;
+  });
+  const tail = group(body, [0.03, 0.02, -0.035]);
+  tail.rotation.set(-0.7, 0, -1.0);
+  for (let i = 0; i < 5; i++) blob(tail, [0.017 - i * 0.002, 0.012, 0.017 - i * 0.002], [0, i * 0.018, 0], i % 2 ? dark : grey);
+
+  const head = group(body, [0, 0.105, 0]);
+  blob(head, [0.05, 0.043, 0.044], [0, 0, 0], grey);
+  blob(head, [0.044, 0.026, 0.03], [0, -0.012, 0.02], white); // face
+  for (const s of [-1, 1]) {
+    blob(head, [0.019, 0.013, 0.008], [s * 0.02, 0, 0.038], dark, [0, 0, -s * 0.35]); // mask
+    blob(head, [0.008, 0.009, 0.005], [s * 0.019, 0.001, 0.044], C.black); // eyes
+    ball(head, 0.0028, [s * 0.016, 0.005, 0.0485], white, 1);
+    put(head, new THREE.ConeGeometry(0.017, 0.028, 8), grey, [s * 0.034, 0.038, -0.004], [0, 0, -s * 0.45]); // ears
+    put(head, new THREE.ConeGeometry(0.009, 0.016, 8), dark, [s * 0.033, 0.036, 0.004], [0, 0, -s * 0.45]);
+    cyl(head, [0.017, 0.017, 0.014, 12], [s * 0.052, 0, -0.002], teal, [0, 0, Math.PI / 2]); // headset cups
+    cyl(head, [0.009, 0.009, 0.004, 12], [s * 0.06, 0, -0.002], glow('#4ff3ff', 2), [0, 0, Math.PI / 2]);
+  }
+  blob(head, [0.008, 0.006, 0.006], [0, -0.014, 0.05], C.black); // nose
+  put(head, new THREE.TorusGeometry(0.006, 0.0012, 4, 8, Math.PI), C.black, [0, -0.023, 0.047], [0, 0, Math.PI]); // smile
+  put(head, new THREE.TorusGeometry(0.052, 0.005, 6, 16, Math.PI), band, [0, 0.002, -0.004]); // headband
+  rod(head, [-0.056, -0.006, 0.004], [-0.02, -0.026, 0.046], 0.0022, band); // mic boom
+  ball(head, 0.005, [-0.02, -0.026, 0.046], C.black, 1);
+  rod(head, [-0.06, 0.008, -0.002], [-0.068, 0.034, -0.002], 0.0018, band); // antenna
+  ball(head, 0.004, [-0.068, 0.034, -0.002], teal, 1);
+  // a bigger invisible box, so he is easy to click from across the room
+  hitBox(g, [0.15, 0.2, 0.12], [0, 0.08, 0.01]);
+
+  let now = 0, joy = -9;
+  anim.push((t) => {
+    now = t;
+    const k = t - joy, excited = k < 1.2;
+    legs.forEach((l, i) => { l.rotation.x = Math.sin(t * (excited ? 5 : 2.6) + i * Math.PI) * 0.55; }); // like on a swing
+    head.rotation.z = Math.sin(t * 1.6) * (excited ? 0.25 : 0.12);
+    head.rotation.x = Math.sin(t * 3.2) * 0.05;
+    tail.rotation.z = -1.0 + Math.sin(t * 1.3) * 0.15;
+    body.position.y = excited ? Math.abs(Math.sin((k / 1.2) * Math.PI * 2)) * 0.03 : 0;
+  });
+  return { kind: 'talk', group: g, anchor: [0, 0.2, 0], sound: 'happy', react: () => { joy = now; } };
 }
 
 // ---------- mug with coffee and steam ----------
+// Clicked, it is picked up (main.js moves it): you blow on it, which pushes the steam
+// away (`blow`, 0..1, along the mug's -z), take a sip, and put it back on its coaster.
 function buildMug(parent, [x, y, z], anim) {
-  const g = group(parent, [x, y, z]);
-  box(g, [0.12, 0.006, 0.12], [0, 0.003, 0], '#e8d8c0'); // coaster
-  put(g, new THREE.CylinderGeometry(0.04, 0.035, 0.12, 12, 1, true), M('#bfe0d6', { side: THREE.DoubleSide }), [0, 0.066, 0]);
-  cyl(g, [0.035, 0.035, 0.004, 12], [0, 0.008, 0], '#bfe0d6');
-  cyl(g, [0.038, 0.038, 0.004, 12], [0, 0.11, 0], '#3b2314'); // the coffee
-  put(g, new THREE.TorusGeometry(0.026, 0.007, 6, 10, Math.PI), '#bfe0d6', [-0.04, 0.066, 0], [0, 0, Math.PI / 2]); // handle: a half ring in the plane through the mug's axis
+  box(parent, [0.12, 0.006, 0.12], [x, y + 0.003, z], '#e8d8c0'); // coaster: it stays on the desk
+  const g = group(parent, [x, y + 0.006, z], 'mug');
+  put(g, new THREE.CylinderGeometry(0.04, 0.035, 0.12, 12, 1, true), M('#bfe0d6', { side: THREE.DoubleSide }), [0, 0.06, 0]);
+  cyl(g, [0.035, 0.035, 0.004, 12], [0, 0.002, 0], '#bfe0d6');
+  const coffee = cyl(g, [0.038, 0.038, 0.004, 12], [0, 0.104, 0], '#3b2314');
+  put(g, new THREE.TorusGeometry(0.026, 0.007, 6, 10, Math.PI), '#bfe0d6', [-0.04, 0.06, 0], [0, 0, Math.PI / 2]); // handle: a half ring in the plane through the mug's axis
   const steam = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.25, depthWrite: false });
   const puffs = [0, 1, 2, 3].map((i) => {
     const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.018, 1), steam.clone());
     g.add(m);
     return { m, p: i / 4 };
   });
+  const mug = { kind: 'mug', group: g, anchor: [0, 0.2, 0], coffee, blow: 0 };
   anim.push((t) => {
     for (const s of puffs) {
       const k = (t * 0.28 + s.p) % 1;
-      s.m.position.set(Math.sin(k * 7 + s.p * 9) * 0.015, 0.12 + k * 0.22, Math.cos(k * 5 + s.p * 4) * 0.01);
+      s.m.position.set(Math.sin(k * 7 + s.p * 9) * 0.015, coffee.position.y + 0.01 + k * 0.22 * (1 - mug.blow * 0.6), Math.cos(k * 5 + s.p * 4) * 0.01 - mug.blow * k * 0.25);
       s.m.scale.setScalar(0.6 + k * 1.8);
-      s.m.material.opacity = 0.28 * Math.sin(k * Math.PI);
+      s.m.material.opacity = 0.28 * Math.sin(k * Math.PI) * (1 - mug.blow * 0.5);
     }
   });
+  return mug;
 }
 
 // ---------- filament dryer (Creality CFS): four spools side by side under a smoked lid ----------
@@ -1250,13 +1348,18 @@ function buildDeskLamp(g, anim, sky) {
     M('#d9dade', { roughness: 0.3, metalness: 0.7, flatShading: false, side: THREE.BackSide }), [0, 0, 0]).castShadow = false;
   const bulb = ball(shade, 0.026, [0, 0.03, 0], glow(C.lamp, 0.1), 2);
   bulb.castShadow = false;
-  const light = new THREE.SpotLight(C.lamp, 0, 2.2, 0.75, 0.6, 1.4); // no shadow: it would render the room again
+  // bright and wide enough to read by: it reaches the cheat sheet and the far end of the desk
+  const light = new THREE.SpotLight(C.lamp, 0, 3.2, 1.05, 0.75, 1.1); // no shadow: it would render the room again
   light.position.set(0, 0.03, 0);
   light.target.position.set(0, -1, 0);
   shade.add(light, light.target);
+  // the glow bouncing off the desk: lights what stands upright, like the cheat sheet
+  const bounce = new THREE.PointLight(C.lamp, 0, 1.6, 1.2);
+  bounce.position.set(0, -0.1, 0);
+  shade.add(bounce);
 
   let on = false;
-  const set = (v) => { on = v; light.intensity = on ? 3 : 0; bulb.material.emissiveIntensity = on ? 3 : 0.1; };
+  const set = (v) => { on = v; light.intensity = on ? 11 : 0; bounce.intensity = on ? 1.4 : 0; bulb.material.emissiveIntensity = on ? 3 : 0.1; };
   let dark = null;
   anim.push(() => {
     const d = sky.night > 0.5;
@@ -1265,7 +1368,7 @@ function buildDeskLamp(g, anim, sky) {
   return { kind: 'toggle', group: g, anchor: [0.1, 0.3, 0], toggle() { set(!on); } };
 }
 
-function buildDoor(root, anim) {
+function buildDoor(root, anim, sky) {
   const z = R.z1 + 0.06;
   const white = M('#f6f3ee', { roughness: 0.6 });
   for (const face of [-0.075, 0.075]) {
@@ -1300,14 +1403,20 @@ function buildDoor(root, anim) {
   for (const s of [-1, 1]) {
     box(sign, [Math.hypot(half, drop), 0.003, 0.003], [s * half / 2, -drop / 2, 0], '#6a4a2a', [0, 0, -s * Math.atan2(drop, half)]);
   }
-  const plate = canvasTex(512, 160, (ctx, w2, h2) => {
-    ctx.fillStyle = '#c99a63'; ctx.fillRect(0, 0, w2, h2);
-    for (let i = 0; i < 18; i++) { ctx.fillStyle = `rgba(90,50,20,${0.05 + (i % 5) * 0.02})`; ctx.fillRect(0, (i * 53) % h2, w2, 2 + (i % 3)); }
-    ctx.fillStyle = '#3a2412'; ctx.textAlign = 'center'; ctx.font = `bold 72px ${HAND}`;
-    ctx.fillText('Facundo Sorasio', w2 / 2, h2 / 2 + 24);
+  // light wood with dark, thick lettering, so it reads from the hallway
+  const plate = canvasTex(1024, 320, (ctx, w2, h2) => {
+    ctx.fillStyle = '#e2bb85'; ctx.fillRect(0, 0, w2, h2);
+    for (let i = 0; i < 18; i++) { ctx.fillStyle = `rgba(120,70,30,${0.05 + (i % 5) * 0.02})`; ctx.fillRect(0, (i * 106) % h2, w2, 4 + (i % 3) * 2); }
+    ctx.textAlign = 'center'; ctx.font = `bold 158px ${HAND}`;
+    ctx.fillStyle = 'rgba(255,240,215,0.6)'; ctx.fillText('Facundo Sorasio', w2 / 2 + 3, h2 / 2 + 55); // carved edge
+    ctx.fillStyle = '#2a170a'; ctx.fillText('Facundo Sorasio', w2 / 2, h2 / 2 + 52);
   });
   box(sign, [SW, 0.125, 0.015], [0, -drop - 0.0625, 0], M('#b8874f'));
-  put(sign, new THREE.PlaneGeometry(SW - 0.01, 0.12), paperMat(plate.tex), [0, -drop - 0.0625, 0.0081]);
+  // the plate gives off a little light of its own, more at night, when only the moon is out
+  const face = new THREE.MeshStandardMaterial({ map: plate.tex, emissiveMap: plate.tex, emissive: '#ffffff', emissiveIntensity: 0.2, roughness: 0.9 });
+  put(sign, new THREE.PlaneGeometry(SW - 0.01, 0.12), face, [0, -drop - 0.0625, 0.0081]);
+  let dark = null;
+  anim.push(() => { if (sky.night !== dark) { dark = sky.night; face.emissiveIntensity = 0.2 + 0.45 * Math.max(0, dark); } });
   const REST = 0.09;
   const swing = { a: REST, v: 0 };
   sign.rotation.z = REST;
