@@ -22,7 +22,7 @@ const ui = createUI({
 });
 const terminal = createTerminal({ getLang: ui.lang, onExit: () => api.back?.() });
 
-// on low-density displays edges get MSAA instead of extra resolution (see maxScale)
+// on low-density displays edges also get MSAA (dense ones have pixels to spare)
 const msaa = devicePixelRatio < 2;
 let renderer;
 try {
@@ -44,8 +44,10 @@ function start() {
   const dbg = gl.getExtension('WEBGL_debug_renderer_info');
   const software = /swiftshader|basic render|llvmpipe|software/i.test(dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : '');
   const lowPower = software || coarse || navigator.hardwareConcurrency <= 4;
-  // MSAA already smooths the edges: rendering more pixels on top of it roughly doubles the cost
-  const maxScale = Math.min(devicePixelRatio, lowPower ? 1.25 : msaa ? 1 : 1.5);
+  // MSAA already smooths the edges; a little extra resolution on top keeps thin lines from
+  // stair-stepping. The dynamic resolution below backs off if the frames can't keep up.
+  const maxScale = Math.min(Math.max(devicePixelRatio, 1.25), lowPower ? 1.25 : 1.5);
+  const minScale = software ? 0.5 : 0.75; // below this the room looks pixelated
   let scale = software ? Math.min(maxScale, 0.6) : maxScale;
   renderer.setPixelRatio(scale);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -274,10 +276,11 @@ function start() {
     await move(sip, 0.6);
     audio.sip();
     s.coffee.position.y = Math.max(0.06, s.coffee.position.y - 0.012); // a little less coffee each time
-    await tween(0.5, () => {});
+    await tween(0.9, () => {});
     await move(held, 0.5);
     const to = { pos: home.parent.localToWorld(home.pos.clone()), quat: home.parent.getWorldQuaternion(new THREE.Quaternion()).multiply(home.quat) };
     await move(to, 0.8, 0.05);
+    audio.clink();
     home.parent.attach(g);
     g.position.copy(home.pos); g.quaternion.copy(home.quat);
     s.busy = false;
@@ -576,15 +579,15 @@ function start() {
     if (mode === 'door' && t - lastShadow > 1 / 15) { lastShadow = t; hallSun.shadow.needsUpdate = true; }
     if (mode === 'entering' && t - lastShadow > 1 / 15) { lastShadow = t; shadowsDirty(); }
 
-    // dynamic resolution: if frames are slow, render fewer pixels (never below half)
+    // dynamic resolution: if frames are slow, render fewer pixels (never below minScale)
     frames++;
     if (t - fpsSince > 2) {
       const fps = frames / (t - fpsSince);
       frames = 0; fpsSince = t;
       // fewer pixels when frames drop; more again after a couple of smooth stretches
-      smooth = fps > 57 ? smooth + 1 : 0;
-      if (fps < 45 && scale > 0.5) { scale = Math.max(0.5, scale * 0.8); renderer.setPixelRatio(scale); resize(); }
-      else if (smooth >= 2 && scale < capScale()) { smooth = 0; scale = Math.min(capScale(), scale * 1.15); renderer.setPixelRatio(scale); resize(); }
+      smooth = fps > 55 ? smooth + 1 : 0;
+      if (fps < 40 && scale > minScale) { scale = Math.max(minScale, scale * 0.9); renderer.setPixelRatio(scale); resize(); }
+      else if (smooth >= 1 && scale < capScale()) { smooth = 0; scale = Math.min(capScale(), scale * 1.15); renderer.setPixelRatio(scale); resize(); }
     }
 
     if (mode === 'zone' && !tweens.length && zoneLook) {

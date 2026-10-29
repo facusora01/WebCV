@@ -71,7 +71,14 @@ made up: no real document numbers, no real bank or government branding.
 The dogs, the backpack and the DualSense in `public/models/` were made with
 fal.ai: a reference image from a text prompt (flux/dev), then image-to-3D
 (Trellis), then `gltf-transform optimize` (simplify, WebP textures, meshopt).
-Each is about 50 KB. Everything else is built from primitives in `room.js`.
+Each is about 50 KB.
+
+MotiBot follows his avatar (`images/Reference/MotiBot.jpg`): flux-pro Kontext put him
+on white, Meshy 6 turned that into a textured 3D model, and `tools/motibot.py` rigs it
+in Blender: decimated to half, a skeleton (Body, Head, LegL, LegR, Tail) with soft
+weights so the joints bend instead of tearing, scaled to metres with the origin on the
+front edge of his seat. The steps to rebuild it are at the top of the script. Keep the
+bone names: `room.js` animates them by name. Everything else is built from primitives in `room.js`.
 
 ## Performance
 
