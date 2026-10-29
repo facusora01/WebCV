@@ -413,6 +413,18 @@ export const CARD_THEMES = {
   mobile: ['#ff8a5c', '#e2508a', '#fff'], uni: ['#f3ead8', '#d9c7a6', '#3b2a1a']
 };
 
+// a card's skills in two columns; one too wide for its column gets the whole line
+export function skillList(ctx, items, x, y, colW, lineH, maxRows) {
+  let col = 0, row = 0;
+  for (const it of items) {
+    const wide = ctx.measureText(it).width > colW - 12;
+    if (wide && col) { col = 0; row++; }
+    if (row >= maxRows) return;
+    ctx.fillText(it, x + col * colW, y + row * lineH);
+    if (wide || col) { col = 0; row++; } else col = 1;
+  }
+}
+
 // back of a skill card: what is on it, in big type
 export function skillBack(c) {
   const [a, b, ink] = CARD_THEMES[c.theme];
@@ -421,7 +433,7 @@ export function skillBack(c) {
     ctx.font = `600 30px ${SERIF}`; ctx.fillText(c.name, 28, 124);
     ctx.font = `20px ${MONO}`; ctx.globalAlpha = 0.8; ctx.fillText(c.kind[L].toUpperCase(), 28, 152); ctx.globalAlpha = 1;
     ctx.font = `22px ${MONO}`;
-    c.items.forEach((it, i) => ctx.fillText(`· ${it}`, 28 + (i % 2) * 240, 196 + Math.floor(i / 2) * 32));
+    skillList(ctx, c.items.map((it) => `· ${it}`), 28, 196, 240, 32, 4);
   };
 }
 // back of the developer ID: about me

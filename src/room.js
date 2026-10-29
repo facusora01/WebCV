@@ -13,7 +13,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { screenText, cards as CARDS } from './content.js';
 import {
   makeScreen, tvApp, browserApp, serverApp, phoneApp, printerApp, pageCanvas, CARD_THEMES,
-  skillBack, idBack, stickerBack, earTag, earTagBack, notebookPages, drawCover, baTime, baNight, dogTag, dogTagBack
+  skillBack, skillList, idBack, stickerBack, earTag, earTagBack, notebookPages, drawCover, baTime, baNight, dogTag, dogTagBack
 } from './screens.js';
 
 export const C = {
@@ -1133,7 +1133,7 @@ const skillFront = (c) => (ctx, w, h, L) => {
   ctx.font = `20px ${MONO}`; ctx.textAlign = 'right'; ctx.fillText(c.kind[L].toUpperCase(), w - 32, 58); ctx.textAlign = 'left';
   ctx.fillStyle = '#e6c46c'; ctx.beginPath(); ctx.roundRect(32, 92, 62, 46, 8); ctx.fill();
   ctx.fillStyle = ink; ctx.font = `22px ${MONO}`;
-  c.items.slice(0, 6).forEach((it, i) => ctx.fillText(it, 32 + (i % 2) * 230, 186 + Math.floor(i / 2) * 32));
+  skillList(ctx, c.items, 32, 186, 230, 32, 3);
   ctx.font = `18px ${MONO}`; ctx.globalAlpha = 0.8; ctx.fillText('FACUNDO SORASIO', 32, h - 26); ctx.globalAlpha = 1;
   ctx.restore();
 };
