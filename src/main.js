@@ -3,7 +3,7 @@ import { buildRoom } from './room.js';
 import { createUI } from './ui.js';
 import { createAudio } from './audio.js';
 import { createTerminal } from './terminal.js';
-import { hotspots as HOTSPOTS, motibotPhrases } from './content.js';
+import { hotspots as HOTSPOTS, motibotPhrases, mateBurns } from './content.js';
 import './style.css';
 
 const canvas = document.getElementById('scene');
@@ -227,8 +227,8 @@ function start() {
       openWallet();
     } else if (s.kind === 'backpack') {
       openBackpack(s);
-    } else if (s.kind === 'mug') {
-      drinkCoffee(s);
+    } else if (s.kind === 'mate') {
+      drinkMate(s);
     } else if (s.kind === 'talk') {
       // walk up to him; once there, each click is another phrase
       if (mode !== 'look') {
@@ -246,43 +246,93 @@ function start() {
       ui.say(motibotPhrases[i]);
     }
   }
-  const talk = { last: -1, until: 0, spot: null };
+  const talk = { last: -1, lastBurn: -1, until: 0, spot: null };
 
-  // ---------- the coffee: picked up, blown on, sipped, put back on its coaster ----------
-  async function drinkCoffee(s) {
+  // ---------- the mate: filled from the thermos where it stands, picked up, sipped, put back ----------
+  const BURN = 0.25; // how often the water is too hot: one sip in four
+  const stream = new THREE.Mesh(new THREE.CylinderGeometry(0.0025, 0.0025, 1, 6),
+    new THREE.MeshStandardMaterial({ color: '#e4f2ff', transparent: true, opacity: 0.6, roughness: 0.1 }));
+  stream.visible = false;
+  scene.add(stream);
+  const burnBubble = { anchorWorld: new THREE.Vector3(), burn: true };
+  async function drinkMate(s) {
     if (s.busy) return;
     s.busy = true;
-    const g = s.group;
-    g.userData.home ??= { parent: g.parent, pos: g.position.clone(), quat: g.quaternion.clone() };
-    const home = g.userData.home;
-    scene.attach(g);
-    // in front of you, a little low, handle to the left and the mug's -z pointing away from you
+    const g = s.group, th = room.thermos.group;
+    for (const o of [g, th]) o.userData.home ??= { parent: o.parent, pos: o.position.clone(), quat: o.quaternion.clone() };
+    const homeOf = (o) => {
+      const h = o.userData.home;
+      return { pos: h.parent.localToWorld(h.pos.clone()), quat: h.parent.getWorldQuaternion(new THREE.Quaternion()).multiply(h.quat) };
+    };
+    const putBack = (o) => { const h = o.userData.home; h.parent.attach(o); o.position.copy(h.pos); o.quaternion.copy(h.quat); };
+    scene.attach(th);
     const cq = camera.quaternion.clone();
     const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cq);
     const down = new THREE.Vector3(0, -1, 0).applyQuaternion(cq);
     const yawQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, new THREE.Euler().setFromQuaternion(cq, 'YXZ').y, 0));
+    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(yawQ);
+    const move = (o, to, dur, lift = 0) => {
+      const p0 = o.position.clone(), q0 = o.quaternion.clone();
+      return tween(dur, (e) => { o.position.lerpVectors(p0, to.pos, e); o.position.y += Math.sin(e * Math.PI) * lift; o.quaternion.slerpQuaternions(q0, to.quat, e); shadowsDirty(); });
+    };
+
+    // the left hand brings the thermos over from the table and tips its spout over the
+    // low side of the yerba, next to the bombilla
+    const spoutAt = (q, at) => at.clone().sub(room.thermos.spout.clone().applyQuaternion(q));
+    const tilt = (z) => yawQ.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, z)));
+    const over = g.localToWorld(s.pour.clone()).add(new THREE.Vector3(0, 0.05, 0));
+    const near = { quat: tilt(-0.5), pos: spoutAt(tilt(-0.5), over.clone().addScaledVector(right, -0.08).add(new THREE.Vector3(0, 0.06, 0))) };
+    const pour = { quat: tilt(-1.9), pos: spoutAt(tilt(-1.9), over) };
+    await move(th, near, 0.9, 0.1);
+    await move(th, pour, 0.5);
+    audio.pour();
+    stream.visible = true;
+    const a = new THREE.Vector3(), b = new THREE.Vector3();
+    await tween(1.4, (e) => {
+      th.localToWorld(a.copy(room.thermos.spout));
+      g.localToWorld(b.copy(s.pour));
+      stream.position.lerpVectors(a, b, 0.5);
+      stream.scale.set(1, a.distanceTo(b), 1);
+      stream.quaternion.setFromUnitVectors(UP, b.sub(a).normalize());
+      s.wet = Math.max(s.wet, e); s.heat = Math.max(s.heat, e); s.fill = Math.max(s.fill, e);
+    });
+    stream.visible = false;
+    await move(th, near, 0.4);
+    move(th, homeOf(th), 0.9, 0.1).then(() => putBack(th));
+
+    // picked up, the bombilla leaning towards you, and a sip: its tip comes up to your mouth
+    scene.attach(g);
     const held = { pos: camera.position.clone().addScaledVector(fwd, 0.42).addScaledVector(down, 0.15), quat: yawQ.clone() };
-    const sip = {
-      pos: camera.position.clone().addScaledVector(fwd, 0.2).addScaledVector(down, 0.12),
-      quat: yawQ.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0.95, 0, 0))) // top tilted towards you
-    };
-    const move = (to, dur, lift = 0) => {
-      const p0 = g.position.clone(), q0 = g.quaternion.clone();
-      return tween(dur, (e) => { g.position.lerpVectors(p0, to.pos, e); g.position.y += Math.sin(e * Math.PI) * lift; g.quaternion.slerpQuaternions(q0, to.quat, e); shadowsDirty(); });
-    };
-    await move(held, 0.8, 0.05);
-    audio.blow();
-    await tween(0.9, (e) => { s.blow = Math.sin(e * Math.PI); });
-    await move(sip, 0.6);
-    audio.sip();
-    s.coffee.position.y = Math.max(0.06, s.coffee.position.y - 0.012); // a little less coffee each time
-    await tween(0.9, () => {});
-    await move(held, 0.5);
-    const to = { pos: home.parent.localToWorld(home.pos.clone()), quat: home.parent.getWorldQuaternion(new THREE.Quaternion()).multiply(home.quat) };
-    await move(to, 0.8, 0.05);
+    await move(g, held, 0.7, 0.05);
+    const mouth = camera.position.clone().addScaledVector(fwd, 0.07).addScaledVector(down, 0.035);
+    const sip = { pos: mouth.clone().sub(s.tip.clone().applyQuaternion(yawQ)), quat: yawQ.clone() };
+    await move(g, sip, 0.7);
+    if (s.heat > 0.8 && Math.random() < BURN) {
+      // too hot: a first sip, you pull it away, and say so
+      audio.sip(0.4);
+      await tween(0.45, (e) => { s.fill = 1 - 0.15 * e; });
+      audio.burn();
+      let i;
+      do i = Math.floor(Math.random() * mateBurns.length); while (i === talk.lastBurn && mateBurns.length > 1);
+      talk.lastBurn = i;
+      ui.say(mateBurns[i]);
+      burnBubble.anchorWorld.copy(mouth).addScaledVector(down, -0.06).addScaledVector(fwd, 0.25);
+      talk.spot = burnBubble; talk.until = clock.elapsedTime + 2.6;
+      const p0 = sip.pos.clone().addScaledVector(fwd, 0.08).addScaledVector(down, 0.04);
+      await move(g, { pos: p0, quat: yawQ.clone() }, 0.15);
+      await tween(0.6, (e) => { g.position.copy(p0).addScaledVector(right, Math.sin(e * 30) * 0.006 * (1 - e)); });
+      // then, carefully, the rest
+      await move(g, sip, 0.5);
+    }
+    // sipped dry, and the last of it rattles up the bombilla
+    const f0 = s.fill;
+    audio.sip(1.5);
+    await tween(1.5, (e) => { s.fill = f0 * (1 - e); });
+    await tween(audio.slurp() * 0.85, () => {}); // held to your mouth until it's done
+    await move(g, held, 0.5);
+    await move(g, homeOf(g), 0.8, 0.05);
     audio.clink();
-    home.parent.attach(g);
-    g.position.copy(home.pos); g.quaternion.copy(home.quat);
+    putBack(g);
     s.busy = false;
   }
 
@@ -611,7 +661,7 @@ function start() {
       ui.placeMarker(s.id, (v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight, show && v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1);
     }
     // MotiBot's bubble, over his head while he talks and you are still in the room
-    const talking = talk.spot && t < talk.until && (mode === 'room' || mode === 'look');
+    const talking = talk.spot && t < talk.until && (mode === 'room' || mode === 'look' || talk.spot.burn);
     if (talking) v.copy(talk.spot.anchorWorld).project(camera);
     ui.placeBubble((v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight, talking && v.z < 1 && Math.abs(v.x) < 1 && Math.abs(v.y) < 1);
     v.copy(room.door.anchor).project(camera);
