@@ -444,7 +444,7 @@ export const experience = [
     )
   },
   {
-    title: L('Backend & automation', 'Backend y automatización'), date: '2020',
+    title: L('Backend & automation', 'Backend y automatización'), date: '2021',
     points: L(
       ['Helped build client websites and wrote scripts to automate workflows'],
       ['Ayudé a construir sitios para clientes y escribí scripts para automatizar flujos de trabajo']
@@ -467,7 +467,7 @@ export const cards = [
 export const education = {
   title: L('Computer Engineering · in progress', 'Ingeniería en Informática · en curso'),
   place: L('Universidad de Buenos Aires (UBA) · Faculty of Engineering', 'Universidad de Buenos Aires (UBA) · Facultad de Ingeniería'),
-  date: L('2020 — present', '2020 — actualidad')
+  date: L('2021 — present', '2021 — actualidad')
 };
 
 export const contact = [
