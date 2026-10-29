@@ -284,13 +284,12 @@ def head(M, skull, muzzle, ears, eyes_open=True, mat='white'):
 
 # ---------------------------------------------------------------- Manolo
 def build_manolo():
-    # torso, sitting: a fluffy pear leaning forward, with a full white chest
-    tilt = Matrix.Rotation(math.radians(-20), 4, 'X')
-    def torso_shape(n):
-        x, y, z = n
-        k = 1 + 0.12 * max(0, -z) - 0.15 * max(0, z)
-        return V((x * 0.46 * k, y * 0.44 * k, z * 0.62))
-    parts = [blob(2, None, 'white', torso_shape, Matrix.Translation(V((0, 0.12, 0.62))) @ tilt)]
+    # torso, sitting: extruded ring by ring along a straight spine from the seat to the
+    # withers, so the back is a straight slope (no hump), with a full white chest in front
+    spine = [V((0, 0.32, 0.06)), V((0, 0.30, 0.26)), V((0, 0.19, 0.56)), V((0, 0.07, 0.85)), V((0, -0.03, 1.07))]
+    torso = limb(spine, [(0.40, 0.36), (0.44, 0.40), (0.42, 0.37), (0.38, 0.32), (0.31, 0.27)], 10, ['white'], ref_up=V((0, -1, 0)))
+    for v in torso.verts: v.co.z = max(v.co.z, 0.0)
+    parts = [torso]
     parts.append(blob(2, (0.36, 0.26, 0.34), 'white', M=Matrix.Translation(V((0, -0.17, 0.95)))))
     for s in (1, -1):
         parts.append(blob(2, (0.20, 0.38, 0.30), 'white', M=Matrix.Translation(V((s * 0.29, 0.22, 0.30))) @ Matrix.Rotation(math.radians(-12), 4, 'X')))
@@ -334,48 +333,68 @@ def build_manolo():
 
 # ---------------------------------------------------------------- Simón
 def build_simon():
-    # curled up asleep, lying on his belly: the spine runs round an arc, head on his paws
-    R, Z = 0.46, 0.21
-    def arc(a, r=R, z=Z): return V((math.cos(math.radians(a)) * r, math.sin(math.radians(a)) * r, z))
-    angs = (205, 178, 150, 122, 95, 68, 44, 24)
-    spine = [arc(a) for a in angs] + [V((0.43, -0.02, 0.22))]     # ... and the neck, into the head
-    secs = [(0.19, 0.16), (0.25, 0.20), (0.25, 0.20), (0.22, 0.18), (0.25, 0.20), (0.28, 0.22), (0.25, 0.20), (0.19, 0.165), (0.16, 0.15)]
-    torso = limb(spine, secs, 9, ['white'], ref_up=V((0, 0, 1)))
-    for v in torso.verts: v.co.z = max(v.co.z, 0.015)        # flat on the bed
-    parts = [torso]
-    # haunches and folded hind legs
-    for s, dz in ((1, 0.05), (-1, -0.02)):
-        out = V((math.cos(math.radians(190)), math.sin(math.radians(190)), 0)) * (s * 0.12)
-        parts.append(blob(2, (0.17, 0.24, 0.16), 'white', M=Matrix.Translation(arc(190) + out + V((0, 0, dz))) @ Matrix.Rotation(math.radians(190), 4, 'Z')))
-    parts.append(limb([arc(195, R + 0.13, 0.08), arc(218, R + 0.11, 0.07), arc(236, R + 0.04, 0.065)], [0.09, 0.085, 0.08], 6, ['white']))
-    # front legs stretched under the chin
-    for s in (1, -1):
-        a0 = arc(45, R + s * 0.10, 0.09)
-        parts.append(limb([a0, a0 + V((-0.07, -0.20, -0.02)), a0 + V((-0.12, -0.38, -0.025))], [0.09, 0.085, 0.08], 6, ['white']))
-    # head resting on the paws, pointing back along the curl
-    HM = frame(V((0.44, -0.05, 0.24)), V((-0.35, -0.92, -0.18)), V((0.22, 0.0, 1)))
-    parts += head(HM, (0.29, 0.29, 0.24), (0.30, 0.14, 0.12, 0.06), 'folded', eyes_open=False)
-    # short tail tucked along the inside of the curl
-    parts.append(limb([arc(205, R - 0.04, 0.18), arc(228, R - 0.10, 0.12), arc(250, R - 0.16, 0.09)], [0.07, 0.065, 0.045], 6, ['white']))
-    # collar and its tag
-    nc = arc(28, R, Z)
-    nd = (arc(18) - arc(38)).normalized()
+    # asleep on the bed, lying on his belly in a loose C: hips, a tucked waist, a deep
+    # ribcage, the neck turning back so his head rests on his front paws, hind legs
+    # folded forward, the tail wrapped round toward his nose. Each part is its own
+    # shaped base (an icosphere pushed into an ellipsoid, rings extruded along a path).
+    P = V((-0.32, 0.10, 0.20))                     # pelvis
+    C = V((0.22, 0.24, 0.24))                      # ribcage
+    d = (C - P); d.z = 0; d.normalize()            # along the body
+    side = V((-d.y, d.x, 0))                       # to his left (away from the curl)
+    rot = Matrix.Rotation(math.atan2(d.y, d.x), 4, 'Z')
+    parts = []
+    parts.append(blob(2, (0.31, 0.24, 0.22), 'white', M=Matrix.Translation(C) @ rot))                  # ribcage
+    parts.append(blob(2, (0.22, 0.21, 0.19), 'white', M=Matrix.Translation(P) @ rot))                  # hips
+    parts.append(limb([P + d * 0.12, (P + C) / 2 + V((0, 0, -0.035)), C - d * 0.15],
+                      [(0.17, 0.155), (0.15, 0.14), (0.20, 0.19)], 8, ['white'], cap=None, ref_up=V((0, 0, 1))))  # waist
+    # shoulders and front legs stretched forward under the chin
+    for k, off in ((0, -0.10), (1, 0.08)):
+        sh = C + d * 0.12 + side * off + V((0, 0, -0.06))
+        parts.append(blob(1, (0.11, 0.09, 0.12), 'white', M=Matrix.Translation(sh)))
+        a = sh + V((0, 0, -0.08))
+        e = V((-0.08 + 0.10 * k, -0.40 - 0.04 * k, 0.055))
+        parts.append(limb([a, a.lerp(e, 0.5) + V((0, 0, -0.03)), e], [0.075, 0.068, 0.065], 7, ['white']))
+    # hind legs: big thighs on both sides, hocks and paws folded forward toward the curl
+    for off, sz, lift in ((-0.12, (0.21, 0.10, 0.14), 0.0), (0.13, (0.20, 0.09, 0.13), -0.02)):
+        th = P + side * off + d * 0.03 + V((0, 0, lift))
+        parts.append(blob(2, sz, 'white', M=Matrix.Translation(th) @ rot @ Matrix.Rotation(math.radians(-20), 4, 'Y')))
+    for off, e in ((-0.16, V((-0.06, -0.24, 0.055))), (0.12, V((-0.20, -0.20, 0.055)))):
+        a = P + side * off + d * 0.10 + V((0, 0, -0.08))
+        parts.append(limb([a, a.lerp(e, 0.5), e], [0.075, 0.068, 0.062], 7, ['white']))
+    # neck turning back, and the head on the paws
+    n0 = C + d * 0.22 + V((0, 0, 0.03))
+    H = V((0.33, -0.20, 0.17))
+    fwd = V((-0.85, -0.35, -0.08))
+    parts.append(limb([n0, n0.lerp(H, 0.5) + V((0.04, 0, 0.01)), H + fwd.normalized() * -0.05], [(0.16, 0.15), (0.14, 0.13), (0.12, 0.12)], 8, ['white'], cap=None))
+    HM = frame(H, fwd, V((0.15, 0.25, 1)))
+    parts += head(HM, (0.20, 0.21, 0.175), (0.22, 0.10, 0.085, 0.03), 'folded', eyes_open=False)
+    # collar
+    nd = (H - n0).normalized()
+    nc = n0.lerp(H, 0.35)
     band = bmesh.new()
-    tube(band, [nc - nd * 0.022, nc + nd * 0.022], [(0.205, 0.175), (0.205, 0.175)], 12, ['blue'], ref_up=V((0, 0, 1)))
+    tube(band, [nc - nd * 0.022, nc + nd * 0.022], [(0.15, 0.14), (0.15, 0.14)], 12, ['blue'], ref_up=V((0, 0, 1)))
     parts.append(band)
-    parts.append(blob(1, (0.035, 0.035, 0.012), 'gold', M=Matrix.Translation(arc(30, R - 0.19, 0.10))))
+    parts.append(blob(1, (0.03, 0.03, 0.01), 'gold', M=Matrix.Translation(nc + V((0, 0, -0.13)) + side * 0.06)))
+    # the tail wraps round toward his nose
+    tail = catmull([P - d * 0.17 + V((0, 0, 0.06)), V((-0.55, -0.02, 0.14)), V((-0.48, -0.24, 0.08)), V((-0.30, -0.36, 0.06))], 6)
+    parts.append(limb(tail, [0.06, 0.058, 0.055, 0.05, 0.045, 0.04, 0.03], 6, ['white']))
+    for b in parts:
+        for v in b.verts: v.co.z = max(v.co.z, 0.012)                                   # flat on the bed
     obs = [to_obj('p', b) for b in parts]
     ob = union(obs[0], obs[1:])
     ob.name = ob.data.name = 'Simon'
     finish(ob, [
-        (ellipsoid(arc(120, R + 0.05, 0.40), (0.19, 0.16, 0.14)), 'black', {'white'}),   # oval on his back
-        (ellipsoid(arc(198, R - 0.03, 0.32), (0.15, 0.16, 0.14)), 'black', {'white'}),   # rump, by the tail
-        (ellipsoid(V((0.16, -0.12, 0.10)), (0.19, 0.27, 0.20), HM), 'brown', {'white'}),   # patches over eyes and ears
-        (ellipsoid(V((-0.16, -0.12, 0.10)), (0.19, 0.27, 0.20), HM), 'brown', {'white'}),
-        (ellipsoid(V((0.25, 0.02, 0.10)), (0.14, 0.15, 0.15), HM), 'tan', {'brown', 'white'}),   # tan on the ears
-        (ellipsoid(V((-0.25, 0.02, 0.10)), (0.14, 0.15, 0.15), HM), 'tan', {'brown', 'white'}),
-        (ellipsoid(V((0, -0.18, 0.14)), (0.05, 0.32, 0.27), HM), 'white', {'brown'}),     # the white blaze
+        (ellipsoid(V((-0.02, 0.22, 0.38)), (0.19, 0.17, 0.13)), 'black', {'white'}),      # oval on his back
+        (ellipsoid(V((-0.44, 0.12, 0.30)), (0.15, 0.17, 0.15)), 'black', {'white'}),      # rump, by the tail
+        (ellipsoid(V((0.13, -0.10, 0.08)), (0.16, 0.23, 0.17), HM), 'brown', {'white'}),   # patches over eyes and ears
+        (ellipsoid(V((-0.13, -0.10, 0.08)), (0.16, 0.23, 0.17), HM), 'brown', {'white'}),
+        (ellipsoid(V((0.21, 0.02, 0.08)), (0.12, 0.13, 0.13), HM), 'tan', {'brown', 'white'}),   # tan on the ears
+        (ellipsoid(V((-0.21, 0.02, 0.08)), (0.12, 0.13, 0.13), HM), 'tan', {'brown', 'white'}),
+        (ellipsoid(V((0, -0.15, 0.12)), (0.042, 0.27, 0.23), HM), 'white', {'brown'}),     # the white blaze
     ])
+    # turn him so his face looks along -y (glTF +z): the room aims that at the visitor
+    a = -math.pi / 2 - math.atan2(fwd.y, fwd.x)
+    for v in ob.data.vertices: v.co = Matrix.Rotation(a, 3, 'Z') @ v.co
     return ob
 
 # ---------------------------------------------------------------- rig (Manolo)

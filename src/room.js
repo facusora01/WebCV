@@ -563,7 +563,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
   // its collar.
   const dogs = { lookAt: new THREE.Vector3(), attention: 0 };
   {
-    const simon = group(root, [1.32, 0.42, -0.35], 'simon', 0.74);
+    const simon = group(root, [1.32, 0.42, -0.35], 'simon', -0.68); // his face toward where you stand
     const manolo = group(root, [0.5, 0, 0.05], 'manolo', -0.9);
     // both come in metres, origin on the floor under them; a little light of their own,
     // in their own colours, keeps the whites white under the room's warm light
