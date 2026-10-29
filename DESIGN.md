@@ -50,6 +50,9 @@ clickable. Clicking outside, or Esc, always steps back one level.
 | Room | Appointa name tag | Flips over to show Appointa |
 | Room | Simón y Manolo | Their staff badge |
 | Room | Pendant lamp | Turns the light on and off |
+| Desk | Coffee mug | You pick it up, blow on it, take a sip and put it back |
+| Desk | Claudio | Chirps, shuts his eyes and jumps |
+| Room | MotiBot, on the shelf above the server | Walk up to him; each click is a motivational phrase (a small copy of MotiBot's own library) |
 
 CDF is never shown anywhere on the site. The ID and the cards in the wallet are
 made up: no real document numbers, no real bank or government branding.

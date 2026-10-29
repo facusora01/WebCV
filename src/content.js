@@ -481,8 +481,41 @@ export const hotspots = {
   pendant:  { label: L('Light', 'Luz') },
   cheat:    { zone: 'desk', label: L('Cheat sheet', 'Machete') },
   lightSwitch: { label: L('Light switch', 'Interruptor') },
-  lamp:     { zone: 'desk', label: L('Desk lamp', 'Velador') }
+  lamp:     { zone: 'desk', label: L('Desk lamp', 'Velador') },
+  mug:      { zone: 'desk', label: L('Coffee', 'Café') },
+  claudio:  { zone: 'desk', label: L('Claudio', 'Claudio') },
+  motibot:  { label: L('MotiBot', 'MotiBot') }
 };
+
+// MotiBot's phrases, a small copy of the bot's local library (MotiBot/phrases.js).
+// The real bot has no public endpoint to ask, so the raccoon picks from these.
+export const motibotPhrases = [
+  { en: 'Success is not the key to happiness. Happiness is the key to success.', es: 'El éxito no es la clave de la felicidad. La felicidad es la clave del éxito.', by: 'Albert Schweitzer' },
+  { en: "Don't count the days, make the days count.", es: 'No cuentes los días, hacé que los días cuenten.', by: 'Muhammad Ali' },
+  { en: 'It does not matter how slowly you go as long as you do not stop.', es: 'No importa lo lento que vayas, siempre y cuando no te detengas.', by: 'Confucius' },
+  { en: 'We are what we repeatedly do. Excellence, then, is not an act but a habit.', es: 'Somos lo que hacemos repetidamente. La excelencia no es un acto sino un hábito.', by: 'Aristotle' },
+  { en: 'Fall seven times, stand up eight.', es: 'Cae siete veces, levantate ocho.', by: 'Japanese proverb' },
+  { en: 'A journey of a thousand miles begins with a single step.', es: 'El camino de mil millas comienza con un solo paso.', by: 'Lao Tzu' },
+  { en: 'Do what you can, with what you have, where you are.', es: 'Hacé lo que podés, con lo que tenés, donde estás.', by: 'Theodore Roosevelt' },
+  { en: 'Success is the sum of small efforts, repeated day in and day out.', es: 'El éxito es la suma de pequeños esfuerzos repetidos día tras día.', by: 'Robert Collier' },
+  { en: 'In the middle of difficulty lies opportunity.', es: 'En el medio de la dificultad reside la oportunidad.', by: 'Albert Einstein' },
+  { en: "It's not that I'm so smart, it's just that I stay with problems longer.", es: 'No es que sea tan inteligente, es que me quedo más tiempo con los problemas.', by: 'Albert Einstein' },
+  { en: 'The best time to plant a tree was 20 years ago. The second best time is now.', es: 'El mejor momento para plantar un árbol fue hace 20 años. El segundo mejor momento es ahora.', by: 'Chinese proverb' },
+  { en: 'The secret of getting ahead is getting started.', es: 'El secreto para salir adelante es empezar.', by: 'Mark Twain' },
+  { en: 'It always seems impossible until it is done.', es: 'Siempre parece imposible hasta que se hace.', by: 'Nelson Mandela' },
+  { en: "I have not failed. I've just found 10,000 ways that won't work.", es: 'No fallé. Solo encontré 10.000 formas que no funcionan.', by: 'Thomas Edison' },
+  { en: 'It is never too late to be what you might have been.', es: 'Nunca es tarde para ser lo que podrías haber sido.', by: 'George Eliot' },
+  { en: 'Optimism is the faith that leads to achievement.', es: 'El optimismo es la fe que conduce al logro.', by: 'Helen Keller' },
+  { en: 'Act as if what you do makes a difference. It does.', es: 'Actuá como si lo que hacés marcara la diferencia. La marca.', by: 'William James' },
+  { en: 'The only limit to our realization of tomorrow will be our doubts of today.', es: 'El único límite a nuestros logros de mañana son nuestras dudas de hoy.', by: 'Franklin D. Roosevelt' },
+  { en: 'Start where you are. Use what you have. Do what you can.', es: 'Empezá donde estás. Usá lo que tenés. Hacé lo que podés.', by: 'Arthur Ashe' },
+  { en: 'Motivation is what gets you started. Habit is what keeps you going.', es: 'La motivación es lo que te pone en marcha. El hábito es lo que te mantiene.', by: 'Jim Ryun' },
+  { en: "Don't watch the clock; do what it does. Keep going.", es: 'No mires el reloj. Hacé lo mismo que él: seguí adelante.', by: 'Sam Levenson' },
+  { en: 'Success is not final, failure is not fatal: it is the courage to continue that counts.', es: 'El éxito no es definitivo, el fracaso no es fatal: lo que cuenta es el coraje para continuar.', by: 'Winston Churchill' },
+  { en: 'Every great achievement was once considered impossible.', es: 'Cada logro grande alguna vez fue imposible.', by: 'Anonymous' },
+  { en: "Don't give up. The beginning is always the hardest.", es: 'No te rindas. El principio siempre es lo más difícil.', by: 'Anonymous' },
+  { en: 'Turn every obstacle into an opportunity.', es: 'Convertí cada obstáculo en una oportunidad.', by: 'Anonymous' }
+];
 
 // Text drawn inside the 3D scene (screens, cards, the notebook).
 export const screenText = {

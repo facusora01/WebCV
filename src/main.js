@@ -3,7 +3,7 @@ import { buildRoom } from './room.js';
 import { createUI } from './ui.js';
 import { createAudio } from './audio.js';
 import { createTerminal } from './terminal.js';
-import { hotspots as HOTSPOTS } from './content.js';
+import { hotspots as HOTSPOTS, motibotPhrases } from './content.js';
 import './style.css';
 
 const canvas = document.getElementById('scene');
@@ -195,7 +195,7 @@ function start() {
     const s = byId[id];
     if (!s) return;
     if (s.kind === 'toggle') { s.toggle(); audio.click(); return; }
-    if (s.sound === 'bark') audio.bark();
+    if (s.sound) audio[s.sound]();
     s.react?.();
     if (s.kind === 'zone') {
       push('zone');
@@ -225,7 +225,62 @@ function start() {
       openWallet();
     } else if (s.kind === 'backpack') {
       openBackpack(s);
+    } else if (s.kind === 'mug') {
+      drinkCoffee(s);
+    } else if (s.kind === 'talk') {
+      // walk up to him; once there, each click is another phrase
+      if (mode !== 'look') {
+        push('look', { talk: true });
+        const at = s.group.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.1, 0));
+        const pos = at.clone().add(new THREE.Vector3(0, 0.08, 0.6));
+        flyTo(pos, lookQuat(pos, at));
+      }
+      // a phrase, never the same one twice in a row; it stays up for a few seconds
+      let i;
+      do i = Math.floor(Math.random() * motibotPhrases.length); while (i === talk.last && motibotPhrases.length > 1);
+      talk.last = i;
+      talk.until = clock.elapsedTime + 9;
+      talk.spot = s;
+      ui.say(motibotPhrases[i]);
     }
+  }
+  const talk = { last: -1, until: 0, spot: null };
+
+  // ---------- the coffee: picked up, blown on, sipped, put back on its coaster ----------
+  async function drinkCoffee(s) {
+    if (s.busy) return;
+    s.busy = true;
+    const g = s.group;
+    g.userData.home ??= { parent: g.parent, pos: g.position.clone(), quat: g.quaternion.clone() };
+    const home = g.userData.home;
+    scene.attach(g);
+    // in front of you, a little low, handle to the left and the mug's -z pointing away from you
+    const cq = camera.quaternion.clone();
+    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cq);
+    const down = new THREE.Vector3(0, -1, 0).applyQuaternion(cq);
+    const yawQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, new THREE.Euler().setFromQuaternion(cq, 'YXZ').y, 0));
+    const held = { pos: camera.position.clone().addScaledVector(fwd, 0.42).addScaledVector(down, 0.15), quat: yawQ.clone() };
+    const sip = {
+      pos: camera.position.clone().addScaledVector(fwd, 0.2).addScaledVector(down, 0.12),
+      quat: yawQ.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0.95, 0, 0))) // top tilted towards you
+    };
+    const move = (to, dur, lift = 0) => {
+      const p0 = g.position.clone(), q0 = g.quaternion.clone();
+      return tween(dur, (e) => { g.position.lerpVectors(p0, to.pos, e); g.position.y += Math.sin(e * Math.PI) * lift; g.quaternion.slerpQuaternions(q0, to.quat, e); shadowsDirty(); });
+    };
+    await move(held, 0.8, 0.05);
+    audio.blow();
+    await tween(0.9, (e) => { s.blow = Math.sin(e * Math.PI); });
+    await move(sip, 0.6);
+    audio.sip();
+    s.coffee.position.y = Math.max(0.06, s.coffee.position.y - 0.012); // a little less coffee each time
+    await tween(0.5, () => {});
+    await move(held, 0.5);
+    const to = { pos: home.parent.localToWorld(home.pos.clone()), quat: home.parent.getWorldQuaternion(new THREE.Quaternion()).multiply(home.quat) };
+    await move(to, 0.8, 0.05);
+    home.parent.attach(g);
+    g.position.copy(home.pos); g.quaternion.copy(home.quat);
+    s.busy = false;
   }
 
   // ---------- inspect: a thing flies to the middle of the view; clicking turns it over ----------
@@ -446,6 +501,7 @@ function start() {
     let over = !!id;
     if (mode === 'screen' || mode === 'terminal') over = !!hit(e, [byId[stack.at(-1).focus].mesh]);
     if (mode === 'inspect') over = !!hit(e, [inspectMesh]);
+    if (mode === 'look' && stack.at(-1).talk) over = !!hit(e, [byId.motibot.group]);
     if (mode === 'wallet') over = !!hit(e, room.wallet.cards);
     const c = over ? 'pointer' : mode === 'room' || mode === 'zone' ? 'grab' : 'default';
     if (c !== cursor) canvas.style.cursor = cursor = c;
@@ -472,7 +528,7 @@ function start() {
       else if (mode === 'terminal') ui.focusTerminal();
       else if (s.mesh.userData.screen.click(h.uv.x, h.uv.y)) audio.click();
     } else if (mode === 'look') {
-      back();
+      if (stack.at(-1).talk && hit(e, [byId.motibot.group])) activate('motibot'); else back();
     } else if (mode === 'inspect') {
       if (hit(e, [inspectMesh])) flipInspect(); else back();
     } else if (mode === 'wallet') {
@@ -551,6 +607,10 @@ function start() {
       v.copy(s.anchorWorld).project(camera);
       ui.placeMarker(s.id, (v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight, show && v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1);
     }
+    // MotiBot's bubble, over his head while he talks and you are still in the room
+    const talking = talk.spot && t < talk.until && (mode === 'room' || mode === 'look');
+    if (talking) v.copy(talk.spot.anchorWorld).project(camera);
+    ui.placeBubble((v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight, talking && v.z < 1 && Math.abs(v.x) < 1 && Math.abs(v.y) < 1);
     v.copy(room.door.anchor).project(camera);
     ui.placeHandle((v.x + 1) / 2 * innerWidth, (1 - v.y) / 2 * innerHeight, mode === 'door');
 
