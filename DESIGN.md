@@ -78,7 +78,7 @@ MotiBot is modelled from scratch in Blender by `tools/motibot.py`, after his ava
 materials per face (no image textures), one closed mesh with a skeleton (Body, Head,
 LegL, LegR, Tail) and smoothed weights, so his legs bend over the shelf's edge without
 tearing. The command to rebuild it is at the top of the script; the comparison sheets
-against the reference are in `tools/motibot-sheets/`. Keep the bone names: `room.js`
+against the reference go to `images/Reference/motibot-sheets/` (kept out of git). Keep the bone names: `room.js`
 animates them by name. Everything else is built from primitives in `room.js`.
 
 ## Performance
