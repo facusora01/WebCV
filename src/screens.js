@@ -3,7 +3,7 @@
 // app registers while it draws. Pages are flat textures for the "inspect" view
 // (cards, the name tag, the ear tag, the notebook).
 import * as THREE from 'three';
-import { projects, about, experience, education, contact, pharmacies, screenText } from './content.js';
+import { projects, about, experience, education, cards, contact, pharmacies, screenText } from './content.js';
 
 const MONO = '"JetBrains Mono", ui-monospace, monospace';
 const SERIF = '"Fraunces", Georgia, serif';
@@ -503,12 +503,27 @@ export function notebookPages() {
   };
   const pages = [(ctx, w, h, L, T) => {
     ctx.fillStyle = '#1f3a6a'; ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = '#f3ead8'; ctx.fillRect(40, 120, w - 80, 170);
+    ctx.fillStyle = '#f3ead8'; ctx.fillRect(40, 120, w - 80, 220);
     ctx.fillStyle = '#1f3a6a'; ctx.font = `bold 34px ${HAND}`;
     ctx.fillText('FIUBA', 64, 170);
     ctx.font = `30px ${HAND}`; ctx.fillText(education.title[L], 64, 214);
-    ctx.fillText(education.date[L], 64, 254);
+    const y = wrap(ctx, education.place[L], 64, 254, w - 128, 34, 2);
+    ctx.fillText(education.date[L], 64, y + 6);
     ctx.fillStyle = '#f3ead8'; ctx.font = `20px ${MONO}`; ctx.fillText(T.notebookHint, 40, h - 40);
+  }, (ctx, w, h, L, T) => {
+    // the university page: the degree, what I use there, and what I do outside it
+    lined(ctx, w, h);
+    ctx.font = `bold 34px ${HAND}`; ctx.fillText(T.uniTitle, 70, 56);
+    ctx.font = `bold 30px ${HAND}`; ctx.fillText(education.title[L], 70, 110);
+    ctx.font = `25px ${HAND}`;
+    let y = wrap(ctx, education.place[L], 70, 140, w - 110, 28, 2);
+    ctx.fillStyle = '#c0392b'; ctx.fillText(education.date[L], 70, y); y += 52;
+    ctx.fillStyle = '#26324d'; ctx.font = `bold 28px ${HAND}`; ctx.fillText(T.uniUses, 70, y); y += 34;
+    ctx.font = `25px ${HAND}`;
+    for (const item of cards.find((c) => c.theme === 'uni').items) { ctx.fillText(`– ${item}`, 78, y); y += 28; }
+    y += 24;
+    ctx.fillStyle = '#3a5a8c'; ctx.font = `24px ${HAND}`;
+    wrap(ctx, about[L][1], 70, y, w - 110, 28, 8);
   }];
   for (let i = 0; i < experience.length; i += 2) {
     pages.push((ctx, w, h, L, T) => {
@@ -519,7 +534,7 @@ export function notebookPages() {
         ctx.fillStyle = '#c0392b'; ctx.font = `26px ${HAND}`; ctx.fillText(e.date, 70, y);
         ctx.fillStyle = '#26324d'; ctx.font = `bold 30px ${HAND}`; ctx.fillText(e.title[L], 70, y + 30); y += 64;
         ctx.font = `25px ${HAND}`;
-        for (const pt of e.points[L]) y = wrap(ctx, `– ${pt}`, 78, y, w - 110, 28, 2);
+        for (const pt of e.points[L]) y = wrap(ctx, `– ${pt}`, 78, y, w - 110, 28, 3);
         y += 22;
       }
     });

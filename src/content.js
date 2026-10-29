@@ -553,7 +553,7 @@ export const screenText = {
       manolo: ['Shift: all day long', 'Measures happiness', 'in tail wags per minute']
     },
     notebookHint: 'click to turn the page',
-    experienceTitle: 'Experience',
+    experienceTitle: 'Experience', uniTitle: 'University', uniUses: 'What I use there',
     cheat: ['CHEAT SHEET', ['ls', 'list'], ['cd <project>', 'go in'], ['cat README.md', 'read it'], ['cd ..', 'go back'], ['Tab', 'autocomplete'], ['help', 'every command']]
   },
   es: {
@@ -570,7 +570,7 @@ export const screenText = {
       manolo: ['Turno: todo el día', 'Mide la felicidad', 'en colas por minuto']
     },
     notebookHint: 'click para pasar de página',
-    experienceTitle: 'Experiencia',
+    experienceTitle: 'Experiencia', uniTitle: 'Facultad', uniUses: 'Lo que uso en la cursada',
     cheat: ['MACHETE', ['ls', 'listar'], ['cd <proyecto>', 'entrar'], ['cat README.md', 'leerlo'], ['cd ..', 'volver'], ['Tab', 'autocompletar'], ['help', 'todos los comandos']]
   }
 };
