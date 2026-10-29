@@ -487,8 +487,9 @@ export const dogTag = (id) => (ctx, w, h, L, T) => {
 };
 export const dogTagBack = (id) => (ctx, w, h, L, T) => {
   tagDisc(ctx, w, h);
-  ctx.font = `30px ${HAND}`;
-  T.tagBack[id].forEach((line, i) => wrap(ctx, line, w / 2, h / 2 - 30 + i * 40, w - 90, 30, 1));
+  ctx.font = `27px ${HAND}`;
+  const lines = T.tagBack[id], top = h / 2 + 10 - (lines.length - 1) * 17; // centred, however many lines
+  lines.forEach((line, i) => wrap(ctx, line, w / 2, top + i * 34, w - 80, 30, 1));
   ctx.textAlign = 'left';
 };
 

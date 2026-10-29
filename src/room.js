@@ -591,7 +591,7 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     const q = new THREE.Quaternion(), e = new THREE.Euler();
     // YXZ: turn the head round, then nod it up or down
     const turn = (name, x, y, z) => { const b = bones[name]; if (b) b.bone.quaternion.copy(b.rest).multiply(q.setFromEuler(e.set(x, y, z, 'YXZ'))); };
-    let headYaw = 0, headUp = 0, wake = 0;
+    let headYaw = 0, headUp = 0, wake = 0, wagLift = 0.28;
     const zzzAt = new THREE.Vector3(1.32, 0.5, -0.35);
     // "z z z" rising from Simón's head while he sleeps (and a big one if you wake him)
     // white letters with a dark outline, so they read on the light bedspread and wall
@@ -619,8 +619,10 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
       headYaw += ((curious ? yaw : Math.sin(t * 0.4) * 0.15) - headYaw) * k;
       headUp += ((curious ? up : 0) - headUp) * k;
       turn('Head', -headUp, headYaw, Math.sin(t * 0.9) * 0.04); // local y is up; -x looks up
-      // his tail lies on the floor: it lifts and drops back (local x lifts it), faster when he is curious
-      turn('Tail', (0.5 - 0.5 * Math.cos(t * (5 + 7 * curious))) * (0.25 + 0.3 * curious), 0, 0);
+      // his tail lies on the floor: it lifts and drops back (local x lifts it), always at the
+      // same pace; when he is curious it only lifts a little higher, eased in
+      wagLift += ((curious ? 0.4 : 0.28) - wagLift) * Math.min(1, dt * 1.5);
+      turn('Tail', (0.5 - 0.5 * Math.cos(t * 5)) * wagLift, 0, 0);
       simonBones.Head?.getWorldPosition(zzzAt);
       root.worldToLocal(zzzAt);
       wake = Math.max(0, wake - dt * 0.4);
