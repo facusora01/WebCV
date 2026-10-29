@@ -46,7 +46,22 @@
 
     <div id="markers"></div>
     <button id="handle-btn" class="marker handle-marker hidden" aria-label="Open the door"><i></i></button>
-    <input id="term-input" class="sr-only" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Terminal">
+    <form id="term-form" class="term-form" autocomplete="off">
+        <input id="term-input" class="term-input" type="text" maxlength="120" enterkeyhint="go" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Terminal">
+    </form>
+    <div class="term-keys" aria-hidden="true">
+        <button type="button" data-k="kbd" data-t="keyboard">Keyboard</button>
+        <button type="button" data-k="Tab">Tab</button>
+        <button type="button" data-k="ArrowUp">↑</button>
+    </div>
+    <div id="rotate" class="rotate" hidden>
+        <div class="rotate-card">
+            <div class="rotate-phone" aria-hidden="true"></div>
+            <p class="rotate-title" data-t="rotateTitle">Turn your phone sideways</p>
+            <p class="rotate-text" data-t="rotateText">The room fits much better in landscape.</p>
+            <button id="rotate-ok" class="pill" data-t="rotateOk">Continue anyway</button>
+        </div>
+    </div>
     <p id="hint" class="hint"></p>
 
     <div id="cv" class="cv" hidden>

@@ -219,17 +219,28 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     const term = canvasTex(2048, 1200, (ctx, w, h, t) => { ctx.setTransform(2, 0, 0, 2, 0, 0); terminal.draw(ctx, 1024, 600, t); });
     const mesh = put(g, new THREE.PlaneGeometry(0.535, 0.31), screenMat(term.tex, 0.95), [0, 0.365, 0.0131]);
     mesh.userData.keep = true; // raycast and framing target
-    // drawn at 4x in a 256 px space, so the commands stay readable up close
+    // Drawn at 4x in a 256 px space, so the commands stay readable up close: each command
+    // in pencil, and what it does in blue pen after a hand-drawn arrow.
     const cheat = canvasTex(1024, 1024, (ctx) => {
       const w = 256, h = 256;
       ctx.setTransform(4, 0, 0, 4, 0, 0);
       ctx.fillStyle = '#ffe680'; ctx.fillRect(0, 0, w, h);
       ctx.fillStyle = '#e8cd5c'; ctx.fillRect(0, 0, w, 24);
-      ctx.fillStyle = '#1c1c1c';
-      T().cheat.forEach((line, i) => { ctx.font = i ? `600 30px ${HAND}` : `700 28px ${HAND}`; ctx.fillText(line, 12, 48 + i * 29, w - 22); });
+      const [title, ...rows] = T().cheat;
+      ctx.fillStyle = '#1c1c1c'; ctx.font = `700 28px ${HAND}`; ctx.fillText(title, 12, 48, w - 24);
+      rows.forEach(([cmd, what], i) => {
+        const y = 82 + i * 29;
+        ctx.fillStyle = '#1c1c1c'; ctx.font = `600 25px ${HAND}`; ctx.fillText(cmd, 12, y, 118);
+        ctx.fillStyle = '#2346a8'; ctx.font = `600 22px ${HAND}`; ctx.fillText(`<~~ ${what}`, 134, y, w - 142);
+      });
     });
     onLang.push(cheat.redraw);
-    box(g, [0.13, 0.13, 0.002], [-0.19, 0.142, 0.014], paperMat(cheat.tex), [0, 0, -0.05]); // big enough to read from the chair
+    // click it to walk up to it, like the posters
+    const note = group(g, [-0.19, 0.142, 0.014], 'cheat');
+    note.rotation.z = -0.05;
+    const noteFace = box(note, [0.13, 0.13, 0.002], [0, 0, 0], paperMat(cheat.tex));
+    noteFace.userData.keep = true; // the camera frames it
+    hotspots.cheat = { kind: 'poster', group: note, anchor: [0, 0.08, 0], mesh: noteFace, size: [0.16, 0.16] };
     // the cursor only blinks while you are typing; otherwise redraw just when the text changes
     let last = -1;
     anim.push((t, dt, view) => {

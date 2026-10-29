@@ -67,6 +67,8 @@ export function createTerminal({ getLang, onExit }) {
     reset() { lines = M().welcome.map((t) => ({ t, c: 'dim' })); cwd = []; input = ''; term.dirty = true; },
     // switching language before typing anything re-greets in the new one
     relang() { if (!history.length && !input) term.reset(); },
+    // the line being typed, as edited in the page's text field (phone keyboards edit it there)
+    setLine(s) { input = String(s).slice(0, 120); term.dirty = true; },
     key, draw
   };
 
