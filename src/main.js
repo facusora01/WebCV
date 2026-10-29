@@ -276,15 +276,16 @@ function start() {
       return tween(dur, (e) => { o.position.lerpVectors(p0, to.pos, e); o.position.y += Math.sin(e * Math.PI) * lift; o.quaternion.slerpQuaternions(q0, to.quat, e); shadowsDirty(); });
     };
 
-    // the thermos comes over from the table and tips its spout over the low side of the
-    // yerba, next to the bombilla. It pours from your right, turned so its body lies over
-    // the desk: from the left it would go through the printer table next to the mate.
+    // your right hand brings the thermos over from the table and pours from the mate's
+    // left, like in the photo: the spout over the low side of the yerba, next to the
+    // bombilla. Its body is swung toward you and tipped steeply, so it rises up and back
+    // over the desk instead of lying across the printer table next to the mate.
     const spoutAt = (q, at) => at.clone().sub(room.thermos.spout.clone().applyQuaternion(q));
-    const flip = new THREE.Quaternion().setFromAxisAngle(UP, Math.PI); // spout toward your left
-    const tilt = (z) => yawQ.clone().multiply(flip).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, z)));
+    const swing = new THREE.Quaternion().setFromAxisAngle(UP, 0.7); // its base toward you
+    const tilt = (z) => yawQ.clone().multiply(swing).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, z)));
     const over = g.localToWorld(s.pour.clone()).add(new THREE.Vector3(0, 0.06, 0));
-    const near = { quat: tilt(-0.5), pos: spoutAt(tilt(-0.5), over.clone().addScaledVector(right, 0.08).add(new THREE.Vector3(0, 0.06, 0))) };
-    const pour = { quat: tilt(-2.1), pos: spoutAt(tilt(-2.1), over) }; // past level: its base stays up, clear of the desk
+    const near = { quat: tilt(-0.5), pos: spoutAt(tilt(-0.5), over.clone().addScaledVector(right, -0.08).add(new THREE.Vector3(0, 0.06, 0))) };
+    const pour = { quat: tilt(-2.25), pos: spoutAt(tilt(-2.25), over) }; // past level: its base stays up, clear of the tables
     await move(th, near, 0.9, 0.1);
     await move(th, pour, 0.5);
     audio.pour();
@@ -307,9 +308,8 @@ function start() {
     const held = { pos: camera.position.clone().addScaledVector(fwd, 0.42).addScaledVector(down, 0.15), quat: yawQ.clone() };
     await move(g, held, 0.7, 0.05);
     const mouth = camera.position.clone().addScaledVector(fwd, 0.07).addScaledVector(down, 0.035);
-    // tipped toward you a little, as you'd hold it: the gourd sits ahead of the mouthpiece
-    // and below it, still in view, instead of hanging straight down under your chin
-    const sipQ = yawQ.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0.55));
+    // held upright: only the top of the mate peeks in at the bottom of the view
+    const sipQ = yawQ.clone();
     const sip = { pos: mouth.clone().sub(s.tip.clone().applyQuaternion(sipQ)), quat: sipQ };
     await move(g, sip, 0.7);
     if (s.heat > 0.8 && Math.random() < BURN) {
