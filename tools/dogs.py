@@ -283,6 +283,17 @@ def head(M, skull, muzzle, ears, eyes_open=True, mat='white'):
     return parts
 
 # ---------------------------------------------------------------- Manolo
+TAIL_R = [0.12, 0.14, 0.145, 0.145, 0.135, 0.12, 0.105, 0.08, 0.05]   # Manolo's tail, ring by ring
+TAIL_ROOT = 0.26                    # where along it the tail comes out of his body
+
+def tail_point(pts, s):
+    L = [0.0]
+    for a, b in zip(pts, pts[1:]): L.append(L[-1] + (b - a).length)
+    x = s * L[-1]
+    for i in range(len(pts) - 1):
+        if L[i + 1] >= x: return pts[i].lerp(pts[i + 1], (x - L[i]) / (L[i + 1] - L[i]))
+    return pts[-1]
+
 def build_manolo():
     # torso, sitting: extruded ring by ring along a straight spine from the seat to the
     # withers, so the back is a straight slope (no hump), with a full white chest in front
@@ -311,8 +322,7 @@ def build_manolo():
         parts.append(blob(1, (0.16, 0.18, 0.17), 'tan', M=HM @ Matrix.Translation(V((s * 0.28, 0.02, -0.13)))))
     # tail, fluffy, lying on the floor and curling round his side
     TAIL = catmull([V((0.04, 0.40, 0.16)), V((0.24, 0.58, 0.12)), V((0.50, 0.52, 0.10)), V((0.66, 0.28, 0.10)), V((0.66, 0.06, 0.10))], 8)
-    rad = [0.12, 0.14, 0.145, 0.145, 0.135, 0.12, 0.105, 0.08, 0.05]
-    parts.append(limb(TAIL, rad, 7, ['black'] * 4 + ['white'] * 4))
+    parts.append(limb(TAIL, TAIL_R, 7, ['black'] * 4 + ['white'] * 4))
     obs = [to_obj('p', b) for b in parts]
     ob = union(obs[0], obs[1:])
     ob.name = ob.data.name = 'Manolo'
@@ -400,8 +410,48 @@ def build_simon():
     ])
     # turn him so his face looks along -y (glTF +z): the room aims that at the visitor
     a = -math.pi / 2 - math.atan2(fwd.y, fwd.x)
-    for v in ob.data.vertices: v.co = Matrix.Rotation(a, 3, 'Z') @ v.co
-    return ob
+    Rz = Matrix.Rotation(a, 3, 'Z')
+    for v in ob.data.vertices: v.co = Rz @ v.co
+    return ob, Rz @ C, Rz @ H
+
+def rig_simon(ob, chest, head_c):
+    """A Chest bone that breathes (the room scales it), weighted softly over his ribcage
+    and flanks, and an unweighted Head bone that marks where the z z z rise from."""
+    me = ob.data
+    nv = len(me.vertices)
+    nb = [set() for _ in range(nv)]
+    for e in me.edges:
+        a, b = e.vertices; nb[a].add(b); nb[b].add(a)
+    c = V((chest.x, chest.y, 0.0))
+    w = []
+    for v in me.vertices:
+        q = v.co - c
+        dist = math.sqrt(q.x * q.x + q.y * q.y) * 0.8 + abs(q.z) * 0.2
+        w.append((1 - smooth(0.16, 0.42, dist)) * smooth(0.20, 0.32, (v.co - head_c).length))
+    for _ in range(2):
+        w = [0.5 * w[i] + 0.5 * (sum(w[j] for j in nb[i]) / len(nb[i]) if nb[i] else w[i]) for i in range(nv)]
+    gb, gc = ob.vertex_groups.new(name='Body'), ob.vertex_groups.new(name='Chest')
+    for i in range(nv):
+        if w[i] > 0.002: gc.add([i], w[i], 'REPLACE')
+        if w[i] < 0.998: gb.add([i], 1 - w[i], 'REPLACE')
+    T = place(ob, length=0.42)
+    arm = bpy.data.armatures.new('Rig')
+    r = bpy.data.objects.new('Rig', arm)
+    bpy.context.scene.collection.objects.link(r)
+    bpy.context.view_layer.objects.active = r
+    bpy.ops.object.mode_set(mode='EDIT')
+    def bone(name, h, t, parent=None):
+        b = arm.edit_bones.new(name)
+        b.head, b.tail = T(h), T(t)
+        b.align_roll(V((0, -1, 0)))
+        if parent: b.parent = arm.edit_bones[parent]
+    bone('Body', V((0, 0, 0)), V((0, 0, 0.3)))
+    bone('Chest', c, c + V((0, 0, 0.3)), 'Body')      # on the bed: it swells up and out, not down
+    bone('Head', head_c, head_c + V((0, 0, 0.25)), 'Body')
+    bpy.ops.object.mode_set(mode='OBJECT')
+    mod = ob.modifiers.new('rig', 'ARMATURE'); mod.object = r
+    ob.parent = r
+    return r
 
 # ---------------------------------------------------------------- rig (Manolo)
 def seg_param(p, pts):
@@ -425,12 +475,15 @@ def rig_manolo(ob, tail, neck, height):
     for v in me.vertices:
         p = v.co
         d, s = seg_param(p, tail)
-        W['Tail'][v.index] = smooth(0.10, 0.28, s) * (1 - smooth(0.22, 0.32, d)) if p.z < 0.35 and p.y > 0.2 else 0.0
+        # only what is inside the tail's own tube, and only from where it leaves the
+        # body: the hip stays put and the whole tail, tip included, moves as one
+        r = TAIL_R[min(int(s * (len(TAIL_R) - 1) + 0.5), len(TAIL_R) - 1)]
+        W['Tail'][v.index] = smooth(TAIL_ROOT - 0.04, TAIL_ROOT + 0.08, s) * (1 - smooth(r * 1.15, r * 1.45, d)) if p.z < 0.35 else 0.0
         t = (p - n0).dot(n1 - n0) / (n1 - n0).length_squared
         W['Head'][v.index] = smooth(0.30, 0.80, t)
     for k in W:   # neighbour averaging: soft neck and tail root
         w = W[k]
-        for _ in range(3):
+        for _ in range(3 if k == 'Head' else 2):
             w = [0.5 * w[i] + 0.5 * (sum(w[j] for j in nb[i]) / len(nb[i]) if nb[i] else w[i]) for i in range(nv)]
         W[k] = w
     groups = {k: ob.vertex_groups.new(name=k) for k in ('Body', 'Head', 'Tail')}
@@ -453,7 +506,10 @@ def rig_manolo(ob, tail, neck, height):
     bone('Body', V((0, 0.1, 0.0)), V((0, 0.0, 0.95)), V((0, -1, 0)))
     # the head turns round the neck: rotate about its local y (up) to look left/right
     bone('Head', n0.lerp(n1, 0.3), V((0, -0.30, 1.95)), V((0, -1, 0)), 'Body')
-    bone('Tail', tail[0], tail[3], V((0, 0, 1)), 'Body')   # local z up: rotate about it to wag
+    # the tail hinges where it leaves the body; local z is up, so turning about local x
+    # lifts it off the floor and lets it fall back (it lies on the floor, curled round him)
+    root = tail_point(tail, TAIL_ROOT)
+    bone('Tail', root, tail[6], V((0, 0, 1)), 'Body')
     bpy.ops.object.mode_set(mode='OBJECT')
     mod = ob.modifiers.new('rig', 'ARMATURE'); mod.object = r
     ob.parent = r
@@ -555,23 +611,23 @@ if ONLY in (None, 'manolo'):
         # rig test: head turned 0.9 rad and tilted, tail wagged
         bpy.context.view_layer.objects.active = r
         bpy.ops.object.mode_set(mode='POSE')
-        for n, rot in (('Head', (0.0, 0.9, 0.08)), ('Tail', (0, 0, 0.6))):
+        for n, rot in (('Head', (-0.3, 0.9, 0.08)), ('Tail', (0.6, 0, 0))):
             pb = r.pose.bones[n]; pb.rotation_mode = 'XYZ'; pb.rotation_euler = rot
         bpy.ops.object.mode_set(mode='OBJECT')
         shoot(cam, tg, 25, 35, 1.9, J(SHEETS, 'm_pose34.png'))
         shoot(cam, tg, 150, 40, 1.9, J(SHEETS, 'm_pose_back.png'))
-        for n, rot in (('Head', (0.0, -0.9, -0.08)), ('Tail', (0, 0, -0.6))):
+        for n, rot in (('Head', (-0.3, -0.9, -0.08)), ('Tail', (0.3, 0, 0))):
             r.pose.bones[n].rotation_euler = rot
         shoot(cam, tg, -40, 30, 1.9, J(SHEETS, 'm_pose_other.png'))
         sheet(J(SHEETS, 'sheet_manolo_rig.png'), [J(SHEETS, 'm_pose34.png'), J(SHEETS, 'm_pose_back.png'), J(SHEETS, 'm_pose_other.png')],
-              ['cabeza +0.9 rad, cola +0.6', 'atras', 'cabeza -0.9 rad, cola -0.6'])
+              ['cabeza +0.9 rad mirando arriba, cola levantada 0.6', 'atras', 'cabeza -0.9 rad, cola 0.3'])
     clear()
 
 if ONLY in (None, 'simon'):
-    ob = build_simon()
-    place(ob, length=0.42)
+    ob, chest, head_c = build_simon()
+    r = rig_simon(ob, chest, head_c)
     print(f'Simon: {len(ob.data.vertices)} verts, {sum(len(p.vertices) - 2 for p in ob.data.polygons)} tris')
-    if OUT: export([ob], J(OUT, 'simon_raw.glb'))
+    if OUT: export([ob, r], J(OUT, 'simon_raw.glb'))
     if SHEETS:
         os.makedirs(SHEETS, exist_ok=True)
         cam = setup_render()
@@ -581,3 +637,12 @@ if ONLY in (None, 'simon'):
         shoot(cam, tg, 200, 30, 1.4, J(SHEETS, 's_back.png'))
         sheet(J(SHEETS, 'sheet_simon.png'), [J(SHEETS, 's_34.png'), ref((170, 10, 650, 420)), J(SHEETS, 's_top.png'), J(SHEETS, 's_back.png')],
               ['Simon 3/4 (dormido)', 'referencia', 'arriba', 'otro lado'])
+        # breathing test: the chest bone at its fullest
+        bpy.context.view_layer.objects.active = r
+        bpy.ops.object.mode_set(mode='POSE')
+        r.pose.bones['Chest'].scale = (1.12, 1.12, 1.12)
+        bpy.ops.object.mode_set(mode='OBJECT')
+        shoot(cam, tg, 90, 8, 1.4, J(SHEETS, 's_breath_in.png'))
+        r.pose.bones['Chest'].scale = (1, 1, 1)
+        shoot(cam, tg, 90, 8, 1.4, J(SHEETS, 's_breath_out.png'))
+        sheet(J(SHEETS, 'sheet_simon_breath.png'), [J(SHEETS, 's_breath_out.png'), J(SHEETS, 's_breath_in.png')], ['respiracion: reposo', 'respiracion: pecho lleno (x1.12)'])
