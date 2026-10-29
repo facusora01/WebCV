@@ -172,9 +172,9 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     hotspots[id] = { kind: 'zone', group: g, anchor: [0, size[1] / 2 - 0.1, 0], view };
   };
   // the desk view is from the chair, at seated eye height; you can look down to the controller and up to the TV
-  zone('desk', [-1.45, 1.15, -1.3], [0.75, 2.2, 1.2], { pos: [-0.86, 1.2, -1.27], look: [-1.7, 1.1, -1.3], yaw: 0.75, pitch: [-0.8, 0.6] });
-  zone('table', [-1.5, 1.0, 0.1], [0.7, 0.7, 1.7], { pos: [-0.5, 1.5, 0.15], look: [-1.6, 0.85, 0.05], yaw: 0.6, pitch: [-0.5, 0.4] });
-  zone('nightstand', [0.62, 0.42, R.z0 + 0.2], [0.48, 0.84, 0.4], { pos: [0.62, 1.12, R.z0 + 0.92], look: [0.62, 0.62, R.z0 + 0.18], yaw: 0.5, pitch: [-1.0, 0.2] });
+  zone('desk', [-1.45, 1.15, -1.3], [0.75, 2.2, 1.2], { pos: [-0.86, 1.2, -1.27], look: [-1.7, 1.1, -1.3] });
+  zone('table', [-1.5, 1.0, 0.1], [0.7, 0.7, 1.7], { pos: [-0.5, 1.5, 0.15], look: [-1.6, 0.85, 0.05] });
+  zone('nightstand', [0.62, 0.42, R.z0 + 0.2], [0.48, 0.84, 0.4], { pos: [0.62, 1.12, R.z0 + 0.92], look: [0.62, 0.62, R.z0 + 0.18] });
 
   // ---------- black desk: left wall, far corner. Its front faces +x. ----------
   // Local axes once rotated: local +x → world -z (towards the far wall), local +z → world +x.
