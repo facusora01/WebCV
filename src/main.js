@@ -526,15 +526,18 @@ function start() {
   // black fills the view the page goes there, and the village starts from black.
   const AILIVE = 'https://ailive.facundosorasio.com/';
   const m2 = byId.monitor2;
+  // darkening the screen tints its material: no canvas redraw, no texture upload each frame
+  const lit = m2.mesh.material.color.r;
+  const dim = (k) => m2.mesh.material.color.setScalar(lit * (1 - k));
   m2.app.launch = async () => {
     if (mode !== 'screen') return;
     setMode('entering');
     const up = fetch(`${AILIVE}health`, { cache: 'no-store', signal: AbortSignal.timeout(4000) }).then((r) => r.ok).catch(() => false);
     const into = screenView(m2, true);
-    await Promise.all([flyTo(into.pos, into.quat, 1.6), tween(1.6, (e) => { m2.app.dark = e; m2.redraw(); })]);
+    await Promise.all([flyTo(into.pos, into.quat, 1.6), tween(1.6, (e) => dim(e))]);
     if (await up) { document.getElementById('veil').classList.add('on'); location.href = AILIVE; return; }
     // the server is down: back out, and the screen says so
-    m2.app.dark = 0; m2.app.note = 'the village sleeps…'; m2.redraw();
+    dim(0); m2.app.note = 'the village sleeps…'; m2.redraw();
     const v = screenView(m2);
     await flyTo(v.pos, v.quat);
     setMode('screen');
@@ -546,7 +549,7 @@ function start() {
     document.getElementById('veil').classList.remove('on');
     const v = screenView(m2);
     flyTo(v.pos, v.quat).then(() => setMode('screen'));
-    tween(1, (k) => { m2.app.dark = 1 - k; m2.redraw(); });
+    tween(1, (k) => dim(1 - k));
   });
   // Back from the village (?from=ailive): the page starts black (see index.html), already in
   // the room with the door shut, the camera inside monitor 2's dark screen; it comes out of it.
@@ -564,10 +567,10 @@ function start() {
     activate('monitor2'); land();
     const into = screenView(m2, true), v = screenView(m2);
     camera.position.copy(into.pos); camera.quaternion.copy(into.quat);
-    m2.app.dark = 1; m2.redraw();
+    dim(1);
     document.documentElement.classList.remove('from-ailive'); // the black veil fades away
     flyTo(v.pos, v.quat, 1.6);
-    tween(1.6, (k) => { m2.app.dark = 1 - k; m2.redraw(); });
+    tween(1.6, (k) => dim(1 - k));
   }
 
   Object.assign(api, {
