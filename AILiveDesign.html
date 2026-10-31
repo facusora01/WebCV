@@ -320,8 +320,8 @@ a:focus-visible { outline: 2px solid var(--fire); outline-offset: 2px; }
   <div class="split">
     <div class="col">
       <p>Vista cenital 3/4, como en la referencia: se mira desde arriba, como un ser omnisciente, y se ve el frente de carpas, árboles y personas. Tiles de <b>16×16</b> escalados sin suavizado (vecino más cercano).</p>
-      <p style="margin-top:12px"><b>Arte propio, siempre.</b> Nada se copia de otros juegos: ni sprites, ni tiles, ni personajes, ni paletas, ni interfaz. De otros juegos solo se toma la idea de la vista desde arriba. Los prompts de fal no nombran juegos ni estudios.</p>
-      <p style="margin-top:12px">Tiles, edificios y objetos los genera <b>fal</b> (<code>FAL_KEY</code> ya está configurada). Después un script los cuantiza a una paleta fija para que todo combine, y corrige tamaños.</p>
+      <p style="margin-top:12px"><b>Arte propio, siempre.</b> Nada se copia de otros juegos: ni sprites, ni tiles, ni personajes, ni paletas, ni interfaz. De otros juegos solo se toma la idea de la vista desde arriba.</p>
+      <p style="margin-top:12px"><b>Pixel art real, dibujado por código.</b> Cada sprite se dibuja pixel a pixel en su tamaño nativo (árbol 32×40, carpa 32×24, aldeano 12×16) con una paleta propia de unos 30 colores, y todos van en una sola hoja de sprites de pocos KB. No se usan imágenes generadas con IA: se probaron y quedaban con demasiada resolución, sin ser pixel art de verdad, y pesadas para un proyecto que tiene que escalar.</p>
       <p style="margin-top:12px">Los aldeanos son <b>un solo sprite base animado</b>. El pelo, la piel y la ropa se recolorean por código: cientos de aldeanos distintos que siguen pareciendo del mismo juego.</p>
     </div>
     <figure>
@@ -353,7 +353,7 @@ a:focus-visible { outline: 2px solid var(--fire); outline-offset: 2px; }
           <text x="210" y="180" text-anchor="middle" class="mono" font-size="13" style="fill:var(--muted)">un sprite · cinco aldeanos</text>
         </svg>
       </div>
-      <figcaption>Boceto: la misma figura con pelo, piel y ropa cambiados. Los sprites finales salen del flujo fal + paleta.</figcaption>
+      <figcaption>Boceto: la misma figura con pelo, piel y ropa cambiados. Los sprites finales se dibujan por código con la misma paleta.</figcaption>
     </figure>
   </div>
 </section>
