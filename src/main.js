@@ -182,15 +182,16 @@ function start() {
     else if (!top.keepCamera) flyTo(top.pos, top.quat);
   }
 
-  // Camera in front of a screen, close enough that it fills most of the view.
-  function screenView(s) {
+  // Camera in front of a screen, close enough that it fills most of the view
+  // (cover: so close that it fills all of it, edge to edge).
+  function screenView(s, cover = false) {
     const q = s.mesh.getWorldQuaternion(new THREE.Quaternion());
     const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(q);
     const up = new THREE.Vector3(0, 1, 0).applyQuaternion(q);
     const target = s.mesh.getWorldPosition(new THREE.Vector3()).addScaledVector(up, s.shift || 0);
     const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     const [w, h] = s.size;
-    const d = Math.max(h / (2 * tan), w / (2 * tan * camera.aspect)) * 1.04;
+    const d = cover ? Math.min(h / (2 * tan), w / (2 * tan * camera.aspect)) * 0.9 : Math.max(h / (2 * tan), w / (2 * tan * camera.aspect)) * 1.04;
     const pos = target.clone().addScaledVector(normal, d);
     return { pos, quat: lookQuat(pos, target, up) };
   }
@@ -518,6 +519,55 @@ function start() {
     room.hall.visible = false;
     hallSun.visible = false;
     shadowsDirty();
+  }
+
+  // ---------- AILive: into monitor 2 and over to the village, and back out on return ----------
+  // The village is its own site. The camera goes into the screen while it darkens; once
+  // black fills the view the page goes there, and the village starts from black.
+  const AILIVE = 'https://ailive.facundosorasio.com/';
+  const m2 = byId.monitor2;
+  m2.app.launch = async () => {
+    if (mode !== 'screen') return;
+    setMode('entering');
+    const up = fetch(`${AILIVE}health`, { cache: 'no-store', signal: AbortSignal.timeout(4000) }).then((r) => r.ok).catch(() => false);
+    const into = screenView(m2, true);
+    await Promise.all([flyTo(into.pos, into.quat, 1.6), tween(1.6, (e) => { m2.app.dark = e; m2.redraw(); })]);
+    if (await up) { document.getElementById('veil').classList.add('on'); location.href = AILIVE; return; }
+    // the server is down: back out, and the screen says so
+    m2.app.dark = 0; m2.app.note = 'the village sleeps…'; m2.redraw();
+    const v = screenView(m2);
+    await flyTo(v.pos, v.quat);
+    setMode('screen');
+    setTimeout(() => { m2.app.note = null; m2.redraw(); }, 5000);
+  };
+  // the browser's back button brings this page back as it was left, black: undo that
+  addEventListener('pageshow', (e) => {
+    if (!e.persisted || mode !== 'entering' || stack.at(-1)?.focus !== 'monitor2') return;
+    document.getElementById('veil').classList.remove('on');
+    const v = screenView(m2);
+    flyTo(v.pos, v.quat).then(() => setMode('screen'));
+    tween(1, (k) => { m2.app.dark = 1 - k; m2.redraw(); });
+  });
+  // Back from the village (?from=ailive): the page starts black (see index.html), already in
+  // the room with the door shut, the camera inside monitor 2's dark screen; it comes out of it.
+  // The views are pushed as if walked (room, desk, screen), so stepping back works as usual.
+  if (new URLSearchParams(location.search).get('from') === 'ailive') {
+    history.replaceState(null, '', location.pathname);
+    camera.far = 40; camera.updateProjectionMatrix();
+    room.hall.visible = false; hallSun.visible = false; shadowsDirty();
+    const q = lookQuat(STAND, new THREE.Vector3(-1.2, 1.0, -1.3)), e = new THREE.Euler().setFromQuaternion(q, 'YXZ');
+    yaw = e.y; pitch = e.x;
+    camera.position.copy(STAND); camera.quaternion.copy(q);
+    setMode('room');
+    const land = () => { for (const tw of tweens) { tw.fn(1); tw.done(); } tweens = []; }; // each view without its flight
+    activate('desk'); land();
+    activate('monitor2'); land();
+    const into = screenView(m2, true), v = screenView(m2);
+    camera.position.copy(into.pos); camera.quaternion.copy(into.quat);
+    m2.app.dark = 1; m2.redraw();
+    document.documentElement.classList.remove('from-ailive'); // the black veil fades away
+    flyTo(v.pos, v.quat, 1.6);
+    tween(1.6, (k) => { m2.app.dark = 1 - k; m2.redraw(); });
   }
 
   Object.assign(api, {

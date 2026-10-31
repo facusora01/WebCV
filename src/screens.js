@@ -244,12 +244,33 @@ function drawMods(u, app, ids) {
 }
 
 // ---------- monitor 2: a browser with the web projects ----------
+// AILive's shortcut: its campfire in pixel art, drawn cell by cell in the village's own colours
+const FIRE_ICON = [
+  '................',
+  '.......2........',
+  '.......22.......',
+  '......212.......',
+  '......2112..2...',
+  '.....21112..2...',
+  '.....210112.....',
+  '....2100012.....',
+  '....2100012.....',
+  '.....21012......',
+  '..sWw.212.wWs...',
+  '..swWWwwwWWws...',
+  '...sswwwwwss....',
+  '................',
+];
+const FIRE_COLORS = { 0: '#ffd864', 1: '#ef8a26', 2: '#c8361c', w: '#603d22', W: '#8d5e33', s: '#75757d' };
+
 export function browserApp() {
-  // a Windows-like desktop: the web projects are just shortcuts; one opens in a browser window
-  const app = { open: null };
+  // a Windows-like desktop: the web projects are just shortcuts; one opens in a browser window.
+  // AILive is a shortcut too, but it leaves the room: main.js sets app.launch, and while the
+  // camera goes into the screen app.dark (0..1) blacks it out; app.note is a line across it.
+  const app = { open: null, dark: 0, note: null };
   const ids = ['martina', 'amankay', 'wantit'];
   const tints = { martina: '#e98ea0', amankay: '#5ab0a0', wantit: '#f2a65a' };
-  app.draw = (u) => {
+  const desk = (u) => {
     const { ctx, w, h } = u;
     // wallpaper: the misty forest from the photo
     const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#163a4a'); g.addColorStop(1, '#2f7a6a');
@@ -275,6 +296,18 @@ export function browserApp() {
       ctx.shadowBlur = 0; ctx.textAlign = 'left';
       u.btn(x, y, 92, 96, () => { app.open = id; });
     });
+    {
+      const x = 28, y = 24 + ids.length * 112, k = 3;
+      ctx.fillStyle = '#142a20'; ctx.beginPath(); ctx.roundRect(x + 14, y, 64, 64, 14); ctx.fill();
+      FIRE_ICON.forEach((row, j) => [...row].forEach((c, i) => {
+        if (c === '.') return;
+        ctx.fillStyle = FIRE_COLORS[c]; ctx.fillRect(x + 22 + i * k, y + 11 + j * k, k, k);
+      }));
+      ctx.fillStyle = '#fff'; ctx.font = `15px ${SANS}`; ctx.textAlign = 'center'; ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 4;
+      ctx.fillText('AILive', x + 46, y + 88);
+      ctx.shadowBlur = 0; ctx.textAlign = 'left';
+      u.btn(x, y, 92, 96, () => app.launch?.());
+    }
     if (!app.open) return;
     // the browser window with the project
     const p = P(app.open);
@@ -295,6 +328,15 @@ export function browserApp() {
     drawProjectSheet({ ...u, w: W, h: H - 86, btn: (x, y, bw, bh, fn) => u.btn(x + X, y + Y + 86, bw, bh, fn) }, p,
       { bg: '#f7f4fb', accent: '#7a4fd8', ink: '#2b2430', sub: '#5d566a', x0: 32, top: 22 });
     ctx.restore();
+  };
+  app.draw = (u) => {
+    desk(u);
+    const { ctx, w, h } = u;
+    if (app.dark > 0) { ctx.fillStyle = `rgba(0,0,0,${app.dark})`; ctx.fillRect(0, 0, w, h); }
+    if (app.note) {
+      ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(0, h / 2 - 40, w, 80);
+      ctx.fillStyle = '#f4f0d8'; ctx.font = `26px ${MONO}`; ctx.textAlign = 'center'; ctx.fillText(app.note, w / 2, h / 2 + 9); ctx.textAlign = 'left';
+    }
   };
   return app;
 }
