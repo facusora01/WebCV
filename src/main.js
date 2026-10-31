@@ -532,12 +532,15 @@ function start() {
   m2.app.launch = async () => {
     if (mode !== 'screen') return;
     setMode('entering');
-    const up = fetch(`${AILIVE}health`, { cache: 'no-store', signal: AbortSignal.timeout(4000) }).then((r) => r.ok).catch(() => false);
+    // up, down, or not open yet ("soon": the village lives, but is not shown until it is finished)
+    const up = fetch(`${AILIVE}health`, { cache: 'no-store', signal: AbortSignal.timeout(4000) })
+      .then((r) => r.json()).then((h) => (h.soon ? 'soon' : h.ok)).catch(() => false);
     const into = screenView(m2, true);
     await Promise.all([flyTo(into.pos, into.quat, 1.6), tween(1.6, (e) => dim(e))]);
-    if (await up) { document.getElementById('veil').classList.add('on'); location.href = AILIVE; return; }
-    // the server is down: back out, and the screen says so
-    dim(0); m2.app.note = 'the village sleeps…'; m2.redraw();
+    const state = await up;
+    if (state === true) { document.getElementById('veil').classList.add('on'); location.href = AILIVE; return; }
+    // not open yet, or the server is down: back out, and the screen says so
+    dim(0); m2.app.note = state === 'soon' ? 'coming soon…' : 'the village sleeps…'; m2.redraw();
     const v = screenView(m2);
     await flyTo(v.pos, v.quat);
     setMode('screen');
