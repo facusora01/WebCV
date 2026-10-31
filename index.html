@@ -26,9 +26,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script type="module" src="/src/main.js"></script>
+    <!-- back from AILive: black from the first paint, until the camera is placed inside monitor 2 -->
+    <script>if (new URLSearchParams(location.search).get('from') === 'ailive') document.documentElement.classList.add('from-ailive');</script>
+    <style>
+        html.from-ailive { background: #000; }
+        #veil { position: fixed; inset: 0; z-index: 100; background: #000; opacity: 0; pointer-events: none; transition: opacity 0.8s; }
+        #veil.on { opacity: 1; transition-duration: 0.2s; }
+        html.from-ailive #veil { opacity: 1; transition: none; }
+    </style>
 </head>
 
 <body>
+    <div id="veil"></div>
     <canvas id="scene" aria-hidden="true"></canvas>
 
     <header class="topbar">

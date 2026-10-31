@@ -260,11 +260,12 @@ export function buildRoom(scene, { lowPower = false, terminal, getLang, avatarUr
     box(g, [0.18, 0.012, 0.12], [0, 0.006, 0], C.black);
     box(g, [0.03, 0.14, 0.02], [0, 0.08, -0.02], C.black);
     box(g, [0.48, 0.3, 0.025], [0, 0.29, 0], C.black);
-    const ui = screen(1024, 624, browserApp());
+    const app = browserApp();
+    const ui = screen(1024, 624, app);
     const mesh = screenPlane(g, 0.46, 0.28, ui, [0, 0.292, 0.0131], 0.9);
     let minute = '';
     anim.push(() => { const m = baTime(); if (m !== minute) { minute = m; ui.redraw(); } }); // taskbar clock
-    hotspots.monitor2 = { kind: 'screen', group: g, anchor: [0, 0.5, 0], mesh, size: [0.5, 0.3] };
+    hotspots.monitor2 = { kind: 'screen', group: g, anchor: [0, 0.5, 0], mesh, size: [0.5, 0.3], app, redraw: () => ui.redraw() };
   }
 
   // phone: contact
